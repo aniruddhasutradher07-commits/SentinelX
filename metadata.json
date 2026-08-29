@@ -1,0 +1,6 @@
+{
+  "name": "SentinelX",
+  "description": "Extreme Heatwave Early Warning, Thermal Stress & Hospital Surge Prediction Command Center for Odisha & Bhubaneswar",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
