@@ -1,0 +1,182 @@
+[
+  {
+    "district": "Ganjam",
+    "population_2011_est": 3116853,
+    "centroid_lat": 19.5608,
+    "centroid_lon": 84.5585
+  },
+  {
+    "district": "Cuttack",
+    "population_2011_est": 2547409,
+    "centroid_lat": 20.42,
+    "centroid_lon": 85.7386
+  },
+  {
+    "district": "Mayurbhanj",
+    "population_2011_est": 2443716,
+    "centroid_lat": 21.8439,
+    "centroid_lon": 86.4234
+  },
+  {
+    "district": "Baleshwar",
+    "population_2011_est": 2211609,
+    "centroid_lat": 21.5376,
+    "centroid_lon": 86.9072
+  },
+  {
+    "district": "Khordha",
+    "population_2011_est": 2049345,
+    "centroid_lat": 20.1031,
+    "centroid_lon": 85.6031
+  },
+  {
+    "district": "Sundargarh",
+    "population_2011_est": 1908310,
+    "centroid_lat": 22.0499,
+    "centroid_lon": 84.4576
+  },
+  {
+    "district": "Jajapur",
+    "population_2011_est": 1692095,
+    "centroid_lat": 20.8764,
+    "centroid_lon": 86.1931
+  },
+  {
+    "district": "Puri",
+    "population_2011_est": 1634826,
+    "centroid_lat": 19.9914,
+    "centroid_lon": 85.7324
+  },
+  {
+    "district": "Kendujhar",
+    "population_2011_est": 1548674,
+    "centroid_lat": 21.5062,
+    "centroid_lon": 85.7619
+  },
+  {
+    "district": "Kalahandi",
+    "population_2011_est": 1454882,
+    "centroid_lat": 19.8113,
+    "centroid_lon": 83.1469
+  },
+  {
+    "district": "Balangir",
+    "population_2011_est": 1451616,
+    "centroid_lat": 20.5853,
+    "centroid_lon": 83.2302
+  },
+  {
+    "district": "Bhadrak",
+    "population_2011_est": 1427962,
+    "centroid_lat": 21.0076,
+    "centroid_lon": 86.5326
+  },
+  {
+    "district": "Kendrapara",
+    "population_2011_est": 1356827,
+    "centroid_lat": 20.5807,
+    "centroid_lon": 86.5624
+  },
+  {
+    "district": "Bargarh",
+    "population_2011_est": 1331145,
+    "centroid_lat": 21.2162,
+    "centroid_lon": 83.2389
+  },
+  {
+    "district": "Koraput",
+    "population_2011_est": 1153478,
+    "centroid_lat": 18.7579,
+    "centroid_lon": 82.8175
+  },
+  {
+    "district": "Nabarangapur",
+    "population_2011_est": 1133321,
+    "centroid_lat": 19.5782,
+    "centroid_lon": 82.314
+  },
+  {
+    "district": "Dhenkanal",
+    "population_2011_est": 1075305,
+    "centroid_lat": 20.8059,
+    "centroid_lon": 85.5011
+  },
+  {
+    "district": "Sambalpur",
+    "population_2011_est": 1068767,
+    "centroid_lat": 21.4567,
+    "centroid_lon": 84.3758
+  },
+  {
+    "district": "Anugul",
+    "population_2011_est": 1067275,
+    "centroid_lat": 21.1345,
+    "centroid_lon": 85.0009
+  },
+  {
+    "district": "Jagatsinghapur",
+    "population_2011_est": 1020991,
+    "centroid_lat": 20.2241,
+    "centroid_lon": 86.3542
+  },
+  {
+    "district": "Nayagarh",
+    "population_2011_est": 883051,
+    "centroid_lat": 20.2015,
+    "centroid_lon": 85.0587
+  },
+  {
+    "district": "Rayagada",
+    "population_2011_est": 820945,
+    "centroid_lat": 19.3474,
+    "centroid_lon": 83.498
+  },
+  {
+    "district": "Kandhamal",
+    "population_2011_est": 660831,
+    "centroid_lat": 20.0262,
+    "centroid_lon": 84.0094
+  },
+  {
+    "district": "Nuapada",
+    "population_2011_est": 576328,
+    "centroid_lat": 20.5088,
+    "centroid_lon": 82.5762
+  },
+  {
+    "district": "Malkangiri",
+    "population_2011_est": 563664,
+    "centroid_lat": 18.2408,
+    "centroid_lon": 81.9398
+  },
+  {
+    "district": "Subarnapur",
+    "population_2011_est": 560242,
+    "centroid_lat": 20.9469,
+    "centroid_lon": 83.8037
+  },
+  {
+    "district": "Gajapati",
+    "population_2011_est": 507151,
+    "centroid_lat": 19.115,
+    "centroid_lon": 84.1672
+  },
+  {
+    "district": "Baudh",
+    "population_2011_est": 420738,
+    "centroid_lat": 20.5951,
+    "centroid_lon": 84.1854
+  },
+  {
+    "district": "Jharsuguda",
+    "population_2011_est": 348340,
+    "centroid_lat": 21.8569,
+    "centroid_lon": 83.9328
+  },
+  {
+    "district": "Debagarh",
+    "population_2011_est": 290130,
+    "centroid_lat": 21.4439,
+    "centroid_lon": 84.798
+  }
+]
