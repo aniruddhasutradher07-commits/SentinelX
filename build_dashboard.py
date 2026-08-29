@@ -247,13 +247,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .kpi.surge-highlight { border-color: rgba(56, 189, 248, 0.4); }
   .kpi.surge-highlight .kpi-val { color: var(--accent-blue); }
 
+  .header-actions { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+  .api-sync-box { display: flex; align-items: center; gap: 8px; background: var(--panel-raised); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 4px 10px; font-family: var(--mono); font-size: 11px; }
+  .sync-status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--tier-green); box-shadow: 0 0 8px var(--tier-green); animation: pulse 1.6s infinite; }
+  .api-sync-box.offline .sync-status-dot { background: var(--tier-yellow); box-shadow: 0 0 8px var(--tier-yellow); animation: none; }
+  .btn-sync-now { background: transparent; border: 1px solid var(--line); color: var(--brand); border-radius: 4px; font-family: var(--mono); font-size: 10px; padding: 3px 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; }
+  .btn-sync-now:hover { background: var(--brand-dim); border-color: var(--brand); }
+  .btn-sync-now.spinning svg { animation: spin 0.8s linear infinite; }
+  @keyframes spin { 100% { transform: rotate(360deg); } }
   .header-clock { font-family: var(--mono); text-align: right; flex-shrink: 0; }
-  .header-clock .status-dot {
-    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
-    background: var(--tier-green); margin-right: 6px; box-shadow: 0 0 8px var(--tier-green);
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse { 0%,100% {opacity: 1;} 50% {opacity: 0.35;} }
   .header-clock .day { color: var(--text-hi); font-weight: 600; font-size: 12px; }
   .header-clock .time { color: var(--text-mid); font-size: 11px; margin-top: 2px; }
 
@@ -576,9 +578,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <!-- Live KPI Strip -->
     <div id="kpi-strip"></div>
 
-    <div class="header-clock">
-      <div class="day"><span class="status-dot"></span><span id="clock-day">—</span></div>
-      <div class="time" id="clock-time">—</div>
+    <div class="header-actions">
+      <div class="api-sync-box" id="api-sync-box">
+        <span class="sync-status-dot" id="sync-dot"></span>
+        <span id="api-sync-text">LIVE API (15s)</span>
+        <button class="btn-sync-now" id="btn-sync-now" title="Trigger instant API telemetry refresh">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.19"/></svg>
+          Sync
+        </button>
+      </div>
+      <div class="header-clock">
+        <div class="day" id="clock-day">—</div>
+        <div class="time" id="clock-time">—</div>
+      </div>
     </div>
   </header>
 
@@ -1241,6 +1253,49 @@ function init(){
     setIndex(parseInt(e.target.value));
   });
   document.getElementById('play-btn').addEventListener('click', togglePlay);
+
+  // Live Auto-Polling Engine
+  const syncBtn = document.getElementById('btn-sync-now');
+  if(syncBtn) {
+    syncBtn.addEventListener('click', () => pollLiveData(true));
+  }
+  pollLiveData();
+  setInterval(() => pollLiveData(false), 15000);
+}
+
+const API_BASE = window.location.origin.includes(':8000') ? '' : 'http://localhost:8000';
+
+async function pollLiveData(manual = false){
+  const syncBtn = document.getElementById('btn-sync-now');
+  const syncBox = document.getElementById('api-sync-box');
+  const syncText = document.getElementById('api-sync-text');
+
+  if(syncBtn) syncBtn.classList.add('spinning');
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/live-feed`, { cache: 'no-cache' });
+    if (!res.ok) throw new Error('API offline');
+    const feed = await res.json();
+    
+    if(syncBox) syncBox.classList.remove('offline');
+    if(syncText) syncText.textContent = `LIVE · ${feed.sync_time_display.split(' ')[0]}`;
+    
+    // Fetch summary for dynamic stats
+    const sumRes = await fetch(`${API_BASE}/api/v1/summary`, { cache: 'no-cache' });
+    if (sumRes.ok) {
+      const summary = await sumRes.json();
+      if(summary.bhubaneswar_urban_core && summary.bhubaneswar_urban_core.peak_ward_expected_admissions) {
+        updateLegend(currentIdx);
+      }
+    }
+  } catch (err) {
+    if(syncBox) syncBox.classList.add('offline');
+    if(syncText) syncText.textContent = 'CACHE (Offline)';
+  } finally {
+    if(syncBtn) {
+      setTimeout(() => syncBtn.classList.remove('spinning'), 400);
+    }
+  }
 }
 
 window.addEventListener('DOMContentLoaded', init);
