@@ -971,6 +971,7 @@ def generate_html(payload):
         <button class="layer-btn" data-layer="surge">Hospital Surge</button>
         <button class="layer-btn" data-layer="uhi">🛰️ Satellite UHI</button>
         <button class="layer-btn" data-layer="ndvi">🌿 Green Canopy (NDVI)</button>
+        <button class="layer-btn" id="btn-toggle-basemap" style="border-left:1px solid rgba(255,255,255,0.2);margin-left:4px;color:#38bdf8;">🌍 Earth Satellite</button>
       </div>
 
       <!-- Floating Location Pin Badge -->
@@ -1140,6 +1141,9 @@ function formatTimestamp(ts) {{
 
 // Initialize Map
 let markerLayerGroup = null;
+let baseTileLayer = null;
+let referenceLayer = null;
+let isSatelliteMode = true;
 
 function initMap() {{
   mapInstance = L.map('odisha-map', {{
@@ -1151,8 +1155,15 @@ function initMap() {{
 
   L.control.zoom({{ position: 'topright' }}).addTo(mapInstance);
 
-  L.tileLayer('https://{{s}}.basemaps.cartocdn.com/dark_all/{{z}}/{{x}}/{{y}}{{r}}.png', {{
+  // 100% Free Zero-Key Esri World Imagery (NASA / Maxar High-Res Satellite View)
+  baseTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{{z}}/{{y}}/{{x}}', {{
     maxZoom: 18
+  }}).addTo(mapInstance);
+
+  // High-contrast administrative boundary & place labels
+  referenceLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{{z}}/{{y}}/{{x}}', {{
+    maxZoom: 18,
+    opacity: 0.85
   }}).addTo(mapInstance);
 
   markerLayerGroup = L.layerGroup().addTo(mapInstance);
@@ -1713,6 +1724,23 @@ document.querySelectorAll('.layer-btn').forEach(btn => {{
     }}
     updateMapStyles();
   }});
+}});
+
+// Basemap Switcher (Earth Satellite vs Dark Canvas)
+document.getElementById('btn-toggle-basemap').addEventListener('click', () => {{
+  const btn = document.getElementById('btn-toggle-basemap');
+  isSatelliteMode = !isSatelliteMode;
+  if(isSatelliteMode) {{
+    baseTileLayer.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{{z}}/{{y}}/{{x}}');
+    referenceLayer.setOpacity(0.85);
+    btn.innerHTML = '🌍 Earth Satellite';
+    btn.style.color = '#38bdf8';
+  }} else {{
+    baseTileLayer.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{{z}}/{{y}}/{{x}}');
+    referenceLayer.setOpacity(0.35);
+    btn.innerHTML = '🗺️ Dark Canvas';
+    btn.style.color = '#94a3b8';
+  }}
 }});
 
 // Play / Pause & Slider Events
