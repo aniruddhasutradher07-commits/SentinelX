@@ -1,6 +1,10 @@
-requests
-pandas
-numpy
-scikit-learn
-xgboost
-pythermalcomfort
+fastapi>=0.110.0
+uvicorn>=0.28.0
+sqlalchemy>=2.0.0
+pydantic>=2.6.0
+requests>=2.31.0
+pandas>=2.0.0
+numpy>=1.26.0
+scikit-learn>=1.4.0
+xgboost>=2.0.0
+pythermalcomfort>=2.10.0

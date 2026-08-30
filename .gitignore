@@ -1,5 +1,10 @@
 __pycache__/
 *.pyc
 .DS_Store
-sentinelx_data.db
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
 .env
+node_modules/
+dist/
