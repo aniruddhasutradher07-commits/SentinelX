@@ -101,6 +101,37 @@
   }
   .btn-export-sitrep:hover { background: rgba(255, 255, 255, 0.15); border-color: var(--border-highlight); }
 
+  .btn-news-wire {
+    background: rgba(249, 115, 22, 0.12); border: 1px solid rgba(249, 115, 22, 0.3);
+    color: #ffaa6c; padding: 5px 12px; border-radius: var(--radius-md);
+    font-size: 11px; font-weight: 600; cursor: pointer; display: inline-flex;
+    align-items: center; gap: 6px; transition: all 0.2s ease;
+  }
+  .btn-news-wire:hover { background: rgba(249, 115, 22, 0.22); border-color: rgba(249, 115, 22, 0.5); }
+  .news-badge {
+    background: #ea580c; color: #fff; font-size: 9.5px; font-weight: 700;
+    padding: 1px 5px; border-radius: 10px; font-family: var(--font-mono);
+  }
+
+  .news-modal-card {
+    background: #0d121a; border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-lg); width: 720px; max-width: 95vw; max-height: 85vh;
+    display: flex; flex-direction: column; box-shadow: 0 24px 48px rgba(0,0,0,0.85);
+    overflow: hidden;
+  }
+  .news-filter-tabs { display: flex; gap: 6px; padding: 10px 18px; border-bottom: 1px solid var(--border-subtle); background: rgba(0,0,0,0.25); }
+  .news-filter-tab { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; background: rgba(255,255,255,0.05); color: var(--text-secondary); cursor: pointer; border: 1px solid transparent; transition: all 0.2s; }
+  .news-filter-tab.active { background: rgba(249,115,22,0.2); color: #ffaa6c; border-color: rgba(249,115,22,0.4); }
+  .news-list-scroll { padding: 16px 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+  .news-article-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 12px; display: flex; gap: 12px; text-decoration: none; color: inherit; transition: all 0.2s; }
+  .news-article-card:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.2); transform: translateY(-1px); }
+  .news-art-img { width: 95px; height: 75px; border-radius: 6px; object-fit: cover; background: #1e293b; flex-shrink: 0; }
+  .news-art-content { flex: 1; min-width: 0; }
+  .news-art-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 10px; font-family: var(--font-mono); }
+  .news-threat-pill { padding: 2px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase; font-size: 9px; }
+  .news-art-title { font-size: 12.5px; font-weight: 700; line-height: 1.4; color: var(--text-primary); margin-bottom: 4px; }
+  .news-art-desc { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
   .sync-pill {
     display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px;
     background: rgba(52, 211, 153, 0.1); border: 1px solid rgba(52, 211, 153, 0.25);
@@ -545,6 +576,11 @@
     </div>
 
     <div class="header-right">
+      <button class="btn-news-wire" id="btn-open-news-modal" title="Live Breaking Weather & Disaster Intelligence Feed">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+        News Wire <span class="news-badge" id="news-badge-count">Live</span>
+      </button>
+
       <button class="btn-export-sitrep" id="btn-export-sitrep" title="Generate printable State Situation Report">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Export SitRep
@@ -856,6 +892,25 @@
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4Z"/></svg>
         Transmit Broadcast via NIC-SMS &amp; WhatsApp Cloud Gateway
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- LIVE NEWSAPI INTEL MODAL -->
+<div class="modal-overlay" id="news-modal-overlay">
+  <div class="news-modal-card">
+    <div class="modal-head">
+      <h3>📰 Live News Wire &amp; Early Warning Intel (NewsAPI.org)</h3>
+      <button class="btn-close-modal" id="btn-close-news-modal">&times;</button>
+    </div>
+    <div class="news-filter-tabs">
+      <button class="news-filter-tab active" data-filter="all">All Bulletins</button>
+      <button class="news-filter-tab" data-filter="warning">Heat &amp; Warnings</button>
+      <button class="news-filter-tab" data-filter="advisory">IMD Advisories</button>
+      <button class="news-filter-tab" data-filter="odisha">Odisha Focus</button>
+    </div>
+    <div class="news-list-scroll" id="news-articles-container">
+      <div style="text-align:center;padding:24px;color:var(--text-muted);font-size:12px;">Loading live wire intelligence...</div>
     </div>
   </div>
 </div>
@@ -1466,6 +1521,76 @@ document.getElementById('timeline-slider').addEventListener('input', (e) => {
   setIndex(parseInt(e.target.value, 10));
 });
 
+// News Modal & Live News Feeds
+const newsModal = document.getElementById('news-modal-overlay');
+let cachedArticles = [];
+
+async function fetchNewsWire(endpoint = '/api/v1/news/heatwave') {
+  const container = document.getElementById('news-articles-container');
+  try {
+    const res = await fetch(`${API_BASE}${endpoint}`);
+    if(!res.ok) throw new Error();
+    const data = await res.json();
+    cachedArticles = data.articles || [];
+    renderNewsArticles(cachedArticles);
+    document.getElementById('news-badge-count').textContent = cachedArticles.length;
+  } catch(e) {
+    container.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px;">
+      Offline cache: Unable to reach live news feed server. Ensure backend is active at http://localhost:8000.
+    </div>`;
+  }
+}
+
+function renderNewsArticles(articles) {
+  const container = document.getElementById('news-articles-container');
+  if(!articles || articles.length === 0) {
+    container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px;">No active news alerts matching criteria.</div>';
+    return;
+  }
+  container.innerHTML = articles.map(a => `
+    <a href="${a.url || '#'}" target="_blank" class="news-article-card">
+      ${a.image_url ? `<img src="${a.image_url}" class="news-art-img" onerror="this.style.display='none'" />` : ''}
+      <div class="news-art-content">
+        <div class="news-art-meta">
+          <span class="news-threat-pill" style="background:${a.threat_color}22;color:${a.threat_color};border:1px solid ${a.threat_color}55;">${a.threat_level || 'INTEL'}</span>
+          <span style="color:var(--text-secondary);">${a.source || 'News Wire'}</span>
+          <span style="color:var(--text-muted);margin-left:auto;">${a.published_at ? a.published_at.split('T')[0] : ''}</span>
+        </div>
+        <div class="news-art-title">${a.title}</div>
+        <div class="news-art-desc">${a.description || ''}</div>
+      </div>
+    </a>
+  `).join('');
+}
+
+document.querySelectorAll('.news-filter-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.news-filter-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const filter = tab.dataset.filter;
+    if(filter === 'odisha') {
+      fetchNewsWire('/api/v1/news/odisha');
+    } else if(filter === 'warning') {
+      renderNewsArticles(cachedArticles.filter(a => (a.threat_level || '').includes('WARNING') || (a.threat_level || '').includes('CRITICAL')));
+    } else if(filter === 'advisory') {
+      renderNewsArticles(cachedArticles.filter(a => (a.threat_level || '').includes('ADVISORY')));
+    } else {
+      renderNewsArticles(cachedArticles);
+    }
+  });
+});
+
+document.getElementById('btn-open-news-modal').addEventListener('click', () => {
+  newsModal.classList.add('active');
+  fetchNewsWire();
+});
+document.getElementById('btn-close-news-modal').addEventListener('click', () => {
+  newsModal.classList.remove('active');
+});
+newsModal.addEventListener('click', (e) => {
+  if(e.target === newsModal) newsModal.classList.remove('active');
+});
+
 // Live API Polling
 const API_BASE = window.location.origin.includes(':8000') ? '' : 'http://localhost:8000';
 async function pollLiveData() {
@@ -1477,6 +1602,9 @@ async function pollLiveData() {
     if(!res.ok) throw new Error();
     const feed = await res.json();
     syncText.textContent = `LIVE · ${feed.sync_time_display ? feed.sync_time_display.split(' ')[0] : 'OK'}`;
+    if(feed.breaking_news_count) {
+      document.getElementById('news-badge-count').textContent = feed.breaking_news_count;
+    }
   } catch(e) {
     syncText.textContent = 'OFFLINE (Cache)';
   } finally {
@@ -1494,6 +1622,7 @@ function init() {
   setIndex(11);
   updateGlobalKPIs();
   pollLiveData();
+  fetchNewsWire();
   setInterval(pollLiveData, 15000);
 
   // Force Leaflet to recalculate container dimensions after CSS layout
