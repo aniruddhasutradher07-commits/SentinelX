@@ -1353,9 +1353,9 @@ function renderBentoCards() {{
     const dMin = daySeries.length ? Math.min(...daySeries.map(s => s.temp)) : 26;
     const dMax = daySeries.length ? Math.max(...daySeries.map(s => s.temp)) : 33;
     
-    const dObj = new Date(dStr);
-    const daysArr = ['Today', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const dLabel = dIdx === 0 ? 'Today' : daysArr[dObj.getDay()];
+    const dObj = new Date(dStr + 'T12:00:00');
+    const daysArr = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dLabel = (dIdx === 0) ? 'Today' : daysArr[dObj.getDay()];
 
     const row = document.createElement('div');
     row.className = 'day-forecast-row';
@@ -1478,9 +1478,10 @@ function buildDayTicks() {{
   const ticksEl = document.getElementById('timeline-day-ticks');
   ticksEl.innerHTML = '';
   DATA.dates.forEach((dStr, i) => {{
-    const d = new Date(dStr);
+    const d = new Date(dStr + 'T12:00:00');
+    const daysArr = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const daySpan = document.createElement('span');
-    daySpan.textContent = i === 0 ? 'Today' : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()];
+    daySpan.textContent = i === 0 ? 'Today' : daysArr[d.getDay()];
     ticksEl.appendChild(daySpan);
   }});
 }}
