@@ -8,6 +8,7 @@ services:
     ports:
       - "8000:8000"
     environment:
+      - TZ=Asia/Kolkata
       - GEMINI_API_KEY=${GEMINI_API_KEY:-AIzaSyDR9BlDJxO2z4RQEUcqGH4W9sE2E28S5d4}
       - NEWS_API_KEY=${NEWS_API_KEY:-ae6b26e8512d4fb8a6d5a917923908f6}
       - WEATHERAPI_KEY=${WEATHERAPI_KEY:-34b0083b19ed408b8ad65436263008}

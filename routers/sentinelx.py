@@ -95,13 +95,23 @@ def get_system_status():
     }
 
 
+def get_ist_now():
+    try:
+        from zoneinfo import ZoneInfo
+        return datetime.datetime.now(ZoneInfo("Asia/Kolkata"))
+    except Exception:
+        ist = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
+        return datetime.datetime.now(ist)
+
+
 @router.get("/live-feed", summary="Real-time Live Telemetry Stream for Dashboard Polling")
 def get_live_feed():
-    now_dt = datetime.datetime.now().astimezone()
+    now_dt = get_ist_now()
     news_items = fetch_live_news(page_size=5)
     return {
         "sync_timestamp": now_dt.isoformat(timespec="seconds"),
-        "sync_time_display": now_dt.strftime("%I:%M:%S %p IST"),
+        "sync_time_display": now_dt.strftime("%I:%M %p IST"),
+        "sync_time_short": now_dt.strftime("%I:%M %p"),
         "connection": "ACTIVE_WEBSOCKET_POLLING",
         "refresh_interval_sec": 15,
         "telemetry": {

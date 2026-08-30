@@ -1717,7 +1717,7 @@ async function pollLiveData() {{
     const res = await fetch(`${{API_BASE}}/api/v1/live-feed`, {{ cache: 'no-cache' }});
     if(!res.ok) throw new Error();
     const feed = await res.json();
-    syncText.textContent = `LIVE · ${{feed.sync_time_display ? feed.sync_time_display.split(' ')[0] : 'OK'}}`;
+    syncText.textContent = `LIVE · ${{feed.sync_time_short || feed.sync_time_display || 'OK'}}`;
     if(feed.breaking_news_count) {{
       document.getElementById('news-badge-count').textContent = feed.breaking_news_count;
     }}
