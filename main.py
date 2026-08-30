@@ -80,6 +80,7 @@ app.include_router(copilot.router)
 # ---------------------------------------------------------------------------
 # Interactive HTML Command Center Dashboards
 # ---------------------------------------------------------------------------
+@app.get("/", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
 @app.get("/dashboard/odisha", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
 @app.get("/odisha", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
 def serve_odisha_dashboard():
