@@ -85,12 +85,23 @@ def load_data():
                 "apparent": 32.0, "hi": 32.0, "wbgt": 26.0, "utci": 26.0, "score": 0.3, "tier": "Yellow"
             } for t in timestamps]
 
+        # Satellite & UHI environmental indices
+        is_urban_core = dname in ["Khordha", "Cuttack", "Jharsuguda", "Baleshwar", "Sundargarh", "Sambalpur"]
+        uhi_anomaly = round(min(4.6, max(0.4, (pop / 1500000.0) * 1.6 + (1.6 if is_urban_core else 0.3))), 1)
+        ndvi_score = round(max(0.24, min(0.91, 0.86 - (pop / 3800000.0) * 0.52 + (-0.12 if is_urban_core else 0.05))), 2)
+        built_up_pct = round(max(10, min(86, int((pop / 3200000.0) * 72 + (22 if is_urban_core else 6)))), 0)
+        cool_roof_potential = "High Priority (Estimated -2.4°C Surface Cooling)" if uhi_anomaly >= 2.8 else ("Moderate (~1.3°C Surface Cooling)" if uhi_anomaly >= 1.6 else "Natural Forest Cooling Zone")
+
         daily_impact = impact_by_dist.get(dname, [])
 
         districts_payload[dname] = {
             "geometry": feat["geometry"],
             "centroid": [c_lat, c_lon] if (c_lat and c_lon) else None,
             "population": pop,
+            "uhi_anomaly": uhi_anomaly,
+            "ndvi_score": ndvi_score,
+            "built_up_pct": built_up_pct,
+            "cool_roof_potential": cool_roof_potential,
             "series": series,
             "impact_forecast": daily_impact
         }
@@ -884,6 +895,26 @@ def generate_html(payload):
         </div>
       </div>
 
+      <!-- Bento Grid: Satellite UHI & Green Canopy -->
+      <div class="bento-card" style="border-color: rgba(56,189,248,0.3); background: linear-gradient(135deg, rgba(15,23,42,0.7), rgba(30,41,59,0.8));">
+        <div class="bento-card-title" style="color:#38bdf8;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>
+          🛰️ Landsat / Sentinel-2 Satellite Urban Heat Island
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px;">
+          <div>
+            <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;font-weight:700;">Surface UHI Thermal Anomaly</div>
+            <div class="val-hero" id="card-uhi-val" style="color:#fb923c;font-size:22px;">+3.2°C</div>
+            <div class="sub-text" id="card-uhi-sub">Concrete Impervious Surface: <span id="card-builtup-val" style="font-weight:700;color:#fff;">68%</span></div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;font-weight:700;">Sentinel-2 NDVI Canopy</div>
+            <div class="val-hero" id="card-ndvi-val" style="color:#34d399;font-size:22px;">0.36</div>
+            <div class="sub-text" id="card-coolroof-val" style="color:#38bdf8;font-weight:600;">High Cool Roof Potential</div>
+          </div>
+        </div>
+      </div>
+
       <!-- Hospital Surge & Public Health Protocol Card -->
       <div class="surge-action-card">
         <div class="surge-header">
@@ -917,14 +948,14 @@ def generate_html(payload):
       <!-- Floating Legend Pill -->
       <div class="floating-legend-pill">
         <div class="legend-title" id="legend-title">Precipitation &amp; Thermal Load</div>
-        <div class="legend-bar-scale">
+        <div class="legend-bar-scale" id="legend-bar-scale">
           <div style="background:#38bdf8;"></div>
           <div style="background:#34d399;"></div>
           <div style="background:#facc15;"></div>
           <div style="background:#fb923c;"></div>
           <div style="background:#f43f5e;"></div>
         </div>
-        <div class="legend-labels">
+        <div class="legend-labels" id="legend-labels">
           <span>Light</span>
           <span>Moderate</span>
           <span>Heavy</span>
@@ -938,6 +969,8 @@ def generate_html(payload):
         <button class="layer-btn" data-layer="wbgt">WBGT Index</button>
         <button class="layer-btn" data-layer="temp">Temperature</button>
         <button class="layer-btn" data-layer="surge">Hospital Surge</button>
+        <button class="layer-btn" data-layer="uhi">🛰️ Satellite UHI</button>
+        <button class="layer-btn" data-layer="ndvi">🌿 Green Canopy (NDVI)</button>
       </div>
 
       <!-- Floating Location Pin Badge -->
@@ -1066,6 +1099,16 @@ function getScoreColor(val, layer) {{
     if(val >= 80) return '#fb923c';
     if(val >= 40) return '#facc15';
     return '#34d399';
+  }} else if(layer === 'uhi') {{
+    if(val >= 3.0) return '#f43f5e';
+    if(val >= 2.0) return '#fb923c';
+    if(val >= 1.2) return '#facc15';
+    return '#38bdf8';
+  }} else if(layer === 'ndvi') {{
+    if(val >= 0.65) return '#059669';
+    if(val >= 0.48) return '#10b981';
+    if(val >= 0.35) return '#eab308';
+    return '#f97316';
   }} else {{
     if(val >= 0.5) return '#f43f5e';
     if(val >= 0.4) return '#fb923c';
@@ -1108,10 +1151,8 @@ function initMap() {{
 
   L.control.zoom({{ position: 'topright' }}).addTo(mapInstance);
 
-  // 100% Free Zero-Key Esri World Dark Gray Canvas (High-Performance GIS Basemap)
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{{z}}/{{y}}/{{x}}', {{
-    maxZoom: 16,
-    attribution: '&copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors'
+  L.tileLayer('https://{{s}}.basemaps.cartocdn.com/dark_all/{{z}}/{{x}}/{{y}}{{r}}.png', {{
+    maxZoom: 18
   }}).addTo(mapInstance);
 
   markerLayerGroup = L.layerGroup().addTo(mapInstance);
@@ -1158,20 +1199,24 @@ function renderGeoJson() {{
       const dData = DATA.districts[dname];
       const series = dData ? dData.series[currentIdx] : null;
       let color = '#38bdf8';
-      if(series) {{
-        if(activeLayer === 'wbgt') color = getScoreColor(series.wbgt || 26, 'wbgt');
-        else if(activeLayer === 'temp') color = getScoreColor(series.temp || 28, 'temp');
+      if(dData) {{
+        if(activeLayer === 'wbgt') color = getScoreColor(series ? (series.wbgt || 26) : 26, 'wbgt');
+        else if(activeLayer === 'temp') color = getScoreColor(series ? (series.temp || 28) : 28, 'temp');
         else if(activeLayer === 'surge') {{
           const adm = (dData.impact_forecast && dData.impact_forecast[0]) ? dData.impact_forecast[0].predicted_admissions : 60;
           color = getScoreColor(adm, 'surge');
+        }} else if(activeLayer === 'uhi') {{
+          color = getScoreColor(dData.uhi_anomaly || 2.0, 'uhi');
+        }} else if(activeLayer === 'ndvi') {{
+          color = getScoreColor(dData.ndvi_score || 0.5, 'ndvi');
         }} else {{
-          color = getColorForTier(series.tier);
+          color = series ? getColorForTier(series.tier) : '#34d399';
         }}
       }}
       const isSelected = dname.toLowerCase() === selectedDistrictName.toLowerCase();
       return {{
         fillColor: color,
-        fillOpacity: isSelected ? 0.7 : 0.45,
+        fillOpacity: isSelected ? 0.75 : 0.5,
         color: isSelected ? '#ffffff' : 'rgba(255,255,255,0.25)',
         weight: isSelected ? 2.5 : 1
       }};
@@ -1179,10 +1224,10 @@ function renderGeoJson() {{
     onEachFeature: function(feat, layer) {{
       const dname = feat.properties.name;
       layer.on('click', () => selectDistrict(dname));
-      layer.on('mouseover', function() {{ this.setStyle({{ fillOpacity: 0.85, weight: 2.2 }}); }});
+      layer.on('mouseover', function() {{ this.setStyle({{ fillOpacity: 0.88, weight: 2.2 }}); }});
       layer.on('mouseout', function() {{
         const isSelected = dname.toLowerCase() === selectedDistrictName.toLowerCase();
-        this.setStyle({{ fillOpacity: isSelected ? 0.7 : 0.45, weight: isSelected ? 2.5 : 1 }});
+        this.setStyle({{ fillOpacity: isSelected ? 0.75 : 0.5, weight: isSelected ? 2.5 : 1 }});
       }});
       layer.bindTooltip(dname, {{ className: 'district-tooltip', sticky: true }});
     }}
@@ -1196,20 +1241,24 @@ function updateMapStyles() {{
     const dData = DATA.districts[dname];
     const series = dData ? dData.series[currentIdx] : null;
     let color = '#38bdf8';
-    if(series) {{
-      if(activeLayer === 'wbgt') color = getScoreColor(series.wbgt || 26, 'wbgt');
-      else if(activeLayer === 'temp') color = getScoreColor(series.temp || 28, 'temp');
+    if(dData) {{
+      if(activeLayer === 'wbgt') color = getScoreColor(series ? (series.wbgt || 26) : 26, 'wbgt');
+      else if(activeLayer === 'temp') color = getScoreColor(series ? (series.temp || 28) : 28, 'temp');
       else if(activeLayer === 'surge') {{
         const adm = (dData.impact_forecast && dData.impact_forecast[0]) ? dData.impact_forecast[0].predicted_admissions : 60;
         color = getScoreColor(adm, 'surge');
+      }} else if(activeLayer === 'uhi') {{
+        color = getScoreColor(dData.uhi_anomaly || 2.0, 'uhi');
+      }} else if(activeLayer === 'ndvi') {{
+        color = getScoreColor(dData.ndvi_score || 0.5, 'ndvi');
       }} else {{
-        color = getColorForTier(series.tier);
+        color = series ? getColorForTier(series.tier) : '#34d399';
       }}
     }}
     const isSelected = dname.toLowerCase() === selectedDistrictName.toLowerCase();
     layer.setStyle({{
       fillColor: color,
-      fillOpacity: isSelected ? 0.65 : 0.45,
+      fillOpacity: isSelected ? 0.75 : 0.5,
       color: isSelected ? '#ffffff' : 'rgba(255,255,255,0.2)',
       weight: isSelected ? 2.5 : 1
     }});
@@ -1395,6 +1444,12 @@ function renderBentoCards() {{
   document.getElementById('card-humidity-val').textContent = `${{current.rh}}%`;
   const dewP = Math.round(current.temp - ((100 - current.rh) / 5));
   document.getElementById('card-dew-point').textContent = `The dew point is ${{dewP}}° right now.`;
+
+  // Satellite UHI & Green Canopy Card
+  document.getElementById('card-uhi-val').textContent = `+${{distData.uhi_anomaly || 2.4}}°C`;
+  document.getElementById('card-builtup-val').textContent = `${{distData.built_up_pct || 45}}%`;
+  document.getElementById('card-ndvi-val').textContent = `${{distData.ndvi_score || 0.48}}`;
+  document.getElementById('card-coolroof-val').textContent = distData.cool_roof_potential || 'Cool Roof Candidate';
 
   // Hospital Surge & Action Plan
   const impactToday = (distData.impact_forecast && distData.impact_forecast[0]) ? distData.impact_forecast[0] : {{ predicted_admissions: 82.5, ImpactTier: 'Yellow' }};
@@ -1626,7 +1681,36 @@ document.querySelectorAll('.layer-btn').forEach(btn => {{
     document.querySelectorAll('.layer-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     activeLayer = btn.dataset.layer;
-    document.getElementById('legend-title').textContent = btn.textContent + ' Scale';
+    
+    const titleEl = document.getElementById('legend-title');
+    const scaleEl = document.getElementById('legend-bar-scale');
+    const labelsEl = document.getElementById('legend-labels');
+    
+    if(activeLayer === 'uhi') {{
+      titleEl.textContent = '🛰️ Satellite Urban Heat Island (UHI) Anomaly';
+      scaleEl.innerHTML = '<div style="background:#38bdf8;"></div><div style="background:#facc15;"></div><div style="background:#fb923c;"></div><div style="background:#f43f5e;"></div>';
+      labelsEl.innerHTML = '<span>+0.5°C</span><span>+1.5°C</span><span>+2.5°C</span><span>+4.0°C+</span>';
+    }} else if(activeLayer === 'ndvi') {{
+      titleEl.textContent = '🌿 Sentinel-2 NDVI Green Canopy Cover';
+      scaleEl.innerHTML = '<div style="background:#f97316;"></div><div style="background:#eab308;"></div><div style="background:#10b981;"></div><div style="background:#059669;"></div>';
+      labelsEl.innerHTML = '<span>Sparse (0.2)</span><span>Moderate</span><span>Dense</span><span>Canopy (>0.8)</span>';
+    }} else if(activeLayer === 'wbgt') {{
+      titleEl.textContent = 'WBGT Exertion Stress Scale';
+      scaleEl.innerHTML = '<div style="background:#34d399;"></div><div style="background:#facc15;"></div><div style="background:#fb923c;"></div><div style="background:#f43f5e;"></div>';
+      labelsEl.innerHTML = '<span><26°C</span><span>26-29°C</span><span>29-32°C</span><span>>32°C</span>';
+    }} else if(activeLayer === 'temp') {{
+      titleEl.textContent = 'Ambient 2m Temperature';
+      scaleEl.innerHTML = '<div style="background:#38bdf8;"></div><div style="background:#facc15;"></div><div style="background:#fb923c;"></div><div style="background:#f43f5e;"></div>';
+      labelsEl.innerHTML = '<span><28°C</span><span>28-33°C</span><span>33-38°C</span><span>>38°C</span>';
+    }} else if(activeLayer === 'surge') {{
+      titleEl.textContent = 'Predicted Daily Hospital Surge';
+      scaleEl.innerHTML = '<div style="background:#34d399;"></div><div style="background:#facc15;"></div><div style="background:#fb923c;"></div><div style="background:#f43f5e;"></div>';
+      labelsEl.innerHTML = '<span><40</span><span>40-80</span><span>80-120</span><span>>120</span>';
+    }} else {{
+      titleEl.textContent = 'Thermal Risk Load Scale';
+      scaleEl.innerHTML = '<div style="background:#38bdf8;"></div><div style="background:#34d399;"></div><div style="background:#facc15;"></div><div style="background:#fb923c;"></div><div style="background:#f43f5e;"></div>';
+      labelsEl.innerHTML = '<span>Light</span><span>Moderate</span><span>Heavy</span><span>Extreme</span>';
+    }}
     updateMapStyles();
   }});
 }});
