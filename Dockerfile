@@ -1,17 +1,8 @@
 # ==============================================================================
-# SentinelX / THERMO-SHIELD AI — Production Multi-Stage Dockerfile
+# SentinelX / THERMO-SHIELD AI — Production Dockerfile
 # ==============================================================================
-
-# --- Stage 1: Build React Frontend ---
-FROM node:20-alpine AS frontend-builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build || true
-
-# --- Stage 2: Python FastAPI Master Backend ---
 FROM python:3.13-slim
+
 WORKDIR /app
 
 # Set system environment variables
@@ -26,19 +17,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python requirements
+# Install Python dependencies
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code and database files
+# Copy application source code, databases, and dashboard templates
 COPY . .
-
-# Copy built frontend assets if generated
-COPY --from=frontend-builder /app/dist ./dist
-
-# Create non-root user for security
-RUN useradd -m -u 1001 sentineluser && chown -R sentineluser:sentineluser /app
-USER sentineluser
 
 # Expose FastAPI Master Service Port
 EXPOSE 8000
