@@ -1059,6 +1059,7 @@ def generate_html(payload):
 <script>
 window.__SENTINELX_DATA__ = {data_json};
 
+const API_BASE = (window.location.protocol.startsWith('http')) ? '' : 'http://localhost:8000';
 const DATA = window.__SENTINELX_DATA__;
 let selectedDistrictName = "Khordha";
 let currentIdx = 11;
@@ -1821,7 +1822,6 @@ newsModal.addEventListener('click', (e) => {{
 }});
 
 // Live API Polling
-const API_BASE = window.location.origin.includes(':8000') ? '' : 'http://localhost:8000';
 async function pollLiveData() {{
   const syncPill = document.getElementById('sync-pill');
   const syncText = document.getElementById('sync-text');
