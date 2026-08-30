@@ -13,8 +13,7 @@ services:
       - WEATHERAPI_KEY=${WEATHERAPI_KEY:-34b0083b19ed408b8ad65436263008}
       - PORT=8000
     volumes:
-      - ./sentinelx_data.db:/app/sentinelx_data.db
-      - ./heatwave.db:/app/heatwave.db
+      - .:/app
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s

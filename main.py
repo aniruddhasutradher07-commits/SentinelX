@@ -30,7 +30,7 @@ if os.path.exists(".env"):
         pass
 
 from database import SessionLocal, engine, Base
-from routers import weather, wards, risk, thermal, alerts, dashboard, live, news, sentinelx
+from routers import weather, wards, risk, thermal, alerts, dashboard, live, news, sentinelx, copilot
 from services.live_weather import start_background_refresh
 
 # Initialize database tables
@@ -67,13 +67,14 @@ app.include_router(weather.router, tags=["Weather Ingestion"])
 app.include_router(wards.router, tags=["Ward Management"])
 app.include_router(risk.router, tags=["Risk Calculation"])
 app.include_router(thermal.router, tags=["Thermal Stress (UTCI/WBGT)"])
-app.include_router(alerts.router, tags=["Alert Management"])
+app.include_router(alerts.router, tags=["Alert Management & Emergency Dispatch"])
 app.include_router(dashboard.router, tags=["Dashboard Aggregation (JSON)"])
 app.include_router(live.router, tags=["Live Ward Conditions"])
 
-# SentinelX ML & Intel routers
+# SentinelX ML, Intel & Copilot routers
 app.include_router(sentinelx.router)
 app.include_router(news.router)
+app.include_router(copilot.router)
 
 
 # ---------------------------------------------------------------------------
