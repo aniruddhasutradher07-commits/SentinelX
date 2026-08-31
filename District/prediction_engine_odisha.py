@@ -28,6 +28,7 @@ HOW TO RUN:
 4. Output: `odisha_district_impact_forecast.csv`
 """
 
+import os
 import json
 import math
 import numpy as np
@@ -36,9 +37,17 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, r2_score
 from xgboost import XGBRegressor
 
-RISK_INDEX_CSV = "odisha_district_risk_index.csv"
-DISTRICTS_GEOJSON_PATH = "odisha_districts_with_population.geojson"
-OUTPUT_CSV = "odisha_district_impact_forecast.csv"
+def _p(filename):
+    if os.path.exists(filename):
+        return filename
+    if os.path.exists(os.path.join("District", filename)):
+        return os.path.join("District", filename)
+    return filename
+
+RISK_INDEX_CSV = _p("odisha_district_risk_index.csv")
+DISTRICTS_GEOJSON_PATH = _p("odisha_districts_with_population.geojson")
+OUTPUT_CSV = _p("odisha_district_impact_forecast.csv")
+
 
 RNG = np.random.default_rng(42)
 N_HISTORICAL_YEARS = 3

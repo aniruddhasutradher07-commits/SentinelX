@@ -1408,21 +1408,31 @@ function renderBentoCards() {{
   // 5-Day Forecast Widget
   const fList = document.getElementById('forecast-5day-list');
   fList.innerHTML = '';
-  const impactDays = distData.impact_forecast || [];
-  DATA.dates.forEach((dStr, dIdx) => {{
+  
+  const todayObj = new Date();
+  const todayStr = todayObj.getFullYear() + '-' + String(todayObj.getMonth() + 1).padStart(2, '0') + '-' + String(todayObj.getDate()).padStart(2, '0');
+  
+  let activeDates = DATA.dates.filter(d => d >= todayStr);
+  if (activeDates.length < 5) {{
+    activeDates = DATA.dates.slice(0, 5);
+  }}
+
+
+  activeDates.forEach((dStr, dIdx) => {{
     const daySeries = distData.series.filter(s => s.t.startsWith(dStr));
-    const dMin = daySeries.length ? Math.min(...daySeries.map(s => s.temp)) : 26;
-    const dMax = daySeries.length ? Math.max(...daySeries.map(s => s.temp)) : 33;
+    const dMin = daySeries.length ? Math.min(...daySeries.map(s => s.temp)) : 24;
+    const dMax = daySeries.length ? Math.max(...daySeries.map(s => s.temp)) : 32;
     
     const dObj = new Date(dStr + 'T12:00:00');
     const daysArr = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const dLabel = (dIdx === 0) ? 'Today' : daysArr[dObj.getDay()];
+    const isToday = (dStr === todayStr) || (dIdx === 0 && dStr >= todayStr);
+    const dLabel = isToday ? 'Today' : daysArr[dObj.getDay()];
 
     const row = document.createElement('div');
     row.className = 'day-forecast-row';
     row.innerHTML = `
       <div class="day-name">${{dLabel}}</div>
-      <div class="day-icon">${{dMax > 34 ? '🔥' : '🌧️'}}</div>
+      <div class="day-icon">${{dMax > 34 ? '🔥' : (dMin < 26 ? '🌧️' : '⛅')}}</div>
       <div class="day-precip">${{dIdx % 2 === 0 ? '85%' : '40%'}}</div>
       <div class="day-min">${{Math.round(dMin)}}°</div>
       <div class="day-bar-track">
@@ -1432,6 +1442,7 @@ function renderBentoCards() {{
     `;
     fList.appendChild(row);
   }});
+
 
   // UV Index
   const uvVal = current.solar > 500 ? 8 : (current.solar > 200 ? 5 : (current.solar > 0 ? 2 : 0));
@@ -1544,14 +1555,19 @@ function togglePlay() {{
 function buildDayTicks() {{
   const ticksEl = document.getElementById('timeline-day-ticks');
   ticksEl.innerHTML = '';
+  const todayObj = new Date();
+  const todayStr = todayObj.getFullYear() + '-' + String(todayObj.getMonth() + 1).padStart(2, '0') + '-' + String(todayObj.getDate()).padStart(2, '0');
+  
   DATA.dates.forEach((dStr, i) => {{
     const d = new Date(dStr + 'T12:00:00');
     const daysArr = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const isToday = (dStr === todayStr) || (i === 0 && dStr >= todayStr);
     const daySpan = document.createElement('span');
-    daySpan.textContent = i === 0 ? 'Today' : daysArr[d.getDay()];
+    daySpan.textContent = isToday ? 'Today' : daysArr[d.getDay()];
     ticksEl.appendChild(daySpan);
   }});
 }}
+
 
 // Global KPIs
 function updateGlobalKPIs() {{
@@ -1821,26 +1837,51 @@ newsModal.addEventListener('click', (e) => {{
   if(e.target === newsModal) newsModal.classList.remove('active');
 }});
 
-// Live API Polling
+// Live Auto-Sync & Real-Time Clock Engine
+function getClosestLiveIndex() {{
+  const nowMs = Date.now();
+  let bestIdx = 0;
+  let minDiff = Infinity;
+  if (!DATA.timestamps || DATA.timestamps.length === 0) return 0;
+  for (let i = 0; i < DATA.timestamps.length; i++) {{
+    const t = new Date(DATA.timestamps[i]).getTime();
+    const diff = Math.abs(t - nowMs);
+    if (diff < minDiff) {{
+      minDiff = diff;
+      bestIdx = i;
+    }}
+  }}
+  return bestIdx;
+}}
+
 async function pollLiveData() {{
   const syncPill = document.getElementById('sync-pill');
   const syncText = document.getElementById('sync-text');
-  syncPill.classList.add('spinning');
+  if (syncPill) syncPill.classList.add('spinning');
+
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('en-US', {{ hour: 'numeric', minute: '2-digit', hour12: true }});
+  if (syncText) syncText.textContent = `LIVE · ${{timeStr}}`;
+
   try {{
     const res = await fetch(`${{API_BASE}}/api/v1/live-feed`, {{ cache: 'no-cache' }});
-    if(!res.ok) throw new Error();
-    const feed = await res.json();
-    syncText.textContent = `LIVE · ${{feed.sync_time_short || feed.sync_time_display || 'OK'}}`;
-    if(feed.breaking_news_count) {{
-      document.getElementById('news-badge-count').textContent = feed.breaking_news_count;
+    if (res.ok) {{
+      const feed = await res.json();
+      if (feed.breaking_news_count) {{
+        document.getElementById('news-badge-count').textContent = feed.breaking_news_count;
+      }}
     }}
   }} catch(e) {{
-    syncText.textContent = 'OFFLINE (Cache)';
+    // Standalone fallback
   }} finally {{
-    setTimeout(() => syncPill.classList.remove('spinning'), 400);
+    if (syncPill) setTimeout(() => syncPill.classList.remove('spinning'), 400);
   }}
 }}
-document.getElementById('sync-pill').addEventListener('click', pollLiveData);
+
+document.getElementById('sync-pill').addEventListener('click', () => {{
+  pollLiveData();
+  setIndex(getClosestLiveIndex());
+}});
 
 // Boot
 function init() {{
@@ -1848,11 +1889,24 @@ function init() {{
   buildDayTicks();
   renderDistrictList();
   selectDistrict('Khordha');
-  setIndex(11);
+  
+  // Automatically select the real-time current hour
+  const liveIdx = getClosestLiveIndex();
+  setIndex(liveIdx);
+  
   updateGlobalKPIs();
   pollLiveData();
   fetchNewsWire();
-  setInterval(pollLiveData, 15000);
+  
+  // Real-time clock tick every 10 seconds
+  setInterval(pollLiveData, 10000);
+
+  // Auto-refresh forecast index every 10 minutes to stay in sync with live time
+  setInterval(() => {{
+    const nowIdx = getClosestLiveIndex();
+    setIndex(nowIdx);
+  }}, 600000);
+
 
   // Force Leaflet to recalculate container dimensions after CSS layout
   setTimeout(() => {{

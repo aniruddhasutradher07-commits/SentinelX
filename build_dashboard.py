@@ -1101,9 +1101,13 @@ function setDayIndex(dIdx){
 
 function buildDayButtons(){
   const group = document.getElementById('day-btn-group');
+  const todayObj = new Date();
+  const todayStr = todayObj.getFullYear() + '-' + String(todayObj.getMonth() + 1).padStart(2, '0') + '-' + String(todayObj.getDate()).padStart(2, '0');
+
   group.innerHTML = DATA.dates.map((dStr, i) => {
-    const dt = new Date(dStr);
-    const dayLabel = i === 0 ? 'TODAY' : dt.toLocaleDateString('en-IN', { weekday:'short', day:'2-digit' });
+    const dt = new Date(dStr + 'T12:00:00');
+    const isToday = (dStr === todayStr) || (i === 0 && dStr >= todayStr);
+    const dayLabel = isToday ? 'TODAY' : dt.toLocaleDateString('en-IN', { weekday:'short', day:'2-digit' });
     const summary = DATA.city_impact_summary[dStr];
     const total = summary ? summary.total_admissions : 0;
     return `
@@ -1116,6 +1120,7 @@ function buildDayButtons(){
 
   setDayIndex(0);
 }
+
 
 function buildDayTicks(){
   const el = document.getElementById('day-ticks');

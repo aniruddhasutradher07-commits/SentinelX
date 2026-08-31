@@ -22,14 +22,23 @@ HOW TO RUN:
 4. Output: `odisha_district_risk_index.csv`
 """
 
+import os
 import csv
 import json
 import math
 from pythermalcomfort.models import utci
 
-INPUT_CSV = "odisha_district_weather_forecast.csv"
-OUTPUT_CSV = "odisha_district_risk_index.csv"
-DISTRICTS_GEOJSON_PATH = "odisha_districts_with_population.geojson"
+def _p(filename):
+    if os.path.exists(filename):
+        return filename
+    if os.path.exists(os.path.join("District", filename)):
+        return os.path.join("District", filename)
+    return filename
+
+INPUT_CSV = _p("odisha_district_weather_forecast.csv")
+OUTPUT_CSV = _p("odisha_district_risk_index.csv")
+DISTRICTS_GEOJSON_PATH = _p("odisha_districts_with_population.geojson")
+
 
 
 # ---------------------------------------------------------------------------
