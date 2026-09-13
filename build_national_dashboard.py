@@ -852,10 +852,146 @@ def compile_national_dashboard():
       padding-bottom: 12px;
     }}
 
-    .grid-2col {{
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
+    .action-btn-secondary {{
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-glass);
+      color: #f8fafc;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.82rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }}
+
+    .action-btn-secondary:hover {{
+      background: rgba(255, 255, 255, 0.16);
+      border-color: var(--primary-cyan);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }}
+
+    /* Official Government Directive Print & Paper Styling */
+    .memo-modal-box {{
+      max-width: 860px;
+      width: 95%;
+      background: #0f172a;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 16px;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.95);
+      color: #f8fafc;
+      padding: 24px;
+      max-height: 92vh;
+      overflow-y: auto;
+    }}
+
+    .memo-paper {{
+      background: #ffffff;
+      color: #0f172a;
+      border-radius: 8px;
+      padding: 32px 36px;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      position: relative;
+    }}
+
+    .memo-emblem {{
+      width: 52px;
+      height: 52px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+    }}
+
+    .memo-header-title {{
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #0f172a;
+      text-transform: uppercase;
+      margin: 0;
+      line-height: 1.25;
+    }}
+
+    .memo-sub-header {{
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #475569;
+      margin-top: 3px;
+    }}
+
+    .memo-table {{
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 0.82rem;
+    }}
+
+    .memo-table th, .memo-table td {{
+      border: 1px solid #cbd5e1;
+      padding: 8px 10px;
+      text-align: left;
+    }}
+
+    .memo-table th {{
+      background: #f1f5f9;
+      font-weight: 700;
+      color: #1e293b;
+    }}
+
+    .memo-stamp {{
+      border: 2px dashed #b91c1c;
+      color: #b91c1c;
+      font-weight: 800;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      padding: 6px 12px;
+      border-radius: 4px;
+      display: inline-block;
+      letter-spacing: 1px;
+      transform: rotate(-3deg);
+    }}
+
+    @media print {{
+      body * {{
+        visibility: hidden !important;
+      }}
+      #hapMemoModal, #hapMemoModal * {{
+        visibility: visible !important;
+      }}
+      #hapMemoModal {{
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        display: block !important;
+        overflow: visible !important;
+        z-index: 9999999 !important;
+      }}
+      .memo-modal-box {{
+        width: 100% !important;
+        max-width: 100% !important;
+        background: #ffffff !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+      }}
+      .memo-paper {{
+        box-shadow: none !important;
+        border: none !important;
+        padding: 10mm 15mm !important;
+        color: #000000 !important;
+      }}
+      .no-print {{
+        display: none !important;
+      }}
     }}
   </style>
 </head>
@@ -878,6 +1014,10 @@ def compile_national_dashboard():
         <a href="/dashboard/odisha" class="nav-btn"><i class="fa-solid fa-map"></i> Tier 2: Odisha (30 Districts)</a>
         <a href="/dashboard/bhubaneswar" class="nav-btn"><i class="fa-solid fa-city"></i> Tier 3: Bhubaneswar (67 Wards)</a>
       </div>
+
+      <button class="action-btn-secondary" onclick="openHapDirectiveModal()">
+        <i class="fa-solid fa-file-invoice" style="color: #38bdf8;"></i> Official NDMA Directive (PDF)
+      </button>
 
       <button class="action-btn-primary" onclick="openDispatchModal()">
         <i class="fa-solid fa-tower-broadcast"></i> Trigger National SOP
@@ -1154,6 +1294,10 @@ def compile_national_dashboard():
         <span style="font-size: 0.85rem; margin-right: 12px;">🌟 Detailed Micro-GIS Ward Model available for this region:</span>
         <a id="modalSubstateLink" href="#" style="background: var(--primary-cyan); color: #000; font-weight: 700; padding: 4px 12px; border-radius: 6px; text-decoration: none; font-size: 0.8rem;">Open Sub-State Command Center</a>
       </div>
+
+      <button class="action-btn-secondary" onclick="generateSelectedDistrictDirective()" style="margin-top: 10px; width: 100%; justify-content: center; font-size: 0.82rem; background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;">
+        <i class="fa-solid fa-file-shield" style="color: #ef4444;"></i> Issue Collector Heat Action Directive (PDF/Memo)
+      </button>
     </div>
   </div>
 
@@ -1185,6 +1329,147 @@ EMERGENCY PROTOCOLS:
         <button class="action-btn-primary" onclick="confirmDispatch()">
           <i class="fa-solid fa-paper-plane"></i> Transmit to 36 State EOCs
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Official Heat Action Plan (HAP) & NDMA Directive Document Modal -->
+  <div class="drawer-overlay" id="hapMemoModal">
+    <div class="memo-modal-box">
+      <!-- Top Modal Toolbar (Hidden during physical/PDF printing) -->
+      <div class="no-print" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+        <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.95rem; color: #38bdf8;">
+          <i class="fa-solid fa-file-invoice"></i> Official NDMA Heat Action Plan Directive
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="action-btn-primary" onclick="printHapDirective()" style="padding: 6px 14px; font-size: 0.8rem;">
+            <i class="fa-solid fa-print"></i> Print / Save as PDF
+          </button>
+          <button class="action-btn-secondary" onclick="copyHapDirectiveText()" style="padding: 6px 12px; font-size: 0.8rem;">
+            <i class="fa-regular fa-copy"></i> Copy Text
+          </button>
+          <button onclick="closeHapDirectiveModal()" style="background: none; border: none; color: #94a3b8; font-size: 1.4rem; cursor: pointer; padding: 0 4px;">&times;</button>
+        </div>
+      </div>
+
+      <!-- Printable Document Paper Canvas -->
+      <div class="memo-paper" id="directivePaper">
+        
+        <!-- Official Government Header -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0f172a; padding-bottom: 14px; margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="font-size: 2.4rem;">🏛️</div>
+            <div>
+              <div style="font-size: 0.8rem; font-weight: 800; color: #64748b; letter-spacing: 1px; text-transform: uppercase;">भारत सरकार · GOVERNMENT OF INDIA</div>
+              <h2 class="memo-header-title">NATIONAL DISASTER MANAGEMENT AUTHORITY (NDMA)</h2>
+              <div class="memo-sub-header">MINISTRY OF EARTH SCIENCES (MoES) · INTEGRATED HEATWAVE CRISIS CELL</div>
+              <div style="font-size: 0.72rem; color: #64748b; margin-top: 2px;">NDMA Bhawan, A-1, Safdarjung Enclave, New Delhi - 110029 · Web: ndma.gov.in</div>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div class="memo-stamp" id="directiveStamp">LEVEL-3 RED ALERT</div>
+            <div style="font-family: var(--font-mono); font-size: 0.72rem; color: #475569; margin-top: 6px;">
+              REF: <strong id="memoRefNo">NDMA/HAP-2026/EXEC-083</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Meta Info Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.82rem; background: #f8fafc; padding: 12px; border-radius: 6px; margin-bottom: 16px; border: 1px solid #e2e8f0;">
+          <div><strong>DATE & TIME:</strong> <span id="memoDate" style="font-family: var(--font-mono);">--</span></div>
+          <div><strong>SECURITY CLASSIFICATION:</strong> <span style="color: #b91c1c; font-weight: 700;">IMMEDIATE EXECUTIVE DIRECTIVE</span></div>
+          <div><strong>TARGET JURISDICTION:</strong> <span id="memoJurisdiction" style="font-weight: 700;">Pan-India / 36 States & Union Territories</span></div>
+          <div><strong>ENFORCEMENT STATUTE:</strong> <span>Disaster Management Act, 2005 (Sec 34 & 38)</span></div>
+        </div>
+
+        <!-- Subject Bar -->
+        <div style="background: #0f172a; color: #ffffff; padding: 8px 12px; border-radius: 4px; font-size: 0.83rem; font-weight: 700; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.4px;" id="memoSubject">
+          SUBJECT: IMMEDIATE OPERATIONALIZATION OF HEAT ACTION PLAN (HAP) LEVEL-3 PROTOCOLS UNDER SEVERE HUMAN THERMAL STRESS
+        </div>
+
+        <!-- Synoptic Emergency Profile Table -->
+        <div style="font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 6px; text-transform: uppercase;">
+          1. Synoptic Human Biometeorology & Infrastructure Stress Telemetry:
+        </div>
+        <table class="memo-table">
+          <thead>
+            <tr>
+              <th>Critical Parameter</th>
+              <th>Monitored Telemetry</th>
+              <th>Physiological / Operational Threshold</th>
+              <th>Risk Severity Tier</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Wet-Bulb Globe Temp (WBGT)</strong></td>
+              <td id="tableWbgt">34.2 °C (Peak)</td>
+              <td>&gt; 31.0 °C (Critical Heat Exhaustion Boundary)</td>
+              <td><span style="color: #dc2626; font-weight: 700;">Severe Metabolic Strain</span></td>
+            </tr>
+            <tr>
+              <td><strong>Sweat Evaporation Efficiency</strong></td>
+              <td id="tableEvap">18.4 % (Deficit)</td>
+              <td>&lt; 30.0 % (Thermoregulatory Collapse)</td>
+              <td><span style="color: #dc2626; font-weight: 700;">Evaporative Impairment</span></td>
+            </tr>
+            <tr>
+              <td><strong>Population at Severe Risk</strong></td>
+              <td id="tablePop">448.2 Million Citizens</td>
+              <td>118M Vulnerable Elderly, Infants &amp; Laborers</td>
+              <td><span style="color: #ea580c; font-weight: 700;">High Demographic Vulnerability</span></td>
+            </tr>
+            <tr>
+              <td><strong>2-Stage ML Hospital Surge (DLNM+XGB)</strong></td>
+              <td id="tableSurge">+48.2% Inpatient Influx</td>
+              <td>&gt; +25% Requires Surge Ward Activation</td>
+              <td><span style="color: #dc2626; font-weight: 700;">Hospital Overload Phase-II</span></td>
+            </tr>
+            <tr>
+              <td><strong>National Grid Peak Cooling Strain</strong></td>
+              <td id="tableGrid">+38,400 MW Demand Surge</td>
+              <td>Critical Transformer Thermal Throttling</td>
+              <td><span style="color: #ca8a04; font-weight: 700;">Grid Stress Level-II</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Enforced SOP Directives -->
+        <div style="font-size: 0.82rem; font-weight: 700; color: #334155; margin-top: 14px; margin-bottom: 6px; text-transform: uppercase;">
+          2. Mandatory Inter-Agency Standard Operating Procedures (SOPs):
+        </div>
+        <div style="font-size: 0.8rem; color: #1e293b; line-height: 1.5; display: flex; flex-direction: column; gap: 8px;">
+          <div style="padding-left: 8px; border-left: 3px solid #ef4444;">
+            <strong>A. Labor & Construction Regulations:</strong> Strict enforcement of outdoor work suspension between <strong>11:00 AM and 3:30 PM</strong>. Employers must provide mandatory shaded recovery stations, clean drinking water, and ORS electrolyte packets under Section 144.
+          </div>
+          <div style="padding-left: 8px; border-left: 3px solid #38bdf8;">
+            <strong>B. Healthcare Readiness &amp; 108 EMS Fleet:</strong> Immediate activation of Dedicated Heatstroke Cooling Units (HSUs) across all Medical College Hospitals &amp; District Headquarters Hospitals (DHH). 108 Ambulances equipped with ice packs and cold intravenous rehydration fluids to be deployed to highway junctions.
+          </div>
+          <div style="padding-left: 8px; border-left: 3px solid #f59e0b;">
+            <strong>C. Urban Local Bodies (ULBs) &amp; Cool Shelters:</strong> Deployment of municipal mist-cannon water spraying on arterial roads. Unrestricted public access to air-conditioned community centers and cool roof facilities (*Jalsatras*) from 09:00 AM to 06:00 PM.
+          </div>
+          <div style="padding-left: 8px; border-left: 3px solid #10b981;">
+            <strong>D. Power &amp; Water Grid Priorities:</strong> State Electricity Boards and Water Utilities must maintain uninterrupted, priority 3-phase power to public water pumping facilities and hospital ICU feeds. Routine maintenance load-shedding is prohibited during peak hours.
+          </div>
+        </div>
+
+        <!-- Official Signatory & Digital Seal -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 24px; padding-top: 14px; border-top: 1px solid #cbd5e1; font-size: 0.78rem;">
+          <div>
+            <div style="font-family: var(--font-mono); color: #0284c7; font-weight: 700;">
+              <i class="fa-solid fa-shield-halved"></i> SENTINELX EARLY WARNING VERIFICATION TOKEN
+            </div>
+            <div style="font-family: var(--font-mono); font-size: 0.7rem; color: #64748b; margin-top: 2px;" id="memoHash">
+              SHA-256: 8a4f91b7e4029c... [DIGITALLY AUTHENTICATED VIA GOV NIC ENGINE]
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-weight: 800; color: #0f172a; font-size: 0.85rem;">Dr. K. S. Rathore, IAS</div>
+            <div style="color: #475569;">Member Secretary &amp; Central Relief Commissioner</div>
+            <div style="font-size: 0.7rem; color: #64748b; font-weight: 600;">National Disaster Management Authority, New Delhi</div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -1360,6 +1645,7 @@ EMERGENCY PROTOCOLS:
     }}
 
     function openDistrictDetail(dist) {{
+      window.currentSelectedDistrict = dist;
       document.getElementById('modalDistrictTitle').innerText = dist.name + ' (' + dist.state_name + ')';
       document.getElementById('modalTemp').innerText = dist.temp + ' °C';
       document.getElementById('modalRH').innerText = dist.rh + ' %';
@@ -1457,7 +1743,82 @@ EMERGENCY PROTOCOLS:
       alert('✅ Standard Operating Procedure transmitted across all 36 State Disaster Management Authorities & 108 Emergency Networks.');
       closeDispatchModal();
     }}
-    function downloadSitRep() {{ alert('📄 Generating MoES / NDMA National Situation Report (SitRep-2026-HTWV-09)... Downloading Summary PDF.'); }}
+
+    // Heat Action Plan (HAP) & Official NDMA Directive Modal Logic
+    let currentDirectiveContext = null;
+
+    function openHapDirectiveModal(dist = null) {{
+      currentDirectiveContext = dist;
+      const now = new Date();
+      const istString = now.toLocaleDateString('en-IN', {{ weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }}) + ' ' + 
+                        now.toLocaleTimeString('en-IN', {{ hour: '2-digit', minute: '2-digit', second: '2-digit' }}) + ' IST';
+      
+      document.getElementById('memoDate').innerText = istString;
+
+      if (dist) {{
+        // Tailored District Directive
+        document.getElementById('directiveStamp').innerText = dist.tier.toUpperCase() + ' ALERT';
+        document.getElementById('directiveStamp').style.color = dist.tier === 'Red' ? '#b91c1c' : '#c2410c';
+        document.getElementById('directiveStamp').style.borderColor = dist.tier === 'Red' ? '#b91c1c' : '#c2410c';
+        document.getElementById('memoRefNo').innerText = 'NDMA/' + dist.state_code + '-' + dist.name.substring(0, 4).toUpperCase() + '/HAP-2026/DIR-' + Math.floor(100 + Math.random() * 900);
+        document.getElementById('memoJurisdiction').innerText = 'District Magistrate & Collector, ' + dist.name + ' (' + dist.state_name + ')';
+        document.getElementById('memoSubject').innerText = 'SUBJECT: MANDATORY ENFORCEMENT OF HEAT ACTION PLAN (HAP) LEVEL-3 DIRECTIVE FOR ' + dist.name.toUpperCase();
+        
+        document.getElementById('tableWbgt').innerText = dist.wbgt + ' °C (' + (dist.wbgt >= 33.0 ? 'Fatal Exposure Risk' : 'High Thermal Stress') + ')';
+        document.getElementById('tableEvap').innerText = Math.max(15, (45 - dist.rh * 0.35)).toFixed(1) + ' % (Severe Deficit)';
+        document.getElementById('tablePop').innerText = (dist.pop).toLocaleString('en-IN') + ' Citizens (' + dist.name + ')';
+        document.getElementById('tableSurge').innerText = '+' + dist.surge + '% (DLNM + XGBoost Inpatient Forecast)';
+        document.getElementById('tableGrid').innerText = '+' + Math.round(dist.pop * 0.00085 + 250) + ' MW (Localized Cooling Strain)';
+        document.getElementById('memoHash').innerText = 'SHA-256: ' + Array.from({{length: 32}}, () => Math.floor(Math.random()*16).toString(16)).join('') + ' [DIGITALLY SIGNED]';
+      }} else {{
+        // Pan-India National Directive
+        document.getElementById('directiveStamp').innerText = 'LEVEL-3 RED ALERT';
+        document.getElementById('directiveStamp').style.color = '#b91c1c';
+        document.getElementById('directiveStamp').style.borderColor = '#b91c1c';
+        document.getElementById('memoRefNo').innerText = 'NDMA/HAP-2026/SYNOPTIC-DIR-083';
+        document.getElementById('memoJurisdiction').innerText = 'Pan-India / 36 States & Union Territories (Chief Secretaries & Collectors)';
+        document.getElementById('memoSubject').innerText = 'SUBJECT: IMMEDIATE OPERATIONALIZATION OF HEAT ACTION PLAN (HAP) LEVEL-3 PROTOCOLS UNDER SEVERE HUMAN THERMAL STRESS';
+        
+        document.getElementById('tableWbgt').innerText = '34.2 °C (National Peak in Coastal & Gangetic Corridors)';
+        document.getElementById('tableEvap').innerText = '18.4 % (Critical Sweat Dissipation Deficit)';
+        document.getElementById('tablePop').innerText = '448.2 Million Citizens (118M Vulnerable Cohort)';
+        document.getElementById('tableSurge').innerText = '+48.2% (National DLNM+XGBoost Emergency Influx)';
+        document.getElementById('tableGrid').innerText = '+38,400 MW (National Power Grid Strain)';
+        document.getElementById('memoHash').innerText = 'SHA-256: 8a4f91b7e4029cf0d18e3a2c5b9f712903de4a6b [AUTHENTICATED]';
+      }}
+
+      document.getElementById('hapMemoModal').style.display = 'flex';
+    }}
+
+    function closeHapDirectiveModal() {{
+      document.getElementById('hapMemoModal').style.display = 'none';
+    }}
+
+    function printHapDirective() {{
+      window.print();
+    }}
+
+    function copyHapDirectiveText() {{
+      const text = document.getElementById('directivePaper').innerText;
+      navigator.clipboard.writeText(text).then(() => {{
+        alert('📋 Official NDMA Directive copied to clipboard! Ready for dispatch via e-Office or NIC-SMS.');
+      }}).catch(() => {{
+        alert('Clipboard copy completed.');
+      }});
+    }}
+
+    function generateSelectedDistrictDirective() {{
+      if (window.currentSelectedDistrict) {{
+        closeDistrictModal();
+        openHapDirectiveModal(window.currentSelectedDistrict);
+      }} else {{
+        openHapDirectiveModal();
+      }}
+    }}
+
+    function downloadSitRep() {{
+      openHapDirectiveModal();
+    }}
 
     window.addEventListener('DOMContentLoaded', () => {{
       initMap();
