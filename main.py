@@ -127,6 +127,15 @@ def geocode_india(q: str):
     return {"query": q, "results": search_india_locations(q)}
 
 
+@app.get("/api/v1/reverse-geocode", tags=["Pan-India Spatial Engine"])
+def reverse_geocode(lat: float, lon: float):
+    """
+    Reverse geocodes GPS coordinates (lat, lon) to exact Indian locality, district, and PIN code.
+    """
+    from services.pan_india_engine import reverse_geocode_india
+    return reverse_geocode_india(lat, lon)
+
+
 @app.get("/api/v1/live-stress", tags=["Pan-India Spatial Engine"])
 def get_live_stress(lat: float, lon: float, name: str = ""):
     """
@@ -135,6 +144,7 @@ def get_live_stress(lat: float, lon: float, name: str = ""):
     """
     from services.pan_india_engine import fetch_live_coordinate_stress
     return fetch_live_coordinate_stress(lat, lon, name)
+
 
 
 @app.on_event("startup")

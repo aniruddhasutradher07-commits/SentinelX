@@ -101,3 +101,13 @@ def test_ai_multilingual_advisory():
     assert data["status"] == "success"
     assert data["language"] == "Hindi (हिन्दी)"
     assert "advisory" in data
+
+
+def test_reverse_geocode_endpoint():
+    """Validates real-time GPS reverse geocoding to Indian locality and PIN."""
+    response = client.get("/api/v1/reverse-geocode?lat=28.6315&lon=77.2167")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["is_india"] is True
+    assert "Connaught Place" in data["name"] or "Delhi" in data.get("state", "")
+

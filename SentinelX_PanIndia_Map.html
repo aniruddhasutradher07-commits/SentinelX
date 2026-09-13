@@ -804,12 +804,105 @@
       background: linear-gradient(135deg, #4f46e5, #4338ca);
       transform: scale(1.05);
     }
+
+    /* Real-Time GPS Location Styles */
+    .search-gps-btn {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--primary-cyan);
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.82rem;
+      transition: all 0.2s;
+    }
+
+    .search-gps-btn:hover {
+      background: var(--primary-cyan);
+      color: #050811;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+    }
+
+    .gps-pulse-marker {
+      position: relative;
+      width: 26px;
+      height: 26px;
+    }
+
+    .gps-center-dot {
+      width: 14px;
+      height: 14px;
+      background: #0284c7;
+      border: 2.5px solid #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 0 12px rgba(2, 132, 199, 0.95);
+      position: absolute;
+      top: 6px;
+      left: 6px;
+    }
+
+    .gps-wave-ring {
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 2px solid #38bdf8;
+      animation: gpsRadarWave 2s infinite ease-out;
+      pointer-events: none;
+    }
+
+    @keyframes gpsRadarWave {
+      0% { transform: scale(0.6); opacity: 0.95; }
+      100% { transform: scale(2.4); opacity: 0; }
+    }
+
+    /* GPS Toast Banner */
+    .gps-toast {
+      position: absolute;
+      top: 70px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: rgba(13, 18, 36, 0.95);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--primary-cyan);
+      border-radius: 30px;
+      padding: 8px 18px;
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.8);
+      z-index: 3000;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .gps-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
   </style>
 </head>
 <body>
 
   <!-- Full-Viewport Sovereign India Map -->
   <div id="map-canvas"></div>
+
+  <!-- Real-Time GPS Toast Notification Banner -->
+  <div class="gps-toast" id="gpsToast">
+    <i class="fa-solid fa-location-crosshairs" style="color:var(--primary-cyan);"></i>
+    <span id="gpsToastMsg">Acquiring real-time GPS location...</span>
+  </div>
 
   <!-- Top Floating Header Bar -->
   <header class="top-floating-header">
@@ -834,6 +927,9 @@
     <div class="search-input-card">
       <i class="fa-solid fa-magnifying-glass search-icon"></i>
       <input type="text" id="locationSearchInput" placeholder="Search any City, District, Ward, or PIN Code in India..." autocomplete="off" />
+      <button class="search-gps-btn" id="btnSearchGps" onclick="locateUserRealTime()" title="Detect My Current Live Location">
+        <i class="fa-solid fa-location-crosshairs"></i>
+      </button>
       <i class="fa-solid fa-circle-notch search-spinner" id="searchSpinner"></i>
       <button id="clearSearchBtn" style="background:none;border:none;color:#64748b;cursor:pointer;display:none;">&times;</button>
     </div>
@@ -843,6 +939,9 @@
 
     <!-- Quick Location Chips -->
     <div class="quick-chips-bar">
+      <button class="quick-chip" id="btnGpsChip" onclick="locateUserRealTime()" style="background: rgba(56, 189, 248, 0.2); border-color: var(--primary-cyan); color: #fff; font-weight: 700;">
+        <i class="fa-solid fa-location-crosshairs" style="color:var(--primary-cyan);"></i> <span>My Live GPS Location</span>
+      </button>
       <button class="quick-chip" onclick="flyToLocation(28.6139, 77.2090, 'New Delhi Core', 'Capital Region')">🏛️ New Delhi</button>
       <button class="quick-chip" onclick="flyToLocation(20.2961, 85.8245, 'Bhubaneswar BMC', 'Odisha')">🌴 Bhubaneswar</button>
       <button class="quick-chip" onclick="flyToLocation(27.1300, 72.3600, 'Phalodi Desert Hub', 'Rajasthan')">🔥 Phalodi (Red)</button>
@@ -938,6 +1037,9 @@
 
   <!-- Bottom-Right Map Controls -->
   <div class="map-controls-dock">
+    <button class="dock-pill-btn" id="btnDockGpsLocate" onclick="locateUserRealTime()" style="border-color: var(--primary-cyan); background: rgba(56, 189, 248, 0.2); color: #e0f2fe; font-weight: 700;">
+      <i class="fa-solid fa-location-crosshairs" style="color: var(--primary-cyan);"></i> <span>Live GPS Location</span>
+    </button>
     <button class="dock-pill-btn" id="btnCopilotToggle" onclick="toggleCopilotDrawer()" style="border-color: rgba(99, 102, 241, 0.6); background: rgba(99, 102, 241, 0.22); color: #c7d2fe;">
       <i class="fa-solid fa-robot" style="color: #a5b4fc;"></i> <span>AI Incident Copilot</span>
     </button>
@@ -1618,6 +1720,127 @@
       originalRenderCard(data);
       updateCopilotTelemetryPill(data);
     };
+
+    // -----------------------------------------------------------------------
+    // 6. Real-Time GPS User Geolocation Engine
+    // -----------------------------------------------------------------------
+    let userGpsMarker = null;
+    let userAccuracyCircle = null;
+
+    function showGpsToast(msg, duration = 4000) {
+      const toast = document.getElementById('gpsToast');
+      const msgEl = document.getElementById('gpsToastMsg');
+      if (!toast || !msgEl) return;
+      msgEl.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, duration);
+    }
+
+    function createGpsPulseIcon() {
+      return L.divIcon({
+        className: 'gps-pulse-container',
+        html: `
+          <div class="gps-pulse-marker">
+            <div class="gps-wave-ring"></div>
+            <div class="gps-center-dot"></div>
+          </div>
+        `,
+        iconSize: [26, 26],
+        iconAnchor: [13, 13]
+      });
+    }
+
+    function locateUserRealTime() {
+      if (!navigator.geolocation) {
+        showGpsToast('⚠️ Geolocation is not supported by your browser.', 4000);
+        return;
+      }
+
+      const btnDock = document.getElementById('btnDockGpsLocate');
+      const btnChip = document.getElementById('btnGpsChip');
+      const originalDockHtml = btnDock ? btnDock.innerHTML : '';
+      const originalChipHtml = btnChip ? btnChip.innerHTML : '';
+
+      if (btnDock) btnDock.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" style="color:var(--primary-cyan);"></i> <span>Locking GPS...</span>';
+      if (btnChip) btnChip.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> <span>Acquiring GPS...</span>';
+
+      showGpsToast('🛰️ Requesting high-precision real-time GPS telemetry from device...');
+
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          if (btnDock) btnDock.innerHTML = originalDockHtml;
+          if (btnChip) btnChip.innerHTML = originalChipHtml;
+
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+          const accuracy = Math.round(pos.coords.accuracy || 25);
+
+          // Check if coordinate is within Sovereign India
+          if (lat < 6.4 || lat > 37.6 || lon < 68.1 || lon > 97.4) {
+            showGpsToast(`⚠️ Device coordinates (${lat.toFixed(2)}, ${lon.toFixed(2)}) fall outside India. Clamping to Capital Hub (New Delhi).`, 5000);
+            flyToLocation(28.6139, 77.2090, 'New Delhi Capital Core', 'Simulated Live Hub');
+            return;
+          }
+
+          // Clean previous user GPS layers
+          if (userGpsMarker) map.removeLayer(userGpsMarker);
+          if (userAccuracyCircle) map.removeLayer(userAccuracyCircle);
+
+          // Add accuracy circle and pulsing blue GPS marker
+          userAccuracyCircle = L.circle([lat, lon], {
+            radius: Math.max(accuracy, 60),
+            color: '#38bdf8',
+            weight: 1.5,
+            fillColor: '#38bdf8',
+            fillOpacity: 0.12
+          }).addTo(map);
+
+          userGpsMarker = L.marker([lat, lon], { icon: createGpsPulseIcon() }).addTo(map);
+
+          // Reverse Geocode for exact street/locality/district in India
+          let localityName = `Live Location (Accuracy ±${accuracy}m)`;
+          try {
+            const revRes = await fetch(`/api/v1/reverse-geocode?lat=${lat}&lon=${lon}`);
+            const revData = await revRes.json();
+            if (revData && revData.name) {
+              localityName = revData.name;
+              if (revData.city && revData.city !== revData.name) localityName += `, ${revData.city}`;
+              if (revData.postcode) localityName += ` (PIN ${revData.postcode})`;
+            }
+          } catch (e) {
+            console.warn('Reverse geocode error:', e);
+          }
+
+          showGpsToast(`📍 Real-Time Location Locked: ${localityName}`, 4500);
+
+          // Fly camera smoothly to user's real-time position
+          map.flyTo([lat, lon], 15, { duration: 1.6 });
+
+          // Inspect coordinate with live Open-Meteo biometeorology & ML surge
+          inspectCoordinate(lat, lon, localityName);
+
+          // Auto update search bar text
+          const searchInp = document.getElementById('locationSearchInput');
+          if (searchInp) searchInp.value = localityName;
+        },
+        (err) => {
+          if (btnDock) btnDock.innerHTML = originalDockHtml;
+          if (btnChip) btnChip.innerHTML = originalChipHtml;
+          let msg = 'Could not acquire GPS position.';
+          if (err.code === 1) msg = 'Location access permission was denied.';
+          else if (err.code === 2) msg = 'Position unavailable.';
+          else if (err.code === 3) msg = 'Location request timed out.';
+          showGpsToast(`⚠️ ${msg} Click any city or search PIN code above.`, 5000);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 12000,
+          maximumAge: 10000
+        }
+      );
+    }
 
     // Initial Load: Focus on Capital / Default Hub
     window.addEventListener('DOMContentLoaded', () => {

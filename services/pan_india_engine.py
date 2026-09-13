@@ -358,3 +358,86 @@ def search_india_locations(query: str) -> List[Dict[str, Any]]:
         pass
 
     return results
+
+
+def reverse_geocode_india(lat: float, lon: float) -> Dict[str, Any]:
+    """
+    Reverse geocodes coordinates (lat, lon) to determine exact locality, city, district,
+    state, and PIN code in India.
+    """
+    if not is_within_india(lat, lon):
+        return {
+            "name": f"Location ({round(lat, 4)}°N, {round(lon, 4)}°E)",
+            "formatted_label": f"Coordinates: {round(lat, 4)}, {round(lon, 4)} (Outside Sovereign Bounds)",
+            "is_india": False
+        }
+
+    # Try Photon Reverse first
+    try:
+        url = f"https://photon.komoot.io/reverse?lat={lat}&lon={lon}"
+        resp = requests.get(url, timeout=4)
+        if resp.status_code == 200:
+            features = resp.json().get("features", [])
+            if features:
+                props = features[0].get("properties", {})
+                name = props.get("name", "")
+                city = props.get("city", props.get("district", ""))
+                state = props.get("state", "")
+                postcode = props.get("postcode", "")
+                
+                parts = [p for p in [name, city, state] if p]
+                if postcode:
+                    parts.append(f"PIN: {postcode}")
+                label = ", ".join(parts) if parts else f"Local Area ({round(lat, 3)}°N, {round(lon, 3)}°E)"
+                
+                return {
+                    "name": name or city or "Local Area",
+                    "formatted_label": label,
+                    "city": city,
+                    "state": state,
+                    "postcode": postcode,
+                    "lat": round(lat, 5),
+                    "lon": round(lon, 5),
+                    "is_india": True
+                }
+    except Exception:
+        pass
+
+    # Fallback to Nominatim Reverse
+    try:
+        nom_url = f"https://nominatim.openstreetmap.org/reverse?lat={lat}&lon={lon}&format=json&addressdetails=1"
+        headers = {"User-Agent": "SentinelX-Heatwave-Reverse/2.0 (sih.gov.in)"}
+        resp = requests.get(nom_url, headers=headers, timeout=4)
+        if resp.status_code == 200:
+            data = resp.json()
+            addr = data.get("address", {})
+            suburb = addr.get("suburb", addr.get("neighbourhood", addr.get("road", "")))
+            city = addr.get("city", addr.get("town", addr.get("state_district", "")))
+            state = addr.get("state", "")
+            postcode = addr.get("postcode", "")
+
+            label = data.get("display_name", f"{round(lat, 4)}, {round(lon, 4)}")
+            clean_name = suburb or city or state or "Local Area"
+            return {
+                "name": clean_name,
+                "formatted_label": label,
+                "city": city,
+                "state": state,
+                "postcode": postcode,
+                "lat": round(lat, 5),
+                "lon": round(lon, 5),
+                "is_india": True
+            }
+    except Exception:
+        pass
+
+    return {
+        "name": f"Current GPS Hub ({round(lat, 3)}°N, {round(lon, 3)}°E)",
+        "formatted_label": f"Lat {round(lat, 4)}°N, Lon {round(lon, 4)}°E, India",
+        "city": "",
+        "state": "India",
+        "lat": round(lat, 5),
+        "lon": round(lon, 5),
+        "is_india": True
+    }
+
