@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentinelx-master-backend
+  namespace: disaster-management
+  labels:
+    app: sentinelx
+    tier: api-master
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: sentinelx
+  template:
+    metadata:
+      labels:
+        app: sentinelx
+    spec:
+      containers:
+      - name: sentinelx-engine
+        image: sentinelx/thermo-shield:2.0.0
+        ports:
+        - containerPort: 8000
+        env:
+        - name: WORKERS
+          value: "4"
+        - name: REDIS_URL
+          value: "redis://redis-cluster:6379/0"
+        resources:
+          limits:
+            cpu: "2000m"
+            memory: "2048Mi"
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: sentinelx-hpa
+  namespace: disaster-management
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: sentinelx-master-backend
+  minReplicas: 3
+  maxReplicas: 25
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentinelx-service
+  namespace: disaster-management
+spec:
+  type: LoadBalancer
+  selector:
+    app: sentinelx
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8000

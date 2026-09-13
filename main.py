@@ -78,13 +78,22 @@ app.include_router(copilot.router)
 
 
 # ---------------------------------------------------------------------------
-# Interactive HTML Command Center Dashboards
+# Interactive HTML Command Center Dashboards (3-Tier Hierarchy)
 # ---------------------------------------------------------------------------
 @app.get("/", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
+@app.get("/dashboard/national", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
+@app.get("/national", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
+def serve_national_dashboard():
+    """Serves Tier 1: Pan-India National Early Warning & Thermal Stress Situation Room."""
+    if os.path.exists("SentinelX_National_Dashboard.html"):
+        return FileResponse("SentinelX_National_Dashboard.html", media_type="text/html")
+    return HTMLResponse("<h3>SentinelX_National_Dashboard.html not found. Run 'python build_national_dashboard.py'.</h3>", status_code=404)
+
+
 @app.get("/dashboard/odisha", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
 @app.get("/odisha", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
 def serve_odisha_dashboard():
-    """Serves the Apple macOS Weather Bento Grid Statewide Command Center."""
+    """Serves Tier 2: Statewide 30-District Command Center for Odisha."""
     if os.path.exists("SentinelX_Odisha_Dashboard.html"):
         return FileResponse("SentinelX_Odisha_Dashboard.html", media_type="text/html")
     return HTMLResponse("<h3>SentinelX_Odisha_Dashboard.html not found. Run 'python build_odisha_dashboard.py'.</h3>", status_code=404)
@@ -94,10 +103,27 @@ def serve_odisha_dashboard():
 @app.get("/bhubaneswar", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
 @app.get("/dashboard/wards", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
 def serve_bhubaneswar_dashboard():
-    """Serves the Bhubaneswar Municipal Corporation 67-Ward Command Center."""
+    """Serves Tier 3: Hyperlocal Bhubaneswar Municipal Corporation 67-Ward Command Center."""
     if os.path.exists("SentinelX_Dashboard.html"):
         return FileResponse("SentinelX_Dashboard.html", media_type="text/html")
     return HTMLResponse("<h3>SentinelX_Dashboard.html not found. Run 'python build_dashboard.py'.</h3>", status_code=404)
+
+
+@app.get("/api/v1/national-feed", tags=["National Situation Feed"])
+def get_national_feed():
+    """Returns real-time synoptic thermal stress metrics for all 36 States & UTs."""
+    try:
+        from build_national_dashboard import STATES_DATA
+        return {
+            "status": "success",
+            "jurisdiction": "Pan-India National Disaster Management Authority (NDMA) & MoES",
+            "total_states_covered": len(STATES_DATA),
+            "red_alert_count": sum(1 for s in STATES_DATA if s.get("tier") == "Red"),
+            "orange_alert_count": sum(1 for s in STATES_DATA if s.get("tier") == "Orange"),
+            "states": STATES_DATA
+        }
+    except Exception as e:
+        return {"status": "error", "detail": str(e)}
 
 
 @app.on_event("startup")
@@ -122,6 +148,7 @@ def health_check():
         "database": database_status,
         "swagger_docs": "/docs",
         "redoc": "/redoc",
+        "national_dashboard": "/dashboard/national",
         "statewide_dashboard": "/dashboard/odisha",
         "ward_dashboard": "/dashboard/bhubaneswar"
     }

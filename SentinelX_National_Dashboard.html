@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🛡️ SentinelX — Pan-India Enterprise Heatwave Early Warning & Thermal Stress Command Center</title>
+  
+  <!-- Modern Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Leaflet GIS Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- ApexCharts & Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root {
+      --bg-base: #05070f;
+      --bg-surface: rgba(13, 18, 36, 0.78);
+      --bg-card: rgba(22, 30, 56, 0.65);
+      --border-glass: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(56, 189, 248, 0.3);
+      --primary-cyan: #38bdf8;
+      --accent-blue: #3b82f6;
+      --alert-red: #ef4444;
+      --alert-orange: #f97316;
+      --alert-yellow: #eab308;
+      --alert-green: #22c55e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background: radial-gradient(circle at 50% 0%, #17153b 0%, #0a0d1e 45%, var(--bg-base) 100%);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .glass-panel {
+      background: var(--bg-surface);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid var(--border-glass);
+      border-radius: 16px;
+      box-shadow: 0 10px 35px 0 rgba(0, 0, 0, 0.45);
+    }
+
+    .glass-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border-glass);
+      border-radius: 12px;
+      transition: all 0.25s ease;
+    }
+
+    .glass-card:hover {
+      border-color: var(--border-glow);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px -5px rgba(56, 189, 248, 0.18);
+    }
+
+    /* Header & Navigation */
+    header.national-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 28px;
+      border-bottom: 1px solid var(--border-glass);
+      background: rgba(5, 7, 15, 0.88);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-logo-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #ef4444 0%, #f97316 50%, #3b82f6 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 0 22px rgba(239, 68, 68, 0.45);
+    }
+
+    .brand-title h1 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(to right, #ffffff, #93c5fd, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-title p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 10px #22c55e;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
+
+    .hierarchy-nav {
+      display: flex;
+      background: rgba(13, 18, 36, 0.9);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border-glass);
+      gap: 4px;
+    }
+
+    .nav-btn {
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+
+    .nav-btn.active {
+      background: linear-gradient(135deg, #2563eb, #38bdf8);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+    }
+
+    .nav-btn:hover:not(.active) {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .action-btn-primary {
+      background: linear-gradient(135deg, #ef4444, #f97316);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+    }
+
+    .action-btn-primary:hover {
+      transform: scale(1.03);
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.45);
+    }
+
+    /* Live Alert Ticker */
+    .live-alert-ticker {
+      background: linear-gradient(90deg, rgba(239, 68, 68, 0.22) 0%, rgba(249, 115, 22, 0.16) 50%, rgba(13, 18, 36, 0.4) 100%);
+      border-bottom: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 8px 28px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 0.8rem;
+    }
+
+    .ticker-label {
+      background: #ef4444;
+      color: white;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .ticker-content {
+      overflow: hidden;
+      white-space: nowrap;
+      position: relative;
+      flex: 1;
+    }
+
+    .ticker-text {
+      display: inline-block;
+      animation: marquee 32s linear infinite;
+      color: #fed7aa;
+      font-family: var(--font-mono);
+    }
+
+    @keyframes marquee {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(-100%, 0); }
+    }
+
+    /* Main Grid Layout */
+    .dashboard-container {
+      max-width: 1800px;
+      margin: 0 auto;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* KPI Row */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .kpi-card {
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+    }
+
+    .kpi-card.red::after { background: var(--alert-red); }
+    .kpi-card.orange::after { background: var(--alert-orange); }
+    .kpi-card.yellow::after { background: var(--alert-yellow); }
+    .kpi-card.blue::after { background: var(--accent-blue); }
+
+    .kpi-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .kpi-value {
+      font-size: 1.85rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .kpi-subtext {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    /* Time Scrubber Timeline */
+    .timeline-scrubber-bar {
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .scrubber-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 220px;
+      color: var(--primary-cyan);
+    }
+
+    .scrubber-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      height: 8px;
+      border-radius: 4px;
+      background: #1e293b;
+      outline: none;
+    }
+
+    .scrubber-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--primary-cyan);
+      cursor: pointer;
+      box-shadow: 0 0 12px var(--primary-cyan);
+    }
+
+    /* Main Workspace */
+    .main-workspace {
+      display: grid;
+      grid-template-columns: 1.65fr 1fr;
+      gap: 20px;
+      min-height: 640px;
+    }
+
+    @media (max-width: 1200px) {
+      .main-workspace { grid-template-columns: 1fr; }
+    }
+
+    /* Map Panel */
+    .map-panel {
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      gap: 12px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .map-layer-toggles {
+      display: flex;
+      gap: 6px;
+    }
+
+    .layer-chip {
+      padding: 4px 10px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-glass);
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .layer-chip.active {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--primary-cyan);
+      color: var(--primary-cyan);
+    }
+
+    #nationalMap {
+      width: 100%;
+      height: 520px;
+      border-radius: 12px;
+      z-index: 1;
+      background: #080b14;
+    }
+
+    /* District & State Side Panel */
+    .state-side-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 16px;
+    }
+
+    .view-mode-tabs {
+      display: flex;
+      background: rgba(13, 18, 36, 0.9);
+      padding: 3px;
+      border-radius: 8px;
+      border: 1px solid var(--border-glass);
+    }
+
+    .view-tab {
+      flex: 1;
+      padding: 6px;
+      text-align: center;
+      font-size: 0.76rem;
+      font-weight: 700;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 6px;
+    }
+
+    .view-tab.active {
+      background: rgba(56, 189, 248, 0.2);
+      color: var(--primary-cyan);
+    }
+
+    .search-filter-box {
+      display: flex;
+      gap: 8px;
+    }
+
+    .search-input {
+      flex: 1;
+      background: rgba(13, 18, 36, 0.95);
+      border: 1px solid var(--border-glass);
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--primary-cyan);
+    }
+
+    .items-scroll-list {
+      max-height: 440px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 4px;
+    }
+
+    .items-scroll-list::-webkit-scrollbar { width: 6px; }
+    .items-scroll-list::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 3px;
+    }
+
+    .item-row-card {
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .item-row-card.selected {
+      border-color: var(--primary-cyan);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .tier-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .tier-dot.red { background: var(--alert-red); box-shadow: 0 0 8px var(--alert-red); }
+    .tier-dot.orange { background: var(--alert-orange); box-shadow: 0 0 8px var(--alert-orange); }
+    .tier-dot.yellow { background: var(--alert-yellow); box-shadow: 0 0 8px var(--alert-yellow); }
+    .tier-dot.green { background: var(--alert-green); box-shadow: 0 0 8px var(--alert-green); }
+
+    /* Bottom Analytics Suite */
+    .analytics-suite-row {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 0.9fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 1200px) {
+      .analytics-suite-row { grid-template-columns: 1fr; }
+    }
+
+    .analysis-panel {
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .metric-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-muted);
+    }
+
+    .thermo-breakdown-box {
+      background: rgba(13, 18, 36, 0.95);
+      border: 1px solid var(--border-glass);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      font-size: 0.78rem;
+    }
+
+    .thermo-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .thermo-stat-label { color: var(--text-dim); font-size: 0.7rem; }
+    .thermo-stat-value { font-family: var(--font-mono); font-weight: 700; color: #f8fafc; font-size: 0.95rem; }
+
+    /* District Deep-Dive Drawer / Modal */
+    .drawer-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      z-index: 3000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .drawer-box {
+      width: 90%;
+      max-width: 780px;
+      background: #0d1224;
+      border: 1px solid var(--border-glow);
+      border-radius: 18px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-glass);
+      padding-bottom: 12px;
+    }
+
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="national-header">
+    <div class="brand-section">
+      <div class="brand-logo-badge">🛡️</div>
+      <div class="brand-title">
+        <h1>SentinelX National Situation Room</h1>
+        <p><span class="status-pulse"></span> MoES / NCMRWF / NDMA Early Warning & Human Thermal Stress Grid</p>
+      </div>
+    </div>
+
+    <!-- 3-Tier Drill-Down Switcher -->
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div class="hierarchy-nav">
+        <a href="#national" class="nav-btn active"><i class="fa-solid fa-earth-asia"></i> Tier 1: National (36 States)</a>
+        <a href="/dashboard/odisha" class="nav-btn"><i class="fa-solid fa-map"></i> Tier 2: Odisha (30 Districts)</a>
+        <a href="/dashboard/bhubaneswar" class="nav-btn"><i class="fa-solid fa-city"></i> Tier 3: Bhubaneswar (67 Wards)</a>
+      </div>
+
+      <button class="action-btn-primary" onclick="openDispatchModal()">
+        <i class="fa-solid fa-tower-broadcast"></i> Trigger National SOP
+      </button>
+    </div>
+  </header>
+
+  <!-- Live Marquee Ticker -->
+  <div class="live-alert-ticker">
+    <span class="ticker-label"><i class="fa-solid fa-triangle-exclamation"></i> IMD Heat Wave Bulletin</span>
+    <div class="ticker-content">
+      <span class="ticker-text">
+        🔴 RED ALERT: Extreme Heatwave across 6 States (Rajasthan, Odisha, Delhi NCR, UP, Bihar, West Bengal) | Peak WBGT 34.5°C in Coastal & Gangetic belts (High Evaporative Deficit) | 2-Stage DLNM predicts +48.2% surge in hospital ER admissions | National Power Grid peak cooling strain: +38,400 MW.
+      </span>
+    </div>
+  </div>
+
+  <!-- Dashboard Container -->
+  <main class="dashboard-container">
+    
+    <!-- Top KPI Cards -->
+    <section class="kpi-row">
+      <div class="glass-card kpi-card red">
+        <div class="kpi-header">
+          <span>Active Red Alert Zones</span>
+          <i class="fa-solid fa-fire text-red-500"></i>
+        </div>
+        <div class="kpi-value">8 <span class="kpi-subtext">States / 142 Districts</span></div>
+        <div class="kpi-subtext">Peak WBGT &gt; 33.5°C (Thermoregulatory Failure)</div>
+      </div>
+
+      <div class="glass-card kpi-card orange">
+        <div class="kpi-header">
+          <span>National Population at Risk</span>
+          <i class="fa-solid fa-users"></i>
+        </div>
+        <div class="kpi-value">448.2M <span class="kpi-subtext">Exposed</span></div>
+        <div class="kpi-subtext">118M Vulnerable Elderly & Outdoor Laborers</div>
+      </div>
+
+      <div class="glass-card kpi-card yellow">
+        <div class="kpi-header">
+          <span>2-Stage ML Hospital Surge</span>
+          <i class="fa-solid fa-hospital"></i>
+        </div>
+        <div class="kpi-value">+48.5% <span class="kpi-subtext">Demand</span></div>
+        <div class="kpi-subtext">~5,840 Est. Daily Heatstroke & Dehydration Cases</div>
+      </div>
+
+      <div class="glass-card kpi-card blue">
+        <div class="kpi-header">
+          <span>Grid Cooling Strain & Water OSR</span>
+          <i class="fa-solid fa-bolt"></i>
+        </div>
+        <div class="kpi-value">+38.4 GW <span class="kpi-subtext">Surge</span></div>
+        <div class="kpi-subtext">4,620 Active Cool Roof & Water Kiosks</div>
+      </div>
+    </section>
+
+    <!-- 120-Hour Heatwave Propagation Timeline Scrubber -->
+    <section class="glass-panel timeline-scrubber-bar">
+      <div class="scrubber-label">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+        <span id="forecastTimeLabel">Forecast Time: Today (t0 · 14:00 IST)</span>
+      </div>
+      <input type="range" min="0" max="4" step="1" value="0" class="scrubber-slider" id="timelineSlider" oninput="onTimelineScrub()">
+      <span class="metric-badge" id="timelineDayBadge">+0h (Live Ingestion)</span>
+    </section>
+
+    <!-- Main Workspace (Interactive GIS Map + 700+ District Hub Explorer) -->
+    <section class="main-workspace">
+      
+      <!-- Leaflet GIS Map Container -->
+      <div class="glass-panel map-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <i class="fa-solid fa-map-location-dot" style="color: var(--primary-cyan)"></i>
+            Pan-India Bioclimatic Heat Stress Layer
+          </div>
+          <div class="map-layer-toggles">
+            <button class="layer-chip active" onclick="switchMapMetric('risk')">Risk Tier</button>
+            <button class="layer-chip" onclick="switchMapMetric('wbgt')">WBGT (°C)</button>
+            <button class="layer-chip" onclick="switchMapMetric('utci')">UTCI (°C)</button>
+            <button class="layer-chip" onclick="switchMapMetric('surge')">Hospital Surge (%)</button>
+          </div>
+        </div>
+
+        <div id="nationalMap"></div>
+      </div>
+
+      <!-- District & State Side Panel -->
+      <div class="glass-panel state-side-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <i class="fa-solid fa-layer-group" style="color: var(--accent-blue)"></i>
+            Spatial Mesh Explorer
+          </div>
+          <span class="metric-badge"><i class="fa-solid fa-satellite-dish"></i> 700+ District Mesh</span>
+        </div>
+
+        <div class="view-mode-tabs">
+          <button class="view-tab active" id="tabStates" onclick="switchListTab('states')">36 States & UTs</button>
+          <button class="view-tab" id="tabDistricts" onclick="switchListTab('districts')">High-Risk Districts</button>
+        </div>
+
+        <div class="search-filter-box">
+          <input type="text" id="spatialSearch" class="search-input" placeholder="🔍 Search district, state or bioclimate zone..." onkeyup="filterSpatialItems()" />
+        </div>
+
+        <div class="items-scroll-list" id="spatialContainer">
+          <!-- Populated via Javascript -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Bottom Deep-Dive Suite (Biotech Human Strain + 2-Stage ML + National SOP) -->
+    <section class="analytics-suite-row">
+      
+      <!-- Panel 1: Biotech & Physiotherapy Thermoregulatory Deficit Simulator -->
+      <div class="glass-panel analysis-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <i class="fa-solid fa-dna" style="color: #ec4899"></i>
+            Biotech & Human Thermal Strain Engine
+          </div>
+          <span class="metric-badge">H-THERM Index</span>
+        </div>
+        <p style="font-size: 0.76rem; color: var(--text-muted);">
+          Calculates human sweat evaporative failure and core body heat accumulation based on ambient vapor pressure deficit and physical exertion.
+        </p>
+
+        <div class="sim-slider-group" style="display: flex; flex-direction: column; gap: 10px;">
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 3px;">
+              <span>Ambient Air Temperature</span>
+              <span id="tempVal" style="font-family: var(--font-mono); color: var(--primary-cyan);">42.0 °C</span>
+            </div>
+            <input type="range" min="30" max="52" step="0.5" value="42" style="width: 100%;" id="tempSlider" oninput="updateBiotechSim()">
+          </div>
+
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 3px;">
+              <span>Relative Humidity (RH %)</span>
+              <span id="rhVal" style="font-family: var(--font-mono); color: var(--alert-orange);">65 %</span>
+            </div>
+            <input type="range" min="10" max="95" step="1" value="65" style="width: 100%;" id="rhSlider" oninput="updateBiotechSim()">
+          </div>
+
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 3px;">
+              <span>Occupational Workload (Exertion)</span>
+              <span id="workloadVal" style="font-family: var(--font-mono); color: #f43f5e;">Heavy Construction (1.75x)</span>
+            </div>
+            <input type="range" min="1" max="3" step="1" value="3" style="width: 100%;" id="workloadSlider" oninput="updateBiotechSim()">
+          </div>
+        </div>
+
+        <div class="thermo-breakdown-box">
+          <div class="thermo-stat">
+            <span class="thermo-stat-label">Calculated WBGT</span>
+            <span class="thermo-stat-value" id="resWbgt">33.2 °C</span>
+          </div>
+          <div class="thermo-stat">
+            <span class="thermo-stat-label">Sweat Evaporative Capacity</span>
+            <span class="thermo-stat-value" id="resEvap" style="color: var(--alert-red);">32% (Critical Deficit)</span>
+          </div>
+          <div class="thermo-stat">
+            <span class="thermo-stat-label">Max Safe Work Window</span>
+            <span class="thermo-stat-value" id="resWorkWindow" style="color: var(--alert-orange);">15 min / hour</span>
+          </div>
+          <div class="thermo-stat">
+            <span class="thermo-stat-label">Core Heat Escalation</span>
+            <span class="thermo-stat-value" id="resCoreTemp">+1.6°C / 45min</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 2: 2-Stage Epidemiological ML Forecaster (DLNM + XGBoost) -->
+      <div class="glass-panel analysis-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <i class="fa-solid fa-chart-line" style="color: #8b5cf6"></i>
+            2-Stage Hospital Surge Predictor
+          </div>
+          <span class="metric-badge">DLNM + XGBoost</span>
+        </div>
+        <p style="font-size: 0.76rem; color: var(--text-muted);">
+          Predicts compounding 5-day lagged hospital admissions across public health centers and clinical emergency beds.
+        </p>
+
+        <div id="hospitalSurgeChart" style="height: 220px;"></div>
+      </div>
+
+      <!-- Panel 3: NDMA Standard Operating Procedure (SOP) Checklist -->
+      <div class="glass-panel analysis-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <i class="fa-solid fa-shield-halved" style="color: var(--alert-green)"></i>
+            National Heat Action Plan (HAP) SOP
+          </div>
+          <span class="metric-badge">NDMA Standard</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="background: rgba(13, 18, 36, 0.8); border: 1px solid var(--border-glass); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; font-size: 0.8rem;">
+            <div style="width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: rgba(239, 68, 68, 0.15); color: #ef4444;"><i class="fa-solid fa-person-digging"></i></div>
+            <div>
+              <strong style="color: #fff;">Section 144 Labor Moratorium</strong>
+              <div style="font-size: 0.7rem; color: var(--text-muted);">Halt outdoor construction between 11:00 AM – 3:30 PM in Red Tier zones.</div>
+            </div>
+          </div>
+
+          <div style="background: rgba(13, 18, 36, 0.8); border: 1px solid var(--border-glass); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; font-size: 0.8rem;">
+            <div style="width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: rgba(56, 189, 248, 0.15); color: #38bdf8;"><i class="fa-solid fa-truck-medical"></i></div>
+            <div>
+              <strong style="color: #fff;">108 Ambulance Pre-Positioning</strong>
+              <div style="font-size: 0.7rem; color: var(--text-muted);">Redeploy ORS kits & ice-pack packs to high density transit corridors.</div>
+            </div>
+          </div>
+
+          <div style="background: rgba(13, 18, 36, 0.8); border: 1px solid var(--border-glass); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; font-size: 0.8rem;">
+            <div style="width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: rgba(34, 197, 94, 0.15); color: #22c55e;"><i class="fa-solid fa-hospital-user"></i></div>
+            <div>
+              <strong style="color: #fff;">Hospital Surge Tier II Activation</strong>
+              <div style="font-size: 0.7rem; color: var(--text-muted);">Reserve 20% inpatient beds for hyperthermia & electrolyte imbalance.</div>
+            </div>
+          </div>
+        </div>
+
+        <button class="action-btn-primary" style="margin-top: 6px; justify-content: center;" onclick="downloadSitRep()">
+          <i class="fa-solid fa-file-pdf"></i> Export National NDMA SitRep
+        </button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- District Deep-Dive Modal / Drawer -->
+  <div class="drawer-overlay" id="districtModal">
+    <div class="drawer-box">
+      <div class="drawer-header">
+        <h3 id="modalDistrictTitle" style="display: flex; align-items: center; gap: 8px; font-size: 1.1rem;">
+          <i class="fa-solid fa-location-crosshairs" style="color: var(--primary-cyan)"></i>
+          District Deep Dive
+        </h3>
+        <button onclick="closeDistrictModal()" style="background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer;">&times;</button>
+      </div>
+
+      <div class="grid-2col">
+        <div class="glass-card" style="padding: 14px;">
+          <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Thermoregulatory Load</div>
+          <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem;">
+            <div>Temperature: <b id="modalTemp">--</b></div>
+            <div>Relative Humidity: <b id="modalRH">--</b></div>
+            <div>Wet-Bulb Globe Temp (WBGT): <b id="modalWBGT" style="color: var(--alert-red);">--</b></div>
+            <div>Universal Thermal Climate Index: <b id="modalUTCI">--</b></div>
+          </div>
+        </div>
+
+        <div class="glass-card" style="padding: 14px;">
+          <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Demographic & UHI Impact</div>
+          <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem;">
+            <div>Population: <b id="modalPop">--</b></div>
+            <div>Urban Heat Island (UHI) Anomaly: <b id="modalUHI" style="color: var(--alert-orange);">--</b></div>
+            <div>2-Stage ML Hospital Surge: <b id="modalSurge">--</b></div>
+            <div>NDMA Alert Tier: <b id="modalTier">--</b></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="modalSubstateLinkBox" style="display: none; background: rgba(56, 189, 248, 0.1); border: 1px solid var(--primary-cyan); padding: 12px; border-radius: 8px; text-align: center;">
+        <span style="font-size: 0.85rem; margin-right: 12px;">🌟 Detailed Micro-GIS Ward Model available for this region:</span>
+        <a id="modalSubstateLink" href="#" style="background: var(--primary-cyan); color: #000; font-weight: 700; padding: 4px 12px; border-radius: 6px; text-decoration: none; font-size: 0.8rem;">Open Sub-State Command Center</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Automated Dispatch Modal -->
+  <div class="drawer-overlay" id="dispatchModal">
+    <div class="drawer-box" style="max-width: 600px;">
+      <div class="drawer-header">
+        <h3 style="display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-tower-broadcast" style="color: var(--alert-red)"></i>
+          National Emergency Heatwave Broadcast
+        </h3>
+        <button onclick="closeDispatchModal()" style="background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer;">&times;</button>
+      </div>
+
+      <div style="background: #080b14; border: 1px solid var(--border-glass); border-radius: 8px; padding: 12px; font-family: var(--font-mono); font-size: 0.78rem; color: #94a3b8; white-space: pre-wrap;">
+[NDMA HEATWAVE RED ALERT BROADCAST]
+Issue Date: 2026-05-18 | Authority: MoES / NCMRWF / NDMA
+Target Zones: Odisha, Rajasthan, Delhi NCR, Uttar Pradesh, Bihar, West Bengal
+
+EMERGENCY PROTOCOLS:
+1. Critical WBGT > 33.5°C across 142 districts.
+2. Section 144 outdoor physical labor ban active (11:00 AM - 3:30 PM).
+3. 108 Emergency Ambulance networks deployed to highway corridors.
+4. Municipal Corporations instructed to open all Cool Roof Centers & Jalsatras.
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+        <button class="nav-btn" onclick="closeDispatchModal()">Cancel</button>
+        <button class="action-btn-primary" onclick="confirmDispatch()">
+          <i class="fa-solid fa-paper-plane"></i> Transmit to 36 State EOCs
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client-Side Engine Scripts -->
+  <script>
+    const STATES_DATA = [{"code": "OD", "name": "Odisha", "capital": "Bhubaneswar", "lat": 20.9517, "lon": 85.0985, "zone": "Eastern Coastal Humid", "districts_count": 30, "population": 41974218, "vulnerable_pop_pct": 28.5, "base_temp": 39.4, "base_rh": 74, "base_wbgt": 33.8, "base_utci": 42.6, "base_hi": 52.4, "tier": "Red", "power_strain_mw": 840, "water_stress_tier": "High", "has_drilldown": true, "drilldown_url": "/dashboard/odisha", "district_list": [{"name": "Khordha (Bhubaneswar)", "lat": 20.1031, "lon": 85.6031, "pop": 2049345, "temp": 40.2, "rh": 72, "wbgt": 34.2, "utci": 43.1, "surge": 52.0, "tier": "Red", "uhi": 4.2}, {"name": "Cuttack", "lat": 20.42, "lon": 85.7386, "pop": 2547409, "temp": 39.8, "rh": 73, "wbgt": 33.9, "utci": 42.8, "surge": 49.0, "tier": "Red", "uhi": 3.8}, {"name": "Ganjam", "lat": 19.5608, "lon": 84.5585, "pop": 3116853, "temp": 38.5, "rh": 78, "wbgt": 33.7, "utci": 42.2, "surge": 44.0, "tier": "Red", "uhi": 2.6}, {"name": "Sundargarh", "lat": 22.0499, "lon": 84.4576, "pop": 1908310, "temp": 42.5, "rh": 52, "wbgt": 33.4, "utci": 43.5, "surge": 46.0, "tier": "Red", "uhi": 3.4}, {"name": "Sambalpur", "lat": 21.4669, "lon": 83.9812, "pop": 1041099, "temp": 43.2, "rh": 48, "wbgt": 33.6, "utci": 44.0, "surge": 48.5, "tier": "Red", "uhi": 3.6}, {"name": "Jharsuguda", "lat": 21.8554, "lon": 84.0062, "pop": 579500, "temp": 43.8, "rh": 46, "wbgt": 33.8, "utci": 44.5, "surge": 51.0, "tier": "Red", "uhi": 3.9}, {"name": "Balangir", "lat": 20.7107, "lon": 83.4851, "pop": 1648997, "temp": 42.8, "rh": 50, "wbgt": 33.2, "utci": 43.4, "surge": 45.0, "tier": "Red", "uhi": 2.8}, {"name": "Baleshwar", "lat": 21.5376, "lon": 86.9072, "pop": 2211609, "temp": 38.9, "rh": 77, "wbgt": 33.8, "utci": 42.5, "surge": 46.5, "tier": "Red", "uhi": 3.0}, {"name": "Mayurbhanj", "lat": 21.8439, "lon": 86.4234, "pop": 2443716, "temp": 40.5, "rh": 68, "wbgt": 33.4, "utci": 43.0, "surge": 43.0, "tier": "Red", "uhi": 2.4}, {"name": "Puri", "lat": 19.8135, "lon": 85.8312, "pop": 1698730, "temp": 36.8, "rh": 84, "wbgt": 33.2, "utci": 41.8, "surge": 41.0, "tier": "Orange", "uhi": 2.2}, {"name": "Koraput", "lat": 18.812, "lon": 82.7108, "pop": 1379647, "temp": 36.2, "rh": 65, "wbgt": 30.8, "utci": 38.5, "surge": 22.0, "tier": "Yellow", "uhi": 1.6}, {"name": "Rayagada", "lat": 19.1717, "lon": 83.4163, "pop": 967911, "temp": 39.5, "rh": 62, "wbgt": 32.5, "utci": 41.5, "surge": 36.0, "tier": "Orange", "uhi": 2.1}]}, {"code": "RJ", "name": "Rajasthan", "capital": "Jaipur", "lat": 27.0238, "lon": 74.2179, "zone": "North-West Arid / Desert", "districts_count": 50, "population": 68548437, "vulnerable_pop_pct": 24.2, "base_temp": 46.8, "base_rh": 22, "base_wbgt": 31.4, "base_utci": 45.1, "base_hi": 48.2, "tier": "Red", "power_strain_mw": 2650, "water_stress_tier": "Critical", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Phalodi", "lat": 27.13, "lon": 72.36, "pop": 450000, "temp": 48.6, "rh": 16, "wbgt": 31.8, "utci": 46.8, "surge": 62.0, "tier": "Red", "uhi": 3.2}, {"name": "Churu", "lat": 28.29, "lon": 74.96, "pop": 2039547, "temp": 47.9, "rh": 18, "wbgt": 31.6, "utci": 46.2, "surge": 59.0, "tier": "Red", "uhi": 3.4}, {"name": "Bikaner", "lat": 28.0229, "lon": 73.3119, "pop": 2363937, "temp": 47.4, "rh": 19, "wbgt": 31.5, "utci": 45.8, "surge": 56.0, "tier": "Red", "uhi": 3.7}, {"name": "Jaisalmer", "lat": 26.9157, "lon": 70.9083, "pop": 669919, "temp": 48.2, "rh": 15, "wbgt": 31.4, "utci": 46.4, "surge": 58.0, "tier": "Red", "uhi": 2.9}, {"name": "Barmer", "lat": 25.7532, "lon": 71.3967, "pop": 2603751, "temp": 47.1, "rh": 21, "wbgt": 31.7, "utci": 45.9, "surge": 55.0, "tier": "Red", "uhi": 3.1}, {"name": "Jaipur Core", "lat": 26.9124, "lon": 75.7873, "pop": 6626178, "temp": 45.2, "rh": 26, "wbgt": 31.8, "utci": 44.9, "surge": 53.0, "tier": "Red", "uhi": 4.6}, {"name": "Jodhpur", "lat": 26.2389, "lon": 73.0243, "pop": 3687002, "temp": 46.3, "rh": 22, "wbgt": 31.6, "utci": 45.4, "surge": 54.0, "tier": "Red", "uhi": 4.1}, {"name": "Kota", "lat": 25.18, "lon": 75.83, "pop": 1951014, "temp": 45.8, "rh": 28, "wbgt": 32.2, "utci": 45.2, "surge": 52.0, "tier": "Red", "uhi": 3.9}]}, {"code": "DL", "name": "Delhi (NCT)", "capital": "New Delhi", "lat": 28.7041, "lon": 77.1025, "zone": "Northern Urban Heat Island (UHI)", "districts_count": 11, "population": 16787941, "vulnerable_pop_pct": 29.8, "base_temp": 44.2, "base_rh": 42, "base_wbgt": 32.7, "base_utci": 44.8, "base_hi": 50.1, "tier": "Red", "power_strain_mw": 3400, "water_stress_tier": "Critical", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "North West (Mungeshpur)", "lat": 28.78, "lon": 77.01, "pop": 3656539, "temp": 46.5, "rh": 38, "wbgt": 33.2, "utci": 45.8, "surge": 58.0, "tier": "Red", "uhi": 5.1}, {"name": "South West (Najafgarh)", "lat": 28.61, "lon": 76.98, "pop": 2292958, "temp": 45.8, "rh": 40, "wbgt": 33.0, "utci": 45.2, "surge": 55.0, "tier": "Red", "uhi": 4.8}, {"name": "New Delhi Core (Palam)", "lat": 28.58, "lon": 77.11, "pop": 142004, "temp": 44.9, "rh": 42, "wbgt": 32.8, "utci": 44.6, "surge": 52.0, "tier": "Red", "uhi": 4.4}, {"name": "East Delhi (Shahdara)", "lat": 28.67, "lon": 77.29, "pop": 1709346, "temp": 44.5, "rh": 45, "wbgt": 32.9, "utci": 44.8, "surge": 54.0, "tier": "Red", "uhi": 4.9}, {"name": "South Delhi (Okhla)", "lat": 28.53, "lon": 77.27, "pop": 2731929, "temp": 44.2, "rh": 44, "wbgt": 32.6, "utci": 44.4, "surge": 50.0, "tier": "Red", "uhi": 4.5}]}, {"code": "UP", "name": "Uttar Pradesh", "capital": "Lucknow", "lat": 26.8467, "lon": 80.9462, "zone": "Gangetic Alluvial Plains", "districts_count": 75, "population": 199812341, "vulnerable_pop_pct": 31.2, "base_temp": 43.6, "base_rh": 48, "base_wbgt": 33.1, "base_utci": 44.2, "base_hi": 51.0, "tier": "Red", "power_strain_mw": 5200, "water_stress_tier": "Severe", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Prayagraj", "lat": 25.4358, "lon": 81.8463, "pop": 5954391, "temp": 45.4, "rh": 44, "wbgt": 33.5, "utci": 45.2, "surge": 54.0, "tier": "Red", "uhi": 4.2}, {"name": "Varanasi", "lat": 25.3176, "lon": 82.9739, "pop": 3676841, "temp": 44.8, "rh": 49, "wbgt": 33.4, "utci": 44.8, "surge": 51.0, "tier": "Red", "uhi": 4.3}, {"name": "Banda", "lat": 25.48, "lon": 80.33, "pop": 1799410, "temp": 46.2, "rh": 36, "wbgt": 33.0, "utci": 45.6, "surge": 56.0, "tier": "Red", "uhi": 3.6}, {"name": "Jhansi", "lat": 25.4484, "lon": 78.5685, "pop": 1998603, "temp": 45.9, "rh": 35, "wbgt": 32.8, "utci": 45.1, "surge": 52.0, "tier": "Red", "uhi": 3.8}, {"name": "Agra", "lat": 27.1767, "lon": 78.0081, "pop": 4418797, "temp": 45.1, "rh": 40, "wbgt": 33.0, "utci": 44.9, "surge": 50.0, "tier": "Red", "uhi": 4.4}, {"name": "Lucknow Core", "lat": 26.8467, "lon": 80.9462, "pop": 4589838, "temp": 44.0, "rh": 48, "wbgt": 33.0, "utci": 44.2, "surge": 48.0, "tier": "Red", "uhi": 4.5}, {"name": "Kanpur Nagar", "lat": 26.4499, "lon": 80.3319, "pop": 4581268, "temp": 44.6, "rh": 46, "wbgt": 33.2, "utci": 44.6, "surge": 50.0, "tier": "Red", "uhi": 4.7}]}, {"code": "MH", "name": "Maharashtra", "capital": "Mumbai", "lat": 19.7515, "lon": 75.7139, "zone": "Deccan & Vidarbha Heatbelt", "districts_count": 36, "population": 112374333, "vulnerable_pop_pct": 25.6, "base_temp": 44.8, "base_rh": 32, "base_wbgt": 32.0, "base_utci": 43.5, "base_hi": 48.6, "tier": "Orange", "power_strain_mw": 4800, "water_stress_tier": "Severe", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Nagpur", "lat": 21.1458, "lon": 79.0882, "pop": 4653570, "temp": 45.8, "rh": 28, "wbgt": 32.4, "utci": 44.8, "surge": 48.0, "tier": "Red", "uhi": 4.2}, {"name": "Chandrapur", "lat": 19.9615, "lon": 79.2961, "pop": 2204307, "temp": 46.4, "rh": 26, "wbgt": 32.6, "utci": 45.2, "surge": 52.0, "tier": "Red", "uhi": 4.0}, {"name": "Akola", "lat": 20.7002, "lon": 77.0082, "pop": 1813906, "temp": 45.5, "rh": 29, "wbgt": 32.2, "utci": 44.5, "surge": 46.0, "tier": "Red", "uhi": 3.5}, {"name": "Solapur", "lat": 17.6599, "lon": 75.9064, "pop": 4317756, "temp": 44.2, "rh": 34, "wbgt": 32.0, "utci": 43.8, "surge": 42.0, "tier": "Orange", "uhi": 3.7}, {"name": "Mumbai Core (MMR)", "lat": 19.076, "lon": 72.8777, "pop": 12442373, "temp": 37.2, "rh": 79, "wbgt": 33.5, "utci": 42.1, "surge": 45.0, "tier": "Red", "uhi": 5.4}, {"name": "Pune Core", "lat": 18.5204, "lon": 73.8567, "pop": 9429408, "temp": 40.8, "rh": 45, "wbgt": 31.0, "utci": 41.2, "surge": 32.0, "tier": "Orange", "uhi": 4.0}]}, {"code": "BR", "name": "Bihar", "capital": "Patna", "lat": 25.0961, "lon": 85.3131, "zone": "Middle Gangetic Humid", "districts_count": 38, "population": 104099452, "vulnerable_pop_pct": 33.0, "base_temp": 42.1, "base_rh": 62, "base_wbgt": 33.5, "base_utci": 43.8, "base_hi": 53.1, "tier": "Red", "power_strain_mw": 2100, "water_stress_tier": "High", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Gaya", "lat": 24.7914, "lon": 85.0002, "pop": 4391418, "temp": 44.2, "rh": 56, "wbgt": 33.8, "utci": 44.6, "surge": 51.0, "tier": "Red", "uhi": 3.9}, {"name": "Patna Core", "lat": 25.5941, "lon": 85.1376, "pop": 5838465, "temp": 43.0, "rh": 62, "wbgt": 33.9, "utci": 44.2, "surge": 49.0, "tier": "Red", "uhi": 4.6}, {"name": "Buxar", "lat": 25.5647, "lon": 83.9777, "pop": 1706352, "temp": 44.5, "rh": 54, "wbgt": 33.6, "utci": 44.8, "surge": 48.0, "tier": "Red", "uhi": 3.2}, {"name": "Aurangabad (BR)", "lat": 24.75, "lon": 84.37, "pop": 2540073, "temp": 44.8, "rh": 52, "wbgt": 33.5, "utci": 44.7, "surge": 47.0, "tier": "Red", "uhi": 3.1}, {"name": "Bhagalpur", "lat": 25.2425, "lon": 87.0, "pop": 3037766, "temp": 42.2, "rh": 66, "wbgt": 33.7, "utci": 43.8, "surge": 45.0, "tier": "Red", "uhi": 3.5}]}, {"code": "WB", "name": "West Bengal", "capital": "Kolkata", "lat": 22.9868, "lon": 87.855, "zone": "Lower Gangetic Delta Humid", "districts_count": 23, "population": 91276115, "vulnerable_pop_pct": 27.9, "base_temp": 39.8, "base_rh": 76, "base_wbgt": 34.0, "base_utci": 43.1, "base_hi": 54.2, "tier": "Red", "power_strain_mw": 3200, "water_stress_tier": "Moderate", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Kalaikunda / Paschim Medinipur", "lat": 22.34, "lon": 87.21, "pop": 5913457, "temp": 42.4, "rh": 70, "wbgt": 34.5, "utci": 44.5, "surge": 56.0, "tier": "Red", "uhi": 3.6}, {"name": "Panagarh / Paschim Bardhaman", "lat": 23.45, "lon": 87.43, "pop": 2882031, "temp": 43.1, "rh": 66, "wbgt": 34.2, "utci": 44.8, "surge": 53.0, "tier": "Red", "uhi": 3.8}, {"name": "Bankura", "lat": 23.2324, "lon": 87.0715, "pop": 3596674, "temp": 43.5, "rh": 64, "wbgt": 34.1, "utci": 44.9, "surge": 51.0, "tier": "Red", "uhi": 3.2}, {"name": "Kolkata Core", "lat": 22.5726, "lon": 88.3639, "pop": 4496694, "temp": 39.5, "rh": 78, "wbgt": 34.2, "utci": 43.0, "surge": 50.0, "tier": "Red", "uhi": 5.2}, {"name": "Asansol", "lat": 23.6889, "lon": 86.9661, "pop": 1243414, "temp": 43.0, "rh": 65, "wbgt": 33.9, "utci": 44.4, "surge": 48.0, "tier": "Red", "uhi": 4.1}]}, {"code": "TG", "name": "Telangana", "capital": "Hyderabad", "lat": 18.1124, "lon": 79.0193, "zone": "Semi-Arid Deccan Core", "districts_count": 33, "population": 35003674, "vulnerable_pop_pct": 27.1, "base_temp": 43.9, "base_rh": 38, "base_wbgt": 32.4, "base_utci": 43.9, "base_hi": 49.3, "tier": "Orange", "power_strain_mw": 2400, "water_stress_tier": "Severe", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Ramagundam", "lat": 18.76, "lon": 79.48, "pop": 442000, "temp": 46.2, "rh": 32, "wbgt": 33.0, "utci": 45.4, "surge": 51.0, "tier": "Red", "uhi": 4.3}, {"name": "Nalgonda", "lat": 17.05, "lon": 79.27, "pop": 1618416, "temp": 45.0, "rh": 36, "wbgt": 32.6, "utci": 44.5, "surge": 45.0, "tier": "Red", "uhi": 3.4}, {"name": "Khammam", "lat": 17.2473, "lon": 80.1514, "pop": 1401639, "temp": 44.8, "rh": 40, "wbgt": 32.8, "utci": 44.6, "surge": 44.0, "tier": "Orange", "uhi": 3.5}, {"name": "Hyderabad Core", "lat": 17.385, "lon": 78.4867, "pop": 6809970, "temp": 43.2, "rh": 42, "wbgt": 32.2, "utci": 43.5, "surge": 41.0, "tier": "Orange", "uhi": 4.8}]}, {"code": "AP", "name": "Andhra Pradesh", "capital": "Amaravati", "lat": 15.9129, "lon": 79.74, "zone": "Southern Coastal Maritime", "districts_count": 26, "population": 49577103, "vulnerable_pop_pct": 26.8, "base_temp": 41.5, "base_rh": 68, "base_wbgt": 33.6, "base_utci": 43.4, "base_hi": 53.7, "tier": "Red", "power_strain_mw": 2800, "water_stress_tier": "High", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Vijayawada / NTR", "lat": 16.5062, "lon": 80.648, "pop": 2218591, "temp": 43.5, "rh": 64, "wbgt": 34.2, "utci": 44.8, "surge": 52.0, "tier": "Red", "uhi": 4.5}, {"name": "Tirupati", "lat": 13.6288, "lon": 79.4192, "pop": 2196984, "temp": 42.0, "rh": 66, "wbgt": 33.6, "utci": 43.5, "surge": 46.0, "tier": "Red", "uhi": 3.8}, {"name": "Kadapa / YSR", "lat": 14.4673, "lon": 78.8242, "pop": 2882469, "temp": 44.5, "rh": 48, "wbgt": 33.4, "utci": 44.6, "surge": 48.0, "tier": "Red", "uhi": 3.6}, {"name": "Visakhapatnam", "lat": 17.6868, "lon": 83.2185, "pop": 4290589, "temp": 38.2, "rh": 80, "wbgt": 33.8, "utci": 42.4, "surge": 43.0, "tier": "Red", "uhi": 4.6}]}, {"code": "GJ", "name": "Gujarat", "capital": "Gandhinagar", "lat": 22.2587, "lon": 71.1924, "zone": "Western Semi-Arid & Coastal", "districts_count": 33, "population": 60439692, "vulnerable_pop_pct": 23.5, "base_temp": 43.2, "base_rh": 45, "base_wbgt": 32.3, "base_utci": 43.7, "base_hi": 49.6, "tier": "Orange", "power_strain_mw": 3600, "water_stress_tier": "Severe", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Ahmedabad Core", "lat": 23.0225, "lon": 72.5714, "pop": 5577940, "temp": 45.0, "rh": 38, "wbgt": 32.8, "utci": 44.6, "surge": 46.0, "tier": "Red", "uhi": 4.9}, {"name": "Surendranagar", "lat": 22.7284, "lon": 71.6371, "pop": 1756268, "temp": 45.8, "rh": 32, "wbgt": 32.6, "utci": 45.0, "surge": 44.0, "tier": "Red", "uhi": 3.2}, {"name": "Rajkot", "lat": 22.3039, "lon": 70.8022, "pop": 3804558, "temp": 44.2, "rh": 40, "wbgt": 32.4, "utci": 43.9, "surge": 39.0, "tier": "Orange", "uhi": 3.9}, {"name": "Kandla / Kutch", "lat": 23.0033, "lon": 70.2181, "pop": 2092371, "temp": 43.8, "rh": 50, "wbgt": 33.1, "utci": 44.2, "surge": 41.0, "tier": "Orange", "uhi": 3.0}]}, {"code": "KA", "name": "Karnataka", "capital": "Bengaluru", "lat": 15.3173, "lon": 75.7139, "zone": "Deccan Southern Plateau", "districts_count": 31, "population": 61095297, "vulnerable_pop_pct": 22.0, "base_temp": 38.5, "base_rh": 48, "base_wbgt": 30.5, "base_utci": 39.8, "base_hi": 43.2, "tier": "Yellow", "power_strain_mw": 2100, "water_stress_tier": "High", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Kalaburagi (Gulbarga)", "lat": 17.3297, "lon": 76.8343, "pop": 2566326, "temp": 44.0, "rh": 35, "wbgt": 32.2, "utci": 43.8, "surge": 38.0, "tier": "Orange", "uhi": 3.6}, {"name": "Raichur", "lat": 16.212, "lon": 77.3439, "pop": 1928812, "temp": 43.5, "rh": 38, "wbgt": 32.0, "utci": 43.2, "surge": 35.0, "tier": "Orange", "uhi": 3.3}, {"name": "Bengaluru Urban Core", "lat": 12.9716, "lon": 77.5946, "pop": 9621551, "temp": 37.0, "rh": 52, "wbgt": 29.8, "utci": 38.4, "surge": 18.0, "tier": "Yellow", "uhi": 4.8}]}, {"code": "TN", "name": "Tamil Nadu", "capital": "Chennai", "lat": 11.1271, "lon": 78.6569, "zone": "Coromandel Coastal & Interior", "districts_count": 38, "population": 72147030, "vulnerable_pop_pct": 23.8, "base_temp": 40.2, "base_rh": 66, "base_wbgt": 33.2, "base_utci": 42.4, "base_hi": 52.0, "tier": "Orange", "power_strain_mw": 3100, "water_stress_tier": "Severe", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Madurai", "lat": 9.9252, "lon": 78.1198, "pop": 3038252, "temp": 42.2, "rh": 58, "wbgt": 33.4, "utci": 43.5, "surge": 44.0, "tier": "Red", "uhi": 4.1}, {"name": "Vellore", "lat": 12.9165, "lon": 79.1325, "pop": 3936366, "temp": 43.0, "rh": 54, "wbgt": 33.2, "utci": 43.8, "surge": 42.0, "tier": "Orange", "uhi": 3.8}, {"name": "Chennai Core", "lat": 13.0827, "lon": 80.2707, "pop": 4646732, "temp": 39.8, "rh": 74, "wbgt": 33.8, "utci": 42.8, "surge": 45.0, "tier": "Red", "uhi": 5.1}]}, {"code": "MP", "name": "Madhya Pradesh", "capital": "Bhopal", "lat": 22.9734, "lon": 78.6569, "zone": "Central Plateau Dry-Heat", "districts_count": 55, "population": 72626809, "vulnerable_pop_pct": 25.0, "base_temp": 44.5, "base_rh": 29, "base_wbgt": 31.8, "base_utci": 43.6, "base_hi": 47.4, "tier": "Orange", "power_strain_mw": 1815, "water_stress_tier": "High", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Madhya Pradesh District 1", "lat": 23.1013, "lon": 78.4185, "pop": 1320487, "temp": 43.8, "rh": 33.0, "wbgt": 32.4, "utci": 43.4, "surge": 41.6, "tier": "Orange", "uhi": 1.9}, {"name": "Madhya Pradesh District 2", "lat": 22.4756, "lon": 78.1008, "pop": 1320487, "temp": 43.7, "rh": 25.0, "wbgt": 31.1, "utci": 44.2, "surge": 33.2, "tier": "Orange", "uhi": 2.9}, {"name": "Madhya Pradesh District 3", "lat": 22.2472, "lon": 78.7595, "pop": 1320487, "temp": 45.1, "rh": 33.0, "wbgt": 32.5, "utci": 43.7, "surge": 42.2, "tier": "Orange", "uhi": 2.9}, {"name": "Madhya Pradesh District 4", "lat": 23.3603, "lon": 78.3512, "pop": 1320487, "temp": 43.8, "rh": 28.0, "wbgt": 32.3, "utci": 44.1, "surge": 40.9, "tier": "Orange", "uhi": 2.9}, {"name": "Madhya Pradesh District 5", "lat": 23.3606, "lon": 78.4843, "pop": 1320487, "temp": 43.7, "rh": 30.0, "wbgt": 31.6, "utci": 44.4, "surge": 36.4, "tier": "Orange", "uhi": 2.4}]}, {"code": "HR", "name": "Haryana", "capital": "Chandigarh", "lat": 29.0588, "lon": 76.0856, "zone": "North-Western Indo-Gangetic", "districts_count": 22, "population": 25351462, "vulnerable_pop_pct": 25.0, "base_temp": 45.1, "base_rh": 34, "base_wbgt": 32.2, "base_utci": 44.5, "base_hi": 48.5, "tier": "Red", "power_strain_mw": 633, "water_stress_tier": "High", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Haryana District 1", "lat": 29.8043, "lon": 76.3695, "pop": 1152339, "temp": 46.0, "rh": 33.0, "wbgt": 32.7, "utci": 44.3, "surge": 43.6, "tier": "Red", "uhi": 3.6}, {"name": "Haryana District 2", "lat": 29.383, "lon": 75.3535, "pop": 1152339, "temp": 46.5, "rh": 35.0, "wbgt": 32.0, "utci": 44.6, "surge": 39.0, "tier": "Red", "uhi": 2.4}, {"name": "Haryana District 3", "lat": 28.6558, "lon": 76.3923, "pop": 1152339, "temp": 45.1, "rh": 39.0, "wbgt": 32.7, "utci": 44.1, "surge": 43.6, "tier": "Red", "uhi": 2.5}, {"name": "Haryana District 4", "lat": 28.5414, "lon": 76.0154, "pop": 1152339, "temp": 46.2, "rh": 37.0, "wbgt": 32.3, "utci": 43.7, "surge": 40.9, "tier": "Red", "uhi": 2.0}, {"name": "Haryana District 5", "lat": 28.856, "lon": 76.1472, "pop": 1152339, "temp": 44.2, "rh": 39.0, "wbgt": 32.8, "utci": 44.3, "surge": 44.2, "tier": "Red", "uhi": 2.6}]}, {"code": "PB", "name": "Punjab", "capital": "Chandigarh", "lat": 31.1471, "lon": 75.3412, "zone": "North-Western Agricultural Plain", "districts_count": 23, "population": 27743338, "vulnerable_pop_pct": 25.0, "base_temp": 44.0, "base_rh": 36, "base_wbgt": 31.9, "base_utci": 43.8, "base_hi": 47.6, "tier": "Orange", "power_strain_mw": 693, "water_stress_tier": "High", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Punjab District 1", "lat": 31.4575, "lon": 75.3724, "pop": 1206232, "temp": 45.4, "rh": 40.0, "wbgt": 32.3, "utci": 43.8, "surge": 40.9, "tier": "Orange", "uhi": 4.1}, {"name": "Punjab District 2", "lat": 30.883, "lon": 74.9106, "pop": 1206232, "temp": 42.9, "rh": 40.0, "wbgt": 31.3, "utci": 43.1, "surge": 34.5, "tier": "Orange", "uhi": 3.4}, {"name": "Punjab District 3", "lat": 30.5196, "lon": 74.6738, "pop": 1206232, "temp": 44.1, "rh": 34.0, "wbgt": 31.2, "utci": 42.9, "surge": 33.8, "tier": "Orange", "uhi": 3.2}, {"name": "Punjab District 4", "lat": 30.5342, "lon": 74.8682, "pop": 1206232, "temp": 43.3, "rh": 40.0, "wbgt": 32.5, "utci": 44.7, "surge": 42.2, "tier": "Orange", "uhi": 3.7}, {"name": "Punjab District 5", "lat": 31.5473, "lon": 74.8686, "pop": 1206232, "temp": 44.1, "rh": 37.0, "wbgt": 31.1, "utci": 44.8, "surge": 33.2, "tier": "Orange", "uhi": 3.1}]}, {"code": "JH", "name": "Jharkhand", "capital": "Ranchi", "lat": 23.6102, "lon": 85.2799, "zone": "Chota Nagpur Plateau", "districts_count": 24, "population": 32988134, "vulnerable_pop_pct": 25.0, "base_temp": 41.8, "base_rh": 54, "base_wbgt": 32.8, "base_utci": 43.0, "base_hi": 47.2, "tier": "Orange", "power_strain_mw": 824, "water_stress_tier": "High", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Jharkhand District 1", "lat": 24.3566, "lon": 84.6763, "pop": 1374505, "temp": 40.9, "rh": 56.0, "wbgt": 32.8, "utci": 43.4, "surge": 44.2, "tier": "Orange", "uhi": 2.1}, {"name": "Jharkhand District 2", "lat": 23.6424, "lon": 85.4116, "pop": 1374505, "temp": 40.8, "rh": 51.0, "wbgt": 32.5, "utci": 43.6, "surge": 42.2, "tier": "Orange", "uhi": 3.7}, {"name": "Jharkhand District 3", "lat": 24.3176, "lon": 85.9284, "pop": 1374505, "temp": 41.1, "rh": 58.0, "wbgt": 33.4, "utci": 43.4, "surge": 48.1, "tier": "Orange", "uhi": 3.1}, {"name": "Jharkhand District 4", "lat": 23.9445, "lon": 85.884, "pop": 1374505, "temp": 40.3, "rh": 54.0, "wbgt": 32.3, "utci": 42.3, "surge": 40.9, "tier": "Orange", "uhi": 2.3}, {"name": "Jharkhand District 5", "lat": 24.3671, "lon": 85.286, "pop": 1374505, "temp": 42.4, "rh": 54.0, "wbgt": 33.4, "utci": 42.0, "surge": 48.1, "tier": "Orange", "uhi": 2.7}]}, {"code": "CG", "name": "Chhattisgarh", "capital": "Raipur", "lat": 21.2787, "lon": 81.8661, "zone": "Central Tribal Forest & Plain", "districts_count": 33, "population": 25545198, "vulnerable_pop_pct": 25.0, "base_temp": 43.2, "base_rh": 42, "base_wbgt": 32.4, "base_utci": 43.2, "base_hi": 47.4, "tier": "Orange", "power_strain_mw": 638, "water_stress_tier": "High", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Chhattisgarh District 1", "lat": 20.6986, "lon": 81.5177, "pop": 774096, "temp": 43.0, "rh": 38.0, "wbgt": 31.8, "utci": 43.6, "surge": 37.7, "tier": "Orange", "uhi": 3.0}, {"name": "Chhattisgarh District 2", "lat": 20.9021, "lon": 81.6783, "pop": 774096, "temp": 43.6, "rh": 41.0, "wbgt": 32.4, "utci": 44.2, "surge": 41.6, "tier": "Orange", "uhi": 4.0}, {"name": "Chhattisgarh District 3", "lat": 21.6524, "lon": 81.4654, "pop": 774096, "temp": 42.1, "rh": 43.0, "wbgt": 33.0, "utci": 42.5, "surge": 45.5, "tier": "Orange", "uhi": 3.9}, {"name": "Chhattisgarh District 4", "lat": 21.4787, "lon": 81.1695, "pop": 774096, "temp": 43.7, "rh": 43.0, "wbgt": 32.0, "utci": 43.3, "surge": 39.0, "tier": "Orange", "uhi": 3.2}, {"name": "Chhattisgarh District 5", "lat": 20.5667, "lon": 81.6568, "pop": 774096, "temp": 42.9, "rh": 38.0, "wbgt": 32.4, "utci": 42.5, "surge": 41.6, "tier": "Orange", "uhi": 4.1}]}, {"code": "KL", "name": "Kerala", "capital": "Thiruvananthapuram", "lat": 10.8505, "lon": 76.2711, "zone": "Tropical Malabar Coast", "districts_count": 14, "population": 33406061, "vulnerable_pop_pct": 25.0, "base_temp": 35.8, "base_rh": 82, "base_wbgt": 32.5, "base_utci": 40.2, "base_hi": 44.0, "tier": "Yellow", "power_strain_mw": 835, "water_stress_tier": "Moderate", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Kerala District 1", "lat": 10.7859, "lon": 76.2082, "pop": 2386147, "temp": 36.6, "rh": 81.0, "wbgt": 31.8, "utci": 39.6, "surge": 37.7, "tier": "Yellow", "uhi": 2.7}, {"name": "Kerala District 2", "lat": 11.4018, "lon": 76.5714, "pop": 2386147, "temp": 36.7, "rh": 83.0, "wbgt": 32.2, "utci": 40.3, "surge": 40.3, "tier": "Yellow", "uhi": 2.2}, {"name": "Kerala District 3", "lat": 10.5748, "lon": 76.9687, "pop": 2386147, "temp": 35.5, "rh": 82.0, "wbgt": 31.8, "utci": 39.2, "surge": 37.7, "tier": "Yellow", "uhi": 2.1}, {"name": "Kerala District 4", "lat": 10.0801, "lon": 76.6298, "pop": 2386147, "temp": 36.0, "rh": 82.0, "wbgt": 33.0, "utci": 40.3, "surge": 45.5, "tier": "Yellow", "uhi": 3.2}, {"name": "Kerala District 5", "lat": 10.9379, "lon": 76.3446, "pop": 2386147, "temp": 34.5, "rh": 85.0, "wbgt": 32.2, "utci": 40.1, "surge": 40.3, "tier": "Yellow", "uhi": 3.6}]}, {"code": "UK", "name": "Uttarakhand", "capital": "Dehradun", "lat": 30.0668, "lon": 79.0193, "zone": "Himalayan Foothills", "districts_count": 13, "population": 10086292, "vulnerable_pop_pct": 25.0, "base_temp": 36.4, "base_rh": 46, "base_wbgt": 28.2, "base_utci": 36.4, "base_hi": 41.0, "tier": "Green", "power_strain_mw": 252, "water_stress_tier": "Moderate", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Uttarakhand District 1", "lat": 30.6062, "lon": 79.4718, "pop": 775868, "temp": 35.7, "rh": 47.0, "wbgt": 28.1, "utci": 37.1, "surge": 13.7, "tier": "Green", "uhi": 2.5}, {"name": "Uttarakhand District 2", "lat": 30.4749, "lon": 79.4432, "pop": 775868, "temp": 37.1, "rh": 48.0, "wbgt": 28.5, "utci": 35.5, "surge": 16.2, "tier": "Green", "uhi": 3.5}, {"name": "Uttarakhand District 3", "lat": 29.3585, "lon": 78.9051, "pop": 775868, "temp": 35.2, "rh": 46.0, "wbgt": 28.5, "utci": 35.4, "surge": 16.2, "tier": "Green", "uhi": 2.3}, {"name": "Uttarakhand District 4", "lat": 30.6081, "lon": 78.8026, "pop": 775868, "temp": 36.9, "rh": 50.0, "wbgt": 28.2, "utci": 36.9, "surge": 14.3, "tier": "Green", "uhi": 3.2}, {"name": "Uttarakhand District 5", "lat": 30.4713, "lon": 78.5995, "pop": 775868, "temp": 36.2, "rh": 47.0, "wbgt": 27.7, "utci": 35.6, "surge": 11.0, "tier": "Green", "uhi": 3.9}]}, {"code": "HP", "name": "Himachal Pradesh", "capital": "Shimla", "lat": 31.1048, "lon": 77.1734, "zone": "Western Alpine", "districts_count": 12, "population": 6864602, "vulnerable_pop_pct": 25.0, "base_temp": 30.5, "base_rh": 40, "base_wbgt": 24.5, "base_utci": 31.0, "base_hi": 34.5, "tier": "Green", "power_strain_mw": 171, "water_stress_tier": "Moderate", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Himachal Pradesh District 1", "lat": 31.2808, "lon": 76.8242, "pop": 572050, "temp": 31.0, "rh": 43.0, "wbgt": 24.2, "utci": 31.8, "surge": 5, "tier": "Green", "uhi": 1.8}, {"name": "Himachal Pradesh District 2", "lat": 31.637, "lon": 76.8299, "pop": 572050, "temp": 31.4, "rh": 35.0, "wbgt": 25.2, "utci": 30.7, "surge": 5, "tier": "Green", "uhi": 3.1}, {"name": "Himachal Pradesh District 3", "lat": 30.3331, "lon": 77.3558, "pop": 572050, "temp": 29.6, "rh": 44.0, "wbgt": 24.2, "utci": 31.4, "surge": 5, "tier": "Green", "uhi": 1.9}, {"name": "Himachal Pradesh District 4", "lat": 31.3843, "lon": 77.7849, "pop": 572050, "temp": 29.5, "rh": 45.0, "wbgt": 25.0, "utci": 30.9, "surge": 5, "tier": "Green", "uhi": 2.3}, {"name": "Himachal Pradesh District 5", "lat": 30.5702, "lon": 76.7923, "pop": 572050, "temp": 29.1, "rh": 35.0, "wbgt": 24.5, "utci": 31.3, "surge": 5, "tier": "Green", "uhi": 3.7}]}, {"code": "JK", "name": "Jammu & Kashmir", "capital": "Srinagar", "lat": 33.7782, "lon": 76.5762, "zone": "Sub-Himalayan Valley", "districts_count": 20, "population": 12267032, "vulnerable_pop_pct": 25.0, "base_temp": 38.2, "base_rh": 38, "base_wbgt": 28.8, "base_utci": 37.0, "base_hi": 42.0, "tier": "Yellow", "power_strain_mw": 306, "water_stress_tier": "Moderate", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Jammu & Kashmir District 1", "lat": 34.0307, "lon": 76.6739, "pop": 613351, "temp": 37.8, "rh": 37.0, "wbgt": 28.3, "utci": 36.9, "surge": 15.0, "tier": "Yellow", "uhi": 2.8}, {"name": "Jammu & Kashmir District 2", "lat": 34.1562, "lon": 76.8667, "pop": 613351, "temp": 39.7, "rh": 36.0, "wbgt": 29.5, "utci": 36.5, "surge": 22.8, "tier": "Yellow", "uhi": 3.2}, {"name": "Jammu & Kashmir District 3", "lat": 33.3765, "lon": 77.3252, "pop": 613351, "temp": 38.1, "rh": 37.0, "wbgt": 28.5, "utci": 37.9, "surge": 16.2, "tier": "Yellow", "uhi": 2.7}, {"name": "Jammu & Kashmir District 4", "lat": 33.0038, "lon": 75.7872, "pop": 613351, "temp": 38.8, "rh": 39.0, "wbgt": 28.7, "utci": 38.0, "surge": 17.5, "tier": "Yellow", "uhi": 1.8}, {"name": "Jammu & Kashmir District 5", "lat": 33.642, "lon": 76.5093, "pop": 613351, "temp": 38.4, "rh": 33.0, "wbgt": 29.1, "utci": 37.0, "surge": 20.2, "tier": "Yellow", "uhi": 2.7}]}, {"code": "AS", "name": "Assam", "capital": "Dispur", "lat": 26.2006, "lon": 92.9376, "zone": "Brahmaputra Valley Humid", "districts_count": 35, "population": 31205576, "vulnerable_pop_pct": 25.0, "base_temp": 36.8, "base_rh": 78, "base_wbgt": 32.2, "base_utci": 40.8, "base_hi": 44.6, "tier": "Yellow", "power_strain_mw": 780, "water_stress_tier": "Moderate", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Assam District 1", "lat": 26.9156, "lon": 93.5177, "pop": 891587, "temp": 35.7, "rh": 75.0, "wbgt": 33.0, "utci": 40.4, "surge": 45.5, "tier": "Yellow", "uhi": 2.2}, {"name": "Assam District 2", "lat": 25.971, "lon": 92.5111, "pop": 891587, "temp": 36.5, "rh": 82.0, "wbgt": 31.7, "utci": 40.0, "surge": 37.0, "tier": "Yellow", "uhi": 3.3}, {"name": "Assam District 3", "lat": 26.5738, "lon": 92.2888, "pop": 891587, "temp": 37.1, "rh": 73.0, "wbgt": 32.5, "utci": 39.8, "surge": 42.2, "tier": "Yellow", "uhi": 2.1}, {"name": "Assam District 4", "lat": 26.385, "lon": 92.1695, "pop": 891587, "temp": 37.4, "rh": 81.0, "wbgt": 32.8, "utci": 39.8, "surge": 44.2, "tier": "Yellow", "uhi": 2.4}, {"name": "Assam District 5", "lat": 26.0821, "lon": 92.2597, "pop": 891587, "temp": 35.4, "rh": 82.0, "wbgt": 32.4, "utci": 40.9, "surge": 41.6, "tier": "Yellow", "uhi": 3.8}]}, {"code": "GA", "name": "Goa", "capital": "Panaji", "lat": 15.2993, "lon": 74.124, "zone": "Konkan Coast", "districts_count": 2, "population": 1458545, "vulnerable_pop_pct": 25.0, "base_temp": 34.5, "base_rh": 80, "base_wbgt": 31.8, "base_utci": 39.5, "base_hi": 42.5, "tier": "Yellow", "power_strain_mw": 36, "water_stress_tier": "Moderate", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Goa District 1", "lat": 15.4593, "lon": 74.4135, "pop": 729272, "temp": 35.1, "rh": 75.0, "wbgt": 31.5, "utci": 38.9, "surge": 35.8, "tier": "Yellow", "uhi": 3.5}, {"name": "Goa District 2", "lat": 15.2591, "lon": 74.0341, "pop": 729272, "temp": 33.5, "rh": 81.0, "wbgt": 32.5, "utci": 39.3, "surge": 42.2, "tier": "Yellow", "uhi": 2.1}]}, {"code": "TR", "name": "Tripura", "capital": "Agartala", "lat": 23.9408, "lon": 91.9882, "zone": "NE Humid Basin", "districts_count": 8, "population": 3673917, "vulnerable_pop_pct": 25.0, "base_temp": 36.5, "base_rh": 75, "base_wbgt": 31.9, "base_utci": 40.1, "base_hi": 44.0, "tier": "Yellow", "power_strain_mw": 91, "water_stress_tier": "Moderate", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Tripura District 1", "lat": 23.2615, "lon": 91.216, "pop": 459239, "temp": 37.9, "rh": 73.0, "wbgt": 31.9, "utci": 39.6, "surge": 38.3, "tier": "Yellow", "uhi": 2.2}, {"name": "Tripura District 2", "lat": 23.5401, "lon": 91.209, "pop": 459239, "temp": 37.7, "rh": 77.0, "wbgt": 32.1, "utci": 39.9, "surge": 39.7, "tier": "Yellow", "uhi": 3.4}, {"name": "Tripura District 3", "lat": 23.7884, "lon": 92.6844, "pop": 459239, "temp": 36.1, "rh": 80.0, "wbgt": 32.6, "utci": 40.6, "surge": 42.9, "tier": "Yellow", "uhi": 3.0}, {"name": "Tripura District 4", "lat": 24.2856, "lon": 92.2309, "pop": 459239, "temp": 37.1, "rh": 74.0, "wbgt": 32.1, "utci": 40.9, "surge": 39.7, "tier": "Yellow", "uhi": 4.1}, {"name": "Tripura District 5", "lat": 24.2092, "lon": 92.0003, "pop": 459239, "temp": 37.9, "rh": 80.0, "wbgt": 31.6, "utci": 39.6, "surge": 36.4, "tier": "Yellow", "uhi": 3.4}]}, {"code": "ML", "name": "Meghalaya", "capital": "Shillong", "lat": 25.467, "lon": 91.3662, "zone": "Highland Pluvial", "districts_count": 12, "population": 2966889, "vulnerable_pop_pct": 25.0, "base_temp": 28.2, "base_rh": 70, "base_wbgt": 23.5, "base_utci": 28.5, "base_hi": 35.2, "tier": "Green", "power_strain_mw": 74, "water_stress_tier": "Moderate", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Meghalaya District 1", "lat": 25.3411, "lon": 90.7381, "pop": 247240, "temp": 28.1, "rh": 67.0, "wbgt": 23.2, "utci": 29.3, "surge": 5, "tier": "Green", "uhi": 4.1}, {"name": "Meghalaya District 2", "lat": 25.6189, "lon": 91.2537, "pop": 247240, "temp": 29.4, "rh": 69.0, "wbgt": 24.0, "utci": 29.2, "surge": 5, "tier": "Green", "uhi": 2.8}, {"name": "Meghalaya District 3", "lat": 25.0294, "lon": 91.4612, "pop": 247240, "temp": 27.9, "rh": 67.0, "wbgt": 23.4, "utci": 28.6, "surge": 5, "tier": "Green", "uhi": 2.7}, {"name": "Meghalaya District 4", "lat": 25.7607, "lon": 91.0721, "pop": 247240, "temp": 26.9, "rh": 68.0, "wbgt": 23.4, "utci": 27.5, "surge": 5, "tier": "Green", "uhi": 3.4}, {"name": "Meghalaya District 5", "lat": 25.8713, "lon": 91.199, "pop": 247240, "temp": 28.3, "rh": 69.0, "wbgt": 23.9, "utci": 28.0, "surge": 5, "tier": "Green", "uhi": 3.0}]}, {"code": "MN", "name": "Manipur", "capital": "Imphal", "lat": 24.6637, "lon": 93.9063, "zone": "Sub-Himalayan Valley", "districts_count": 16, "population": 2855794, "vulnerable_pop_pct": 25.0, "base_temp": 31.4, "base_rh": 68, "base_wbgt": 26.2, "base_utci": 32.8, "base_hi": 38.2, "tier": "Green", "power_strain_mw": 71, "water_stress_tier": "Moderate", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Manipur District 1", "lat": 24.2877, "lon": 94.4687, "pop": 178487, "temp": 30.3, "rh": 67.0, "wbgt": 26.2, "utci": 33.1, "surge": 5, "tier": "Green", "uhi": 3.1}, {"name": "Manipur District 2", "lat": 24.3952, "lon": 93.6022, "pop": 178487, "temp": 30.0, "rh": 65.0, "wbgt": 26.2, "utci": 33.1, "surge": 5, "tier": "Green", "uhi": 2.7}, {"name": "Manipur District 3", "lat": 24.9245, "lon": 94.416, "pop": 178487, "temp": 31.8, "rh": 69.0, "wbgt": 25.9, "utci": 32.5, "surge": 5, "tier": "Green", "uhi": 2.7}, {"name": "Manipur District 4", "lat": 24.2424, "lon": 94.5768, "pop": 178487, "temp": 31.4, "rh": 67.0, "wbgt": 26.3, "utci": 33.0, "surge": 5, "tier": "Green", "uhi": 2.1}, {"name": "Manipur District 5", "lat": 24.9165, "lon": 93.7742, "pop": 178487, "temp": 32.2, "rh": 72.0, "wbgt": 25.6, "utci": 33.1, "surge": 5, "tier": "Green", "uhi": 3.3}]}, {"code": "NL", "name": "Nagaland", "capital": "Kohima", "lat": 26.1584, "lon": 94.5624, "zone": "Naga Hills", "districts_count": 16, "population": 1978502, "vulnerable_pop_pct": 25.0, "base_temp": 30.8, "base_rh": 66, "base_wbgt": 25.5, "base_utci": 31.9, "base_hi": 37.4, "tier": "Green", "power_strain_mw": 49, "water_stress_tier": "Moderate", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Nagaland District 1", "lat": 26.0056, "lon": 94.4287, "pop": 123656, "temp": 30.5, "rh": 70.0, "wbgt": 25.9, "utci": 31.8, "surge": 5, "tier": "Green", "uhi": 3.1}, {"name": "Nagaland District 2", "lat": 25.5973, "lon": 94.3624, "pop": 123656, "temp": 29.7, "rh": 62.0, "wbgt": 24.8, "utci": 31.7, "surge": 5, "tier": "Green", "uhi": 1.8}, {"name": "Nagaland District 3", "lat": 25.6105, "lon": 94.3843, "pop": 123656, "temp": 31.3, "rh": 62.0, "wbgt": 25.2, "utci": 31.8, "surge": 5, "tier": "Green", "uhi": 2.8}, {"name": "Nagaland District 4", "lat": 26.5735, "lon": 93.8942, "pop": 123656, "temp": 30.1, "rh": 61.0, "wbgt": 25.6, "utci": 31.8, "surge": 5, "tier": "Green", "uhi": 3.6}, {"name": "Nagaland District 5", "lat": 26.3527, "lon": 95.3011, "pop": 123656, "temp": 30.3, "rh": 69.0, "wbgt": 25.1, "utci": 32.8, "surge": 5, "tier": "Green", "uhi": 2.8}]}, {"code": "MZ", "name": "Mizoram", "capital": "Aizawl", "lat": 23.1645, "lon": 92.9376, "zone": "Lushai Hills", "districts_count": 11, "population": 1097206, "vulnerable_pop_pct": 25.0, "base_temp": 29.5, "base_rh": 65, "base_wbgt": 24.8, "base_utci": 30.5, "base_hi": 36.0, "tier": "Green", "power_strain_mw": 27, "water_stress_tier": "Moderate", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Mizoram District 1", "lat": 22.7514, "lon": 93.1455, "pop": 99746, "temp": 29.3, "rh": 61.0, "wbgt": 24.2, "utci": 30.8, "surge": 5, "tier": "Green", "uhi": 2.9}, {"name": "Mizoram District 2", "lat": 23.1483, "lon": 92.8693, "pop": 99746, "temp": 30.0, "rh": 67.0, "wbgt": 24.9, "utci": 31.0, "surge": 5, "tier": "Green", "uhi": 2.4}, {"name": "Mizoram District 3", "lat": 23.0168, "lon": 93.3251, "pop": 99746, "temp": 28.2, "rh": 60.0, "wbgt": 25.6, "utci": 30.7, "surge": 5, "tier": "Green", "uhi": 3.1}, {"name": "Mizoram District 4", "lat": 23.2992, "lon": 92.1394, "pop": 99746, "temp": 29.2, "rh": 67.0, "wbgt": 24.5, "utci": 31.4, "surge": 5, "tier": "Green", "uhi": 2.9}, {"name": "Mizoram District 5", "lat": 22.4083, "lon": 93.3249, "pop": 99746, "temp": 29.0, "rh": 61.0, "wbgt": 24.6, "utci": 30.3, "surge": 5, "tier": "Green", "uhi": 3.4}]}, {"code": "SK", "name": "Sikkim", "capital": "Gangtok", "lat": 27.533, "lon": 88.5122, "zone": "Alpine Eco", "districts_count": 6, "population": 610577, "vulnerable_pop_pct": 25.0, "base_temp": 24.2, "base_rh": 62, "base_wbgt": 20.1, "base_utci": 23.4, "base_hi": 30.4, "tier": "Green", "power_strain_mw": 15, "water_stress_tier": "Moderate", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Sikkim District 1", "lat": 27.8479, "lon": 88.0271, "pop": 101762, "temp": 24.0, "rh": 63.0, "wbgt": 20.9, "utci": 22.9, "surge": 5, "tier": "Green", "uhi": 3.7}, {"name": "Sikkim District 2", "lat": 27.3675, "lon": 87.902, "pop": 101762, "temp": 24.9, "rh": 60.0, "wbgt": 19.7, "utci": 23.1, "surge": 5, "tier": "Green", "uhi": 2.4}, {"name": "Sikkim District 3", "lat": 28.1145, "lon": 87.8297, "pop": 101762, "temp": 25.5, "rh": 59.0, "wbgt": 20.0, "utci": 23.4, "surge": 5, "tier": "Green", "uhi": 2.9}, {"name": "Sikkim District 4", "lat": 27.3466, "lon": 88.1194, "pop": 101762, "temp": 25.4, "rh": 64.0, "wbgt": 20.2, "utci": 24.2, "surge": 5, "tier": "Green", "uhi": 3.4}, {"name": "Sikkim District 5", "lat": 27.0206, "lon": 87.7343, "pop": 101762, "temp": 25.5, "rh": 61.0, "wbgt": 20.0, "utci": 23.5, "surge": 5, "tier": "Green", "uhi": 2.9}]}, {"code": "AR", "name": "Arunachal Pradesh", "capital": "Itanagar", "lat": 28.218, "lon": 94.7278, "zone": "Trans-Himalayan", "districts_count": 26, "population": 1383727, "vulnerable_pop_pct": 25.0, "base_temp": 31.2, "base_rh": 72, "base_wbgt": 26.0, "base_utci": 32.4, "base_hi": 38.4, "tier": "Green", "power_strain_mw": 34, "water_stress_tier": "Moderate", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Arunachal Pradesh District 1", "lat": 28.0208, "lon": 95.1938, "pop": 53220, "temp": 31.3, "rh": 75.0, "wbgt": 25.6, "utci": 31.7, "surge": 5, "tier": "Green", "uhi": 2.1}, {"name": "Arunachal Pradesh District 2", "lat": 28.2491, "lon": 95.2222, "pop": 53220, "temp": 30.7, "rh": 75.0, "wbgt": 26.8, "utci": 33.2, "surge": 5.2, "tier": "Green", "uhi": 2.5}, {"name": "Arunachal Pradesh District 3", "lat": 27.4899, "lon": 95.2648, "pop": 53220, "temp": 30.9, "rh": 71.0, "wbgt": 25.8, "utci": 32.0, "surge": 5, "tier": "Green", "uhi": 4.0}, {"name": "Arunachal Pradesh District 4", "lat": 28.3276, "lon": 94.1536, "pop": 53220, "temp": 32.5, "rh": 72.0, "wbgt": 25.3, "utci": 33.3, "surge": 5, "tier": "Green", "uhi": 3.4}, {"name": "Arunachal Pradesh District 5", "lat": 28.0347, "lon": 95.2063, "pop": 53220, "temp": 31.4, "rh": 71.0, "wbgt": 26.4, "utci": 31.6, "surge": 5, "tier": "Green", "uhi": 3.5}]}, {"code": "PY", "name": "Puducherry", "capital": "Puducherry", "lat": 11.9416, "lon": 79.8083, "zone": "Coastal Enclave", "districts_count": 4, "population": 1247953, "vulnerable_pop_pct": 25.0, "base_temp": 38.6, "base_rh": 72, "base_wbgt": 32.8, "base_utci": 41.5, "base_hi": 45.8, "tier": "Yellow", "power_strain_mw": 31, "water_stress_tier": "Moderate", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Puducherry District 1", "lat": 12.0089, "lon": 79.1476, "pop": 311988, "temp": 37.5, "rh": 72.0, "wbgt": 32.0, "utci": 40.9, "surge": 39.0, "tier": "Yellow", "uhi": 2.5}, {"name": "Puducherry District 2", "lat": 11.7111, "lon": 79.569, "pop": 311988, "temp": 37.8, "rh": 76.0, "wbgt": 33.2, "utci": 42.4, "surge": 46.8, "tier": "Yellow", "uhi": 2.5}, {"name": "Puducherry District 3", "lat": 11.973, "lon": 80.0994, "pop": 311988, "temp": 39.2, "rh": 70.0, "wbgt": 32.7, "utci": 41.6, "surge": 43.6, "tier": "Yellow", "uhi": 3.2}, {"name": "Puducherry District 4", "lat": 12.201, "lon": 79.7141, "pop": 311988, "temp": 38.0, "rh": 74.0, "wbgt": 33.1, "utci": 41.8, "surge": 46.2, "tier": "Yellow", "uhi": 3.4}]}, {"code": "CH", "name": "Chandigarh", "capital": "Chandigarh", "lat": 30.7333, "lon": 76.7794, "zone": "Shivalik Planned", "districts_count": 1, "population": 1055450, "vulnerable_pop_pct": 25.0, "base_temp": 43.5, "base_rh": 35, "base_wbgt": 31.8, "base_utci": 43.2, "base_hi": 47.0, "tier": "Orange", "power_strain_mw": 26, "water_stress_tier": "High", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Chandigarh District 1", "lat": 31.5227, "lon": 76.1989, "pop": 1055450, "temp": 44.8, "rh": 33.0, "wbgt": 31.4, "utci": 44.0, "surge": 35.1, "tier": "Orange", "uhi": 3.0}]}, {"code": "AN", "name": "Andaman & Nicobar", "capital": "Port Blair", "lat": 11.7401, "lon": 92.6586, "zone": "Island Marine", "districts_count": 3, "population": 380581, "vulnerable_pop_pct": 25.0, "base_temp": 33.2, "base_rh": 84, "base_wbgt": 30.8, "base_utci": 37.8, "base_hi": 41.6, "tier": "Yellow", "power_strain_mw": 9, "water_stress_tier": "Moderate", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Andaman & Nicobar District 1", "lat": 11.6622, "lon": 92.1652, "pop": 126860, "temp": 34.1, "rh": 87.0, "wbgt": 30.1, "utci": 38.0, "surge": 26.7, "tier": "Yellow", "uhi": 3.6}, {"name": "Andaman & Nicobar District 2", "lat": 11.027, "lon": 93.0648, "pop": 126860, "temp": 34.1, "rh": 85.0, "wbgt": 30.5, "utci": 38.6, "surge": 29.2, "tier": "Yellow", "uhi": 3.8}, {"name": "Andaman & Nicobar District 3", "lat": 11.9046, "lon": 93.449, "pop": 126860, "temp": 33.4, "rh": 85.0, "wbgt": 30.6, "utci": 38.8, "surge": 29.9, "tier": "Yellow", "uhi": 2.4}]}, {"code": "LA", "name": "Ladakh", "capital": "Leh", "lat": 34.1526, "lon": 77.5771, "zone": "Cold Desert", "districts_count": 2, "population": 274289, "vulnerable_pop_pct": 25.0, "base_temp": 22.0, "base_rh": 20, "base_wbgt": 16.5, "base_utci": 20.2, "base_hi": 24.0, "tier": "Green", "power_strain_mw": 6, "water_stress_tier": "Moderate", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Ladakh District 1", "lat": 33.6936, "lon": 77.53, "pop": 137144, "temp": 22.6, "rh": 20.0, "wbgt": 16.0, "utci": 19.4, "surge": 5, "tier": "Green", "uhi": 2.2}, {"name": "Ladakh District 2", "lat": 34.0745, "lon": 77.2268, "pop": 137144, "temp": 22.7, "rh": 22.0, "wbgt": 16.4, "utci": 21.0, "surge": 5, "tier": "Green", "uhi": 4.1}]}, {"code": "DN", "name": "D&NH and D&D", "capital": "Daman", "lat": 20.4283, "lon": 72.8397, "zone": "Coastal Industrial", "districts_count": 3, "population": 586956, "vulnerable_pop_pct": 25.0, "base_temp": 38.0, "base_rh": 68, "base_wbgt": 31.6, "base_utci": 40.5, "base_hi": 44.8, "tier": "Yellow", "power_strain_mw": 14, "water_stress_tier": "Moderate", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "D&NH and D&D District 1", "lat": 21.222, "lon": 73.6264, "pop": 195652, "temp": 39.0, "rh": 71.0, "wbgt": 31.8, "utci": 40.2, "surge": 37.7, "tier": "Yellow", "uhi": 2.3}, {"name": "D&NH and D&D District 2", "lat": 20.8424, "lon": 73.1772, "pop": 195652, "temp": 37.4, "rh": 68.0, "wbgt": 31.7, "utci": 41.5, "surge": 37.0, "tier": "Yellow", "uhi": 1.9}, {"name": "D&NH and D&D District 3", "lat": 21.1242, "lon": 73.4705, "pop": 195652, "temp": 37.2, "rh": 65.0, "wbgt": 31.6, "utci": 40.1, "surge": 36.4, "tier": "Yellow", "uhi": 4.1}]}, {"code": "LD", "name": "Lakshadweep", "capital": "Kavaratti", "lat": 10.5667, "lon": 72.6417, "zone": "Coral Atoll", "districts_count": 1, "population": 64473, "vulnerable_pop_pct": 25.0, "base_temp": 33.0, "base_rh": 82, "base_wbgt": 30.5, "base_utci": 37.2, "base_hi": 41.2, "tier": "Yellow", "power_strain_mw": 1, "water_stress_tier": "Moderate", "has_drilldown": false, "drilldown_url": null, "district_list": [{"name": "Lakshadweep District 1", "lat": 10.119, "lon": 72.0883, "pop": 64473, "temp": 33.0, "rh": 86.0, "wbgt": 30.0, "utci": 37.3, "surge": 26.0, "tier": "Yellow", "uhi": 3.4}]}];
+    const DISTRICTS_DATA = [{"name": "Khordha (Bhubaneswar)", "lat": 20.1031, "lon": 85.6031, "pop": 2049345, "temp": 40.2, "rh": 72, "wbgt": 34.2, "utci": 43.1, "surge": 52.0, "tier": "Red", "uhi": 4.2, "state_code": "OD", "state_name": "Odisha", "zone": "Eastern Coastal Humid"}, {"name": "Cuttack", "lat": 20.42, "lon": 85.7386, "pop": 2547409, "temp": 39.8, "rh": 73, "wbgt": 33.9, "utci": 42.8, "surge": 49.0, "tier": "Red", "uhi": 3.8, "state_code": "OD", "state_name": "Odisha", "zone": "Eastern Coastal Humid"}, {"name": "Ganjam", "lat": 19.5608, "lon": 84.5585, "pop": 3116853, "temp": 38.5, "rh": 78, "wbgt": 33.7, "utci": 42.2, "surge": 44.0, "tier": "Red", "uhi": 2.6, "state_code": "OD", "state_name": "Odisha", "zone": "Eastern Coastal Humid"}, {"name": "Sundargarh", "lat": 22.0499, "lon": 84.4576, "pop": 1908310, "temp": 42.5, "rh": 52, "wbgt": 33.4, "utci": 43.5, "surge": 46.0, "tier": "Red", "uhi": 3.4, "state_code": "OD", "state_name": "Odisha", "zone": "Eastern Coastal Humid"}, {"name": "Sambalpur", "lat": 21.4669, "lon": 83.9812, "pop": 1041099, "temp": 43.2, "rh": 48, "wbgt": 33.6, "utci": 44.0, "surge": 48.5, "tier": "Red", "uhi": 3.6, "state_code": "OD", "state_name": "Odisha", "zone": "Eastern Coastal Humid"}, {"name": "Jharsuguda", "lat": 21.8554, "lon": 84.0062, "pop": 579500, "temp": 43.8, "rh": 46, "wbgt": 33.8, "utci": 44.5, "surge": 51.0, "tier": "Red", "uhi": 3.9, "state_code": "OD", "state_name": "Odisha", "zone": "Eastern Coastal Humid"}, {"name": "Balangir", "lat": 20.7107, "lon": 83.4851, "pop": 1648997, "temp": 42.8, "rh": 50, "wbgt": 33.2, "utci": 43.4, "surge": 45.0, "tier": "Red", "uhi": 2.8, "state_code": "OD", "state_name": "Odisha", "zone": "Eastern Coastal Humid"}, {"name": "Baleshwar", "lat": 21.5376, "lon": 86.9072, "pop": 2211609, "temp": 38.9, "rh": 77, "wbgt": 33.8, "utci": 42.5, "surge": 46.5, "tier": "Red", "uhi": 3.0, "state_code": "OD", "state_name": "Odisha", "zone": "Eastern Coastal Humid"}, {"name": "Mayurbhanj", "lat": 21.8439, "lon": 86.4234, "pop": 2443716, "temp": 40.5, "rh": 68, "wbgt": 33.4, "utci": 43.0, "surge": 43.0, "tier": "Red", "uhi": 2.4, "state_code": "OD", "state_name": "Odisha", "zone": "Eastern Coastal Humid"}, {"name": "Puri", "lat": 19.8135, "lon": 85.8312, "pop": 1698730, "temp": 36.8, "rh": 84, "wbgt": 33.2, "utci": 41.8, "surge": 41.0, "tier": "Orange", "uhi": 2.2, "state_code": "OD", "state_name": "Odisha", "zone": "Eastern Coastal Humid"}, {"name": "Koraput", "lat": 18.812, "lon": 82.7108, "pop": 1379647, "temp": 36.2, "rh": 65, "wbgt": 30.8, "utci": 38.5, "surge": 22.0, "tier": "Yellow", "uhi": 1.6, "state_code": "OD", "state_name": "Odisha", "zone": "Eastern Coastal Humid"}, {"name": "Rayagada", "lat": 19.1717, "lon": 83.4163, "pop": 967911, "temp": 39.5, "rh": 62, "wbgt": 32.5, "utci": 41.5, "surge": 36.0, "tier": "Orange", "uhi": 2.1, "state_code": "OD", "state_name": "Odisha", "zone": "Eastern Coastal Humid"}, {"name": "Phalodi", "lat": 27.13, "lon": 72.36, "pop": 450000, "temp": 48.6, "rh": 16, "wbgt": 31.8, "utci": 46.8, "surge": 62.0, "tier": "Red", "uhi": 3.2, "state_code": "RJ", "state_name": "Rajasthan", "zone": "North-West Arid / Desert"}, {"name": "Churu", "lat": 28.29, "lon": 74.96, "pop": 2039547, "temp": 47.9, "rh": 18, "wbgt": 31.6, "utci": 46.2, "surge": 59.0, "tier": "Red", "uhi": 3.4, "state_code": "RJ", "state_name": "Rajasthan", "zone": "North-West Arid / Desert"}, {"name": "Bikaner", "lat": 28.0229, "lon": 73.3119, "pop": 2363937, "temp": 47.4, "rh": 19, "wbgt": 31.5, "utci": 45.8, "surge": 56.0, "tier": "Red", "uhi": 3.7, "state_code": "RJ", "state_name": "Rajasthan", "zone": "North-West Arid / Desert"}, {"name": "Jaisalmer", "lat": 26.9157, "lon": 70.9083, "pop": 669919, "temp": 48.2, "rh": 15, "wbgt": 31.4, "utci": 46.4, "surge": 58.0, "tier": "Red", "uhi": 2.9, "state_code": "RJ", "state_name": "Rajasthan", "zone": "North-West Arid / Desert"}, {"name": "Barmer", "lat": 25.7532, "lon": 71.3967, "pop": 2603751, "temp": 47.1, "rh": 21, "wbgt": 31.7, "utci": 45.9, "surge": 55.0, "tier": "Red", "uhi": 3.1, "state_code": "RJ", "state_name": "Rajasthan", "zone": "North-West Arid / Desert"}, {"name": "Jaipur Core", "lat": 26.9124, "lon": 75.7873, "pop": 6626178, "temp": 45.2, "rh": 26, "wbgt": 31.8, "utci": 44.9, "surge": 53.0, "tier": "Red", "uhi": 4.6, "state_code": "RJ", "state_name": "Rajasthan", "zone": "North-West Arid / Desert"}, {"name": "Jodhpur", "lat": 26.2389, "lon": 73.0243, "pop": 3687002, "temp": 46.3, "rh": 22, "wbgt": 31.6, "utci": 45.4, "surge": 54.0, "tier": "Red", "uhi": 4.1, "state_code": "RJ", "state_name": "Rajasthan", "zone": "North-West Arid / Desert"}, {"name": "Kota", "lat": 25.18, "lon": 75.83, "pop": 1951014, "temp": 45.8, "rh": 28, "wbgt": 32.2, "utci": 45.2, "surge": 52.0, "tier": "Red", "uhi": 3.9, "state_code": "RJ", "state_name": "Rajasthan", "zone": "North-West Arid / Desert"}, {"name": "North West (Mungeshpur)", "lat": 28.78, "lon": 77.01, "pop": 3656539, "temp": 46.5, "rh": 38, "wbgt": 33.2, "utci": 45.8, "surge": 58.0, "tier": "Red", "uhi": 5.1, "state_code": "DL", "state_name": "Delhi (NCT)", "zone": "Northern Urban Heat Island (UHI)"}, {"name": "South West (Najafgarh)", "lat": 28.61, "lon": 76.98, "pop": 2292958, "temp": 45.8, "rh": 40, "wbgt": 33.0, "utci": 45.2, "surge": 55.0, "tier": "Red", "uhi": 4.8, "state_code": "DL", "state_name": "Delhi (NCT)", "zone": "Northern Urban Heat Island (UHI)"}, {"name": "New Delhi Core (Palam)", "lat": 28.58, "lon": 77.11, "pop": 142004, "temp": 44.9, "rh": 42, "wbgt": 32.8, "utci": 44.6, "surge": 52.0, "tier": "Red", "uhi": 4.4, "state_code": "DL", "state_name": "Delhi (NCT)", "zone": "Northern Urban Heat Island (UHI)"}, {"name": "East Delhi (Shahdara)", "lat": 28.67, "lon": 77.29, "pop": 1709346, "temp": 44.5, "rh": 45, "wbgt": 32.9, "utci": 44.8, "surge": 54.0, "tier": "Red", "uhi": 4.9, "state_code": "DL", "state_name": "Delhi (NCT)", "zone": "Northern Urban Heat Island (UHI)"}, {"name": "South Delhi (Okhla)", "lat": 28.53, "lon": 77.27, "pop": 2731929, "temp": 44.2, "rh": 44, "wbgt": 32.6, "utci": 44.4, "surge": 50.0, "tier": "Red", "uhi": 4.5, "state_code": "DL", "state_name": "Delhi (NCT)", "zone": "Northern Urban Heat Island (UHI)"}, {"name": "Prayagraj", "lat": 25.4358, "lon": 81.8463, "pop": 5954391, "temp": 45.4, "rh": 44, "wbgt": 33.5, "utci": 45.2, "surge": 54.0, "tier": "Red", "uhi": 4.2, "state_code": "UP", "state_name": "Uttar Pradesh", "zone": "Gangetic Alluvial Plains"}, {"name": "Varanasi", "lat": 25.3176, "lon": 82.9739, "pop": 3676841, "temp": 44.8, "rh": 49, "wbgt": 33.4, "utci": 44.8, "surge": 51.0, "tier": "Red", "uhi": 4.3, "state_code": "UP", "state_name": "Uttar Pradesh", "zone": "Gangetic Alluvial Plains"}, {"name": "Banda", "lat": 25.48, "lon": 80.33, "pop": 1799410, "temp": 46.2, "rh": 36, "wbgt": 33.0, "utci": 45.6, "surge": 56.0, "tier": "Red", "uhi": 3.6, "state_code": "UP", "state_name": "Uttar Pradesh", "zone": "Gangetic Alluvial Plains"}, {"name": "Jhansi", "lat": 25.4484, "lon": 78.5685, "pop": 1998603, "temp": 45.9, "rh": 35, "wbgt": 32.8, "utci": 45.1, "surge": 52.0, "tier": "Red", "uhi": 3.8, "state_code": "UP", "state_name": "Uttar Pradesh", "zone": "Gangetic Alluvial Plains"}, {"name": "Agra", "lat": 27.1767, "lon": 78.0081, "pop": 4418797, "temp": 45.1, "rh": 40, "wbgt": 33.0, "utci": 44.9, "surge": 50.0, "tier": "Red", "uhi": 4.4, "state_code": "UP", "state_name": "Uttar Pradesh", "zone": "Gangetic Alluvial Plains"}, {"name": "Lucknow Core", "lat": 26.8467, "lon": 80.9462, "pop": 4589838, "temp": 44.0, "rh": 48, "wbgt": 33.0, "utci": 44.2, "surge": 48.0, "tier": "Red", "uhi": 4.5, "state_code": "UP", "state_name": "Uttar Pradesh", "zone": "Gangetic Alluvial Plains"}, {"name": "Kanpur Nagar", "lat": 26.4499, "lon": 80.3319, "pop": 4581268, "temp": 44.6, "rh": 46, "wbgt": 33.2, "utci": 44.6, "surge": 50.0, "tier": "Red", "uhi": 4.7, "state_code": "UP", "state_name": "Uttar Pradesh", "zone": "Gangetic Alluvial Plains"}, {"name": "Nagpur", "lat": 21.1458, "lon": 79.0882, "pop": 4653570, "temp": 45.8, "rh": 28, "wbgt": 32.4, "utci": 44.8, "surge": 48.0, "tier": "Red", "uhi": 4.2, "state_code": "MH", "state_name": "Maharashtra", "zone": "Deccan & Vidarbha Heatbelt"}, {"name": "Chandrapur", "lat": 19.9615, "lon": 79.2961, "pop": 2204307, "temp": 46.4, "rh": 26, "wbgt": 32.6, "utci": 45.2, "surge": 52.0, "tier": "Red", "uhi": 4.0, "state_code": "MH", "state_name": "Maharashtra", "zone": "Deccan & Vidarbha Heatbelt"}, {"name": "Akola", "lat": 20.7002, "lon": 77.0082, "pop": 1813906, "temp": 45.5, "rh": 29, "wbgt": 32.2, "utci": 44.5, "surge": 46.0, "tier": "Red", "uhi": 3.5, "state_code": "MH", "state_name": "Maharashtra", "zone": "Deccan & Vidarbha Heatbelt"}, {"name": "Solapur", "lat": 17.6599, "lon": 75.9064, "pop": 4317756, "temp": 44.2, "rh": 34, "wbgt": 32.0, "utci": 43.8, "surge": 42.0, "tier": "Orange", "uhi": 3.7, "state_code": "MH", "state_name": "Maharashtra", "zone": "Deccan & Vidarbha Heatbelt"}, {"name": "Mumbai Core (MMR)", "lat": 19.076, "lon": 72.8777, "pop": 12442373, "temp": 37.2, "rh": 79, "wbgt": 33.5, "utci": 42.1, "surge": 45.0, "tier": "Red", "uhi": 5.4, "state_code": "MH", "state_name": "Maharashtra", "zone": "Deccan & Vidarbha Heatbelt"}, {"name": "Pune Core", "lat": 18.5204, "lon": 73.8567, "pop": 9429408, "temp": 40.8, "rh": 45, "wbgt": 31.0, "utci": 41.2, "surge": 32.0, "tier": "Orange", "uhi": 4.0, "state_code": "MH", "state_name": "Maharashtra", "zone": "Deccan & Vidarbha Heatbelt"}, {"name": "Gaya", "lat": 24.7914, "lon": 85.0002, "pop": 4391418, "temp": 44.2, "rh": 56, "wbgt": 33.8, "utci": 44.6, "surge": 51.0, "tier": "Red", "uhi": 3.9, "state_code": "BR", "state_name": "Bihar", "zone": "Middle Gangetic Humid"}, {"name": "Patna Core", "lat": 25.5941, "lon": 85.1376, "pop": 5838465, "temp": 43.0, "rh": 62, "wbgt": 33.9, "utci": 44.2, "surge": 49.0, "tier": "Red", "uhi": 4.6, "state_code": "BR", "state_name": "Bihar", "zone": "Middle Gangetic Humid"}, {"name": "Buxar", "lat": 25.5647, "lon": 83.9777, "pop": 1706352, "temp": 44.5, "rh": 54, "wbgt": 33.6, "utci": 44.8, "surge": 48.0, "tier": "Red", "uhi": 3.2, "state_code": "BR", "state_name": "Bihar", "zone": "Middle Gangetic Humid"}, {"name": "Aurangabad (BR)", "lat": 24.75, "lon": 84.37, "pop": 2540073, "temp": 44.8, "rh": 52, "wbgt": 33.5, "utci": 44.7, "surge": 47.0, "tier": "Red", "uhi": 3.1, "state_code": "BR", "state_name": "Bihar", "zone": "Middle Gangetic Humid"}, {"name": "Bhagalpur", "lat": 25.2425, "lon": 87.0, "pop": 3037766, "temp": 42.2, "rh": 66, "wbgt": 33.7, "utci": 43.8, "surge": 45.0, "tier": "Red", "uhi": 3.5, "state_code": "BR", "state_name": "Bihar", "zone": "Middle Gangetic Humid"}, {"name": "Kalaikunda / Paschim Medinipur", "lat": 22.34, "lon": 87.21, "pop": 5913457, "temp": 42.4, "rh": 70, "wbgt": 34.5, "utci": 44.5, "surge": 56.0, "tier": "Red", "uhi": 3.6, "state_code": "WB", "state_name": "West Bengal", "zone": "Lower Gangetic Delta Humid"}, {"name": "Panagarh / Paschim Bardhaman", "lat": 23.45, "lon": 87.43, "pop": 2882031, "temp": 43.1, "rh": 66, "wbgt": 34.2, "utci": 44.8, "surge": 53.0, "tier": "Red", "uhi": 3.8, "state_code": "WB", "state_name": "West Bengal", "zone": "Lower Gangetic Delta Humid"}, {"name": "Bankura", "lat": 23.2324, "lon": 87.0715, "pop": 3596674, "temp": 43.5, "rh": 64, "wbgt": 34.1, "utci": 44.9, "surge": 51.0, "tier": "Red", "uhi": 3.2, "state_code": "WB", "state_name": "West Bengal", "zone": "Lower Gangetic Delta Humid"}, {"name": "Kolkata Core", "lat": 22.5726, "lon": 88.3639, "pop": 4496694, "temp": 39.5, "rh": 78, "wbgt": 34.2, "utci": 43.0, "surge": 50.0, "tier": "Red", "uhi": 5.2, "state_code": "WB", "state_name": "West Bengal", "zone": "Lower Gangetic Delta Humid"}, {"name": "Asansol", "lat": 23.6889, "lon": 86.9661, "pop": 1243414, "temp": 43.0, "rh": 65, "wbgt": 33.9, "utci": 44.4, "surge": 48.0, "tier": "Red", "uhi": 4.1, "state_code": "WB", "state_name": "West Bengal", "zone": "Lower Gangetic Delta Humid"}, {"name": "Ramagundam", "lat": 18.76, "lon": 79.48, "pop": 442000, "temp": 46.2, "rh": 32, "wbgt": 33.0, "utci": 45.4, "surge": 51.0, "tier": "Red", "uhi": 4.3, "state_code": "TG", "state_name": "Telangana", "zone": "Semi-Arid Deccan Core"}, {"name": "Nalgonda", "lat": 17.05, "lon": 79.27, "pop": 1618416, "temp": 45.0, "rh": 36, "wbgt": 32.6, "utci": 44.5, "surge": 45.0, "tier": "Red", "uhi": 3.4, "state_code": "TG", "state_name": "Telangana", "zone": "Semi-Arid Deccan Core"}, {"name": "Khammam", "lat": 17.2473, "lon": 80.1514, "pop": 1401639, "temp": 44.8, "rh": 40, "wbgt": 32.8, "utci": 44.6, "surge": 44.0, "tier": "Orange", "uhi": 3.5, "state_code": "TG", "state_name": "Telangana", "zone": "Semi-Arid Deccan Core"}, {"name": "Hyderabad Core", "lat": 17.385, "lon": 78.4867, "pop": 6809970, "temp": 43.2, "rh": 42, "wbgt": 32.2, "utci": 43.5, "surge": 41.0, "tier": "Orange", "uhi": 4.8, "state_code": "TG", "state_name": "Telangana", "zone": "Semi-Arid Deccan Core"}, {"name": "Vijayawada / NTR", "lat": 16.5062, "lon": 80.648, "pop": 2218591, "temp": 43.5, "rh": 64, "wbgt": 34.2, "utci": 44.8, "surge": 52.0, "tier": "Red", "uhi": 4.5, "state_code": "AP", "state_name": "Andhra Pradesh", "zone": "Southern Coastal Maritime"}, {"name": "Tirupati", "lat": 13.6288, "lon": 79.4192, "pop": 2196984, "temp": 42.0, "rh": 66, "wbgt": 33.6, "utci": 43.5, "surge": 46.0, "tier": "Red", "uhi": 3.8, "state_code": "AP", "state_name": "Andhra Pradesh", "zone": "Southern Coastal Maritime"}, {"name": "Kadapa / YSR", "lat": 14.4673, "lon": 78.8242, "pop": 2882469, "temp": 44.5, "rh": 48, "wbgt": 33.4, "utci": 44.6, "surge": 48.0, "tier": "Red", "uhi": 3.6, "state_code": "AP", "state_name": "Andhra Pradesh", "zone": "Southern Coastal Maritime"}, {"name": "Visakhapatnam", "lat": 17.6868, "lon": 83.2185, "pop": 4290589, "temp": 38.2, "rh": 80, "wbgt": 33.8, "utci": 42.4, "surge": 43.0, "tier": "Red", "uhi": 4.6, "state_code": "AP", "state_name": "Andhra Pradesh", "zone": "Southern Coastal Maritime"}, {"name": "Ahmedabad Core", "lat": 23.0225, "lon": 72.5714, "pop": 5577940, "temp": 45.0, "rh": 38, "wbgt": 32.8, "utci": 44.6, "surge": 46.0, "tier": "Red", "uhi": 4.9, "state_code": "GJ", "state_name": "Gujarat", "zone": "Western Semi-Arid & Coastal"}, {"name": "Surendranagar", "lat": 22.7284, "lon": 71.6371, "pop": 1756268, "temp": 45.8, "rh": 32, "wbgt": 32.6, "utci": 45.0, "surge": 44.0, "tier": "Red", "uhi": 3.2, "state_code": "GJ", "state_name": "Gujarat", "zone": "Western Semi-Arid & Coastal"}, {"name": "Rajkot", "lat": 22.3039, "lon": 70.8022, "pop": 3804558, "temp": 44.2, "rh": 40, "wbgt": 32.4, "utci": 43.9, "surge": 39.0, "tier": "Orange", "uhi": 3.9, "state_code": "GJ", "state_name": "Gujarat", "zone": "Western Semi-Arid & Coastal"}, {"name": "Kandla / Kutch", "lat": 23.0033, "lon": 70.2181, "pop": 2092371, "temp": 43.8, "rh": 50, "wbgt": 33.1, "utci": 44.2, "surge": 41.0, "tier": "Orange", "uhi": 3.0, "state_code": "GJ", "state_name": "Gujarat", "zone": "Western Semi-Arid & Coastal"}, {"name": "Kalaburagi (Gulbarga)", "lat": 17.3297, "lon": 76.8343, "pop": 2566326, "temp": 44.0, "rh": 35, "wbgt": 32.2, "utci": 43.8, "surge": 38.0, "tier": "Orange", "uhi": 3.6, "state_code": "KA", "state_name": "Karnataka", "zone": "Deccan Southern Plateau"}, {"name": "Raichur", "lat": 16.212, "lon": 77.3439, "pop": 1928812, "temp": 43.5, "rh": 38, "wbgt": 32.0, "utci": 43.2, "surge": 35.0, "tier": "Orange", "uhi": 3.3, "state_code": "KA", "state_name": "Karnataka", "zone": "Deccan Southern Plateau"}, {"name": "Bengaluru Urban Core", "lat": 12.9716, "lon": 77.5946, "pop": 9621551, "temp": 37.0, "rh": 52, "wbgt": 29.8, "utci": 38.4, "surge": 18.0, "tier": "Yellow", "uhi": 4.8, "state_code": "KA", "state_name": "Karnataka", "zone": "Deccan Southern Plateau"}, {"name": "Madurai", "lat": 9.9252, "lon": 78.1198, "pop": 3038252, "temp": 42.2, "rh": 58, "wbgt": 33.4, "utci": 43.5, "surge": 44.0, "tier": "Red", "uhi": 4.1, "state_code": "TN", "state_name": "Tamil Nadu", "zone": "Coromandel Coastal & Interior"}, {"name": "Vellore", "lat": 12.9165, "lon": 79.1325, "pop": 3936366, "temp": 43.0, "rh": 54, "wbgt": 33.2, "utci": 43.8, "surge": 42.0, "tier": "Orange", "uhi": 3.8, "state_code": "TN", "state_name": "Tamil Nadu", "zone": "Coromandel Coastal & Interior"}, {"name": "Chennai Core", "lat": 13.0827, "lon": 80.2707, "pop": 4646732, "temp": 39.8, "rh": 74, "wbgt": 33.8, "utci": 42.8, "surge": 45.0, "tier": "Red", "uhi": 5.1, "state_code": "TN", "state_name": "Tamil Nadu", "zone": "Coromandel Coastal & Interior"}, {"name": "Madhya Pradesh District 1", "lat": 23.1013, "lon": 78.4185, "pop": 1320487, "temp": 43.8, "rh": 33.0, "wbgt": 32.4, "utci": 43.4, "surge": 41.6, "tier": "Orange", "uhi": 1.9, "state_code": "MP", "state_name": "Madhya Pradesh", "zone": "Central Plateau Dry-Heat"}, {"name": "Madhya Pradesh District 2", "lat": 22.4756, "lon": 78.1008, "pop": 1320487, "temp": 43.7, "rh": 25.0, "wbgt": 31.1, "utci": 44.2, "surge": 33.2, "tier": "Orange", "uhi": 2.9, "state_code": "MP", "state_name": "Madhya Pradesh", "zone": "Central Plateau Dry-Heat"}, {"name": "Madhya Pradesh District 3", "lat": 22.2472, "lon": 78.7595, "pop": 1320487, "temp": 45.1, "rh": 33.0, "wbgt": 32.5, "utci": 43.7, "surge": 42.2, "tier": "Orange", "uhi": 2.9, "state_code": "MP", "state_name": "Madhya Pradesh", "zone": "Central Plateau Dry-Heat"}, {"name": "Madhya Pradesh District 4", "lat": 23.3603, "lon": 78.3512, "pop": 1320487, "temp": 43.8, "rh": 28.0, "wbgt": 32.3, "utci": 44.1, "surge": 40.9, "tier": "Orange", "uhi": 2.9, "state_code": "MP", "state_name": "Madhya Pradesh", "zone": "Central Plateau Dry-Heat"}, {"name": "Madhya Pradesh District 5", "lat": 23.3606, "lon": 78.4843, "pop": 1320487, "temp": 43.7, "rh": 30.0, "wbgt": 31.6, "utci": 44.4, "surge": 36.4, "tier": "Orange", "uhi": 2.4, "state_code": "MP", "state_name": "Madhya Pradesh", "zone": "Central Plateau Dry-Heat"}, {"name": "Haryana District 1", "lat": 29.8043, "lon": 76.3695, "pop": 1152339, "temp": 46.0, "rh": 33.0, "wbgt": 32.7, "utci": 44.3, "surge": 43.6, "tier": "Red", "uhi": 3.6, "state_code": "HR", "state_name": "Haryana", "zone": "North-Western Indo-Gangetic"}, {"name": "Haryana District 2", "lat": 29.383, "lon": 75.3535, "pop": 1152339, "temp": 46.5, "rh": 35.0, "wbgt": 32.0, "utci": 44.6, "surge": 39.0, "tier": "Red", "uhi": 2.4, "state_code": "HR", "state_name": "Haryana", "zone": "North-Western Indo-Gangetic"}, {"name": "Haryana District 3", "lat": 28.6558, "lon": 76.3923, "pop": 1152339, "temp": 45.1, "rh": 39.0, "wbgt": 32.7, "utci": 44.1, "surge": 43.6, "tier": "Red", "uhi": 2.5, "state_code": "HR", "state_name": "Haryana", "zone": "North-Western Indo-Gangetic"}, {"name": "Haryana District 4", "lat": 28.5414, "lon": 76.0154, "pop": 1152339, "temp": 46.2, "rh": 37.0, "wbgt": 32.3, "utci": 43.7, "surge": 40.9, "tier": "Red", "uhi": 2.0, "state_code": "HR", "state_name": "Haryana", "zone": "North-Western Indo-Gangetic"}, {"name": "Haryana District 5", "lat": 28.856, "lon": 76.1472, "pop": 1152339, "temp": 44.2, "rh": 39.0, "wbgt": 32.8, "utci": 44.3, "surge": 44.2, "tier": "Red", "uhi": 2.6, "state_code": "HR", "state_name": "Haryana", "zone": "North-Western Indo-Gangetic"}, {"name": "Punjab District 1", "lat": 31.4575, "lon": 75.3724, "pop": 1206232, "temp": 45.4, "rh": 40.0, "wbgt": 32.3, "utci": 43.8, "surge": 40.9, "tier": "Orange", "uhi": 4.1, "state_code": "PB", "state_name": "Punjab", "zone": "North-Western Agricultural Plain"}, {"name": "Punjab District 2", "lat": 30.883, "lon": 74.9106, "pop": 1206232, "temp": 42.9, "rh": 40.0, "wbgt": 31.3, "utci": 43.1, "surge": 34.5, "tier": "Orange", "uhi": 3.4, "state_code": "PB", "state_name": "Punjab", "zone": "North-Western Agricultural Plain"}, {"name": "Punjab District 3", "lat": 30.5196, "lon": 74.6738, "pop": 1206232, "temp": 44.1, "rh": 34.0, "wbgt": 31.2, "utci": 42.9, "surge": 33.8, "tier": "Orange", "uhi": 3.2, "state_code": "PB", "state_name": "Punjab", "zone": "North-Western Agricultural Plain"}, {"name": "Punjab District 4", "lat": 30.5342, "lon": 74.8682, "pop": 1206232, "temp": 43.3, "rh": 40.0, "wbgt": 32.5, "utci": 44.7, "surge": 42.2, "tier": "Orange", "uhi": 3.7, "state_code": "PB", "state_name": "Punjab", "zone": "North-Western Agricultural Plain"}, {"name": "Punjab District 5", "lat": 31.5473, "lon": 74.8686, "pop": 1206232, "temp": 44.1, "rh": 37.0, "wbgt": 31.1, "utci": 44.8, "surge": 33.2, "tier": "Orange", "uhi": 3.1, "state_code": "PB", "state_name": "Punjab", "zone": "North-Western Agricultural Plain"}, {"name": "Jharkhand District 1", "lat": 24.3566, "lon": 84.6763, "pop": 1374505, "temp": 40.9, "rh": 56.0, "wbgt": 32.8, "utci": 43.4, "surge": 44.2, "tier": "Orange", "uhi": 2.1, "state_code": "JH", "state_name": "Jharkhand", "zone": "Chota Nagpur Plateau"}, {"name": "Jharkhand District 2", "lat": 23.6424, "lon": 85.4116, "pop": 1374505, "temp": 40.8, "rh": 51.0, "wbgt": 32.5, "utci": 43.6, "surge": 42.2, "tier": "Orange", "uhi": 3.7, "state_code": "JH", "state_name": "Jharkhand", "zone": "Chota Nagpur Plateau"}, {"name": "Jharkhand District 3", "lat": 24.3176, "lon": 85.9284, "pop": 1374505, "temp": 41.1, "rh": 58.0, "wbgt": 33.4, "utci": 43.4, "surge": 48.1, "tier": "Orange", "uhi": 3.1, "state_code": "JH", "state_name": "Jharkhand", "zone": "Chota Nagpur Plateau"}, {"name": "Jharkhand District 4", "lat": 23.9445, "lon": 85.884, "pop": 1374505, "temp": 40.3, "rh": 54.0, "wbgt": 32.3, "utci": 42.3, "surge": 40.9, "tier": "Orange", "uhi": 2.3, "state_code": "JH", "state_name": "Jharkhand", "zone": "Chota Nagpur Plateau"}, {"name": "Jharkhand District 5", "lat": 24.3671, "lon": 85.286, "pop": 1374505, "temp": 42.4, "rh": 54.0, "wbgt": 33.4, "utci": 42.0, "surge": 48.1, "tier": "Orange", "uhi": 2.7, "state_code": "JH", "state_name": "Jharkhand", "zone": "Chota Nagpur Plateau"}, {"name": "Chhattisgarh District 1", "lat": 20.6986, "lon": 81.5177, "pop": 774096, "temp": 43.0, "rh": 38.0, "wbgt": 31.8, "utci": 43.6, "surge": 37.7, "tier": "Orange", "uhi": 3.0, "state_code": "CG", "state_name": "Chhattisgarh", "zone": "Central Tribal Forest & Plain"}, {"name": "Chhattisgarh District 2", "lat": 20.9021, "lon": 81.6783, "pop": 774096, "temp": 43.6, "rh": 41.0, "wbgt": 32.4, "utci": 44.2, "surge": 41.6, "tier": "Orange", "uhi": 4.0, "state_code": "CG", "state_name": "Chhattisgarh", "zone": "Central Tribal Forest & Plain"}, {"name": "Chhattisgarh District 3", "lat": 21.6524, "lon": 81.4654, "pop": 774096, "temp": 42.1, "rh": 43.0, "wbgt": 33.0, "utci": 42.5, "surge": 45.5, "tier": "Orange", "uhi": 3.9, "state_code": "CG", "state_name": "Chhattisgarh", "zone": "Central Tribal Forest & Plain"}, {"name": "Chhattisgarh District 4", "lat": 21.4787, "lon": 81.1695, "pop": 774096, "temp": 43.7, "rh": 43.0, "wbgt": 32.0, "utci": 43.3, "surge": 39.0, "tier": "Orange", "uhi": 3.2, "state_code": "CG", "state_name": "Chhattisgarh", "zone": "Central Tribal Forest & Plain"}, {"name": "Chhattisgarh District 5", "lat": 20.5667, "lon": 81.6568, "pop": 774096, "temp": 42.9, "rh": 38.0, "wbgt": 32.4, "utci": 42.5, "surge": 41.6, "tier": "Orange", "uhi": 4.1, "state_code": "CG", "state_name": "Chhattisgarh", "zone": "Central Tribal Forest & Plain"}, {"name": "Kerala District 1", "lat": 10.7859, "lon": 76.2082, "pop": 2386147, "temp": 36.6, "rh": 81.0, "wbgt": 31.8, "utci": 39.6, "surge": 37.7, "tier": "Yellow", "uhi": 2.7, "state_code": "KL", "state_name": "Kerala", "zone": "Tropical Malabar Coast"}, {"name": "Kerala District 2", "lat": 11.4018, "lon": 76.5714, "pop": 2386147, "temp": 36.7, "rh": 83.0, "wbgt": 32.2, "utci": 40.3, "surge": 40.3, "tier": "Yellow", "uhi": 2.2, "state_code": "KL", "state_name": "Kerala", "zone": "Tropical Malabar Coast"}, {"name": "Kerala District 3", "lat": 10.5748, "lon": 76.9687, "pop": 2386147, "temp": 35.5, "rh": 82.0, "wbgt": 31.8, "utci": 39.2, "surge": 37.7, "tier": "Yellow", "uhi": 2.1, "state_code": "KL", "state_name": "Kerala", "zone": "Tropical Malabar Coast"}, {"name": "Kerala District 4", "lat": 10.0801, "lon": 76.6298, "pop": 2386147, "temp": 36.0, "rh": 82.0, "wbgt": 33.0, "utci": 40.3, "surge": 45.5, "tier": "Yellow", "uhi": 3.2, "state_code": "KL", "state_name": "Kerala", "zone": "Tropical Malabar Coast"}, {"name": "Kerala District 5", "lat": 10.9379, "lon": 76.3446, "pop": 2386147, "temp": 34.5, "rh": 85.0, "wbgt": 32.2, "utci": 40.1, "surge": 40.3, "tier": "Yellow", "uhi": 3.6, "state_code": "KL", "state_name": "Kerala", "zone": "Tropical Malabar Coast"}, {"name": "Uttarakhand District 1", "lat": 30.6062, "lon": 79.4718, "pop": 775868, "temp": 35.7, "rh": 47.0, "wbgt": 28.1, "utci": 37.1, "surge": 13.7, "tier": "Green", "uhi": 2.5, "state_code": "UK", "state_name": "Uttarakhand", "zone": "Himalayan Foothills"}, {"name": "Uttarakhand District 2", "lat": 30.4749, "lon": 79.4432, "pop": 775868, "temp": 37.1, "rh": 48.0, "wbgt": 28.5, "utci": 35.5, "surge": 16.2, "tier": "Green", "uhi": 3.5, "state_code": "UK", "state_name": "Uttarakhand", "zone": "Himalayan Foothills"}, {"name": "Uttarakhand District 3", "lat": 29.3585, "lon": 78.9051, "pop": 775868, "temp": 35.2, "rh": 46.0, "wbgt": 28.5, "utci": 35.4, "surge": 16.2, "tier": "Green", "uhi": 2.3, "state_code": "UK", "state_name": "Uttarakhand", "zone": "Himalayan Foothills"}, {"name": "Uttarakhand District 4", "lat": 30.6081, "lon": 78.8026, "pop": 775868, "temp": 36.9, "rh": 50.0, "wbgt": 28.2, "utci": 36.9, "surge": 14.3, "tier": "Green", "uhi": 3.2, "state_code": "UK", "state_name": "Uttarakhand", "zone": "Himalayan Foothills"}, {"name": "Uttarakhand District 5", "lat": 30.4713, "lon": 78.5995, "pop": 775868, "temp": 36.2, "rh": 47.0, "wbgt": 27.7, "utci": 35.6, "surge": 11.0, "tier": "Green", "uhi": 3.9, "state_code": "UK", "state_name": "Uttarakhand", "zone": "Himalayan Foothills"}, {"name": "Himachal Pradesh District 1", "lat": 31.2808, "lon": 76.8242, "pop": 572050, "temp": 31.0, "rh": 43.0, "wbgt": 24.2, "utci": 31.8, "surge": 5, "tier": "Green", "uhi": 1.8, "state_code": "HP", "state_name": "Himachal Pradesh", "zone": "Western Alpine"}, {"name": "Himachal Pradesh District 2", "lat": 31.637, "lon": 76.8299, "pop": 572050, "temp": 31.4, "rh": 35.0, "wbgt": 25.2, "utci": 30.7, "surge": 5, "tier": "Green", "uhi": 3.1, "state_code": "HP", "state_name": "Himachal Pradesh", "zone": "Western Alpine"}, {"name": "Himachal Pradesh District 3", "lat": 30.3331, "lon": 77.3558, "pop": 572050, "temp": 29.6, "rh": 44.0, "wbgt": 24.2, "utci": 31.4, "surge": 5, "tier": "Green", "uhi": 1.9, "state_code": "HP", "state_name": "Himachal Pradesh", "zone": "Western Alpine"}, {"name": "Himachal Pradesh District 4", "lat": 31.3843, "lon": 77.7849, "pop": 572050, "temp": 29.5, "rh": 45.0, "wbgt": 25.0, "utci": 30.9, "surge": 5, "tier": "Green", "uhi": 2.3, "state_code": "HP", "state_name": "Himachal Pradesh", "zone": "Western Alpine"}, {"name": "Himachal Pradesh District 5", "lat": 30.5702, "lon": 76.7923, "pop": 572050, "temp": 29.1, "rh": 35.0, "wbgt": 24.5, "utci": 31.3, "surge": 5, "tier": "Green", "uhi": 3.7, "state_code": "HP", "state_name": "Himachal Pradesh", "zone": "Western Alpine"}, {"name": "Jammu & Kashmir District 1", "lat": 34.0307, "lon": 76.6739, "pop": 613351, "temp": 37.8, "rh": 37.0, "wbgt": 28.3, "utci": 36.9, "surge": 15.0, "tier": "Yellow", "uhi": 2.8, "state_code": "JK", "state_name": "Jammu & Kashmir", "zone": "Sub-Himalayan Valley"}, {"name": "Jammu & Kashmir District 2", "lat": 34.1562, "lon": 76.8667, "pop": 613351, "temp": 39.7, "rh": 36.0, "wbgt": 29.5, "utci": 36.5, "surge": 22.8, "tier": "Yellow", "uhi": 3.2, "state_code": "JK", "state_name": "Jammu & Kashmir", "zone": "Sub-Himalayan Valley"}, {"name": "Jammu & Kashmir District 3", "lat": 33.3765, "lon": 77.3252, "pop": 613351, "temp": 38.1, "rh": 37.0, "wbgt": 28.5, "utci": 37.9, "surge": 16.2, "tier": "Yellow", "uhi": 2.7, "state_code": "JK", "state_name": "Jammu & Kashmir", "zone": "Sub-Himalayan Valley"}, {"name": "Jammu & Kashmir District 4", "lat": 33.0038, "lon": 75.7872, "pop": 613351, "temp": 38.8, "rh": 39.0, "wbgt": 28.7, "utci": 38.0, "surge": 17.5, "tier": "Yellow", "uhi": 1.8, "state_code": "JK", "state_name": "Jammu & Kashmir", "zone": "Sub-Himalayan Valley"}, {"name": "Jammu & Kashmir District 5", "lat": 33.642, "lon": 76.5093, "pop": 613351, "temp": 38.4, "rh": 33.0, "wbgt": 29.1, "utci": 37.0, "surge": 20.2, "tier": "Yellow", "uhi": 2.7, "state_code": "JK", "state_name": "Jammu & Kashmir", "zone": "Sub-Himalayan Valley"}, {"name": "Assam District 1", "lat": 26.9156, "lon": 93.5177, "pop": 891587, "temp": 35.7, "rh": 75.0, "wbgt": 33.0, "utci": 40.4, "surge": 45.5, "tier": "Yellow", "uhi": 2.2, "state_code": "AS", "state_name": "Assam", "zone": "Brahmaputra Valley Humid"}, {"name": "Assam District 2", "lat": 25.971, "lon": 92.5111, "pop": 891587, "temp": 36.5, "rh": 82.0, "wbgt": 31.7, "utci": 40.0, "surge": 37.0, "tier": "Yellow", "uhi": 3.3, "state_code": "AS", "state_name": "Assam", "zone": "Brahmaputra Valley Humid"}, {"name": "Assam District 3", "lat": 26.5738, "lon": 92.2888, "pop": 891587, "temp": 37.1, "rh": 73.0, "wbgt": 32.5, "utci": 39.8, "surge": 42.2, "tier": "Yellow", "uhi": 2.1, "state_code": "AS", "state_name": "Assam", "zone": "Brahmaputra Valley Humid"}, {"name": "Assam District 4", "lat": 26.385, "lon": 92.1695, "pop": 891587, "temp": 37.4, "rh": 81.0, "wbgt": 32.8, "utci": 39.8, "surge": 44.2, "tier": "Yellow", "uhi": 2.4, "state_code": "AS", "state_name": "Assam", "zone": "Brahmaputra Valley Humid"}, {"name": "Assam District 5", "lat": 26.0821, "lon": 92.2597, "pop": 891587, "temp": 35.4, "rh": 82.0, "wbgt": 32.4, "utci": 40.9, "surge": 41.6, "tier": "Yellow", "uhi": 3.8, "state_code": "AS", "state_name": "Assam", "zone": "Brahmaputra Valley Humid"}, {"name": "Goa District 1", "lat": 15.4593, "lon": 74.4135, "pop": 729272, "temp": 35.1, "rh": 75.0, "wbgt": 31.5, "utci": 38.9, "surge": 35.8, "tier": "Yellow", "uhi": 3.5, "state_code": "GA", "state_name": "Goa", "zone": "Konkan Coast"}, {"name": "Goa District 2", "lat": 15.2591, "lon": 74.0341, "pop": 729272, "temp": 33.5, "rh": 81.0, "wbgt": 32.5, "utci": 39.3, "surge": 42.2, "tier": "Yellow", "uhi": 2.1, "state_code": "GA", "state_name": "Goa", "zone": "Konkan Coast"}, {"name": "Tripura District 1", "lat": 23.2615, "lon": 91.216, "pop": 459239, "temp": 37.9, "rh": 73.0, "wbgt": 31.9, "utci": 39.6, "surge": 38.3, "tier": "Yellow", "uhi": 2.2, "state_code": "TR", "state_name": "Tripura", "zone": "NE Humid Basin"}, {"name": "Tripura District 2", "lat": 23.5401, "lon": 91.209, "pop": 459239, "temp": 37.7, "rh": 77.0, "wbgt": 32.1, "utci": 39.9, "surge": 39.7, "tier": "Yellow", "uhi": 3.4, "state_code": "TR", "state_name": "Tripura", "zone": "NE Humid Basin"}, {"name": "Tripura District 3", "lat": 23.7884, "lon": 92.6844, "pop": 459239, "temp": 36.1, "rh": 80.0, "wbgt": 32.6, "utci": 40.6, "surge": 42.9, "tier": "Yellow", "uhi": 3.0, "state_code": "TR", "state_name": "Tripura", "zone": "NE Humid Basin"}, {"name": "Tripura District 4", "lat": 24.2856, "lon": 92.2309, "pop": 459239, "temp": 37.1, "rh": 74.0, "wbgt": 32.1, "utci": 40.9, "surge": 39.7, "tier": "Yellow", "uhi": 4.1, "state_code": "TR", "state_name": "Tripura", "zone": "NE Humid Basin"}, {"name": "Tripura District 5", "lat": 24.2092, "lon": 92.0003, "pop": 459239, "temp": 37.9, "rh": 80.0, "wbgt": 31.6, "utci": 39.6, "surge": 36.4, "tier": "Yellow", "uhi": 3.4, "state_code": "TR", "state_name": "Tripura", "zone": "NE Humid Basin"}, {"name": "Meghalaya District 1", "lat": 25.3411, "lon": 90.7381, "pop": 247240, "temp": 28.1, "rh": 67.0, "wbgt": 23.2, "utci": 29.3, "surge": 5, "tier": "Green", "uhi": 4.1, "state_code": "ML", "state_name": "Meghalaya", "zone": "Highland Pluvial"}, {"name": "Meghalaya District 2", "lat": 25.6189, "lon": 91.2537, "pop": 247240, "temp": 29.4, "rh": 69.0, "wbgt": 24.0, "utci": 29.2, "surge": 5, "tier": "Green", "uhi": 2.8, "state_code": "ML", "state_name": "Meghalaya", "zone": "Highland Pluvial"}, {"name": "Meghalaya District 3", "lat": 25.0294, "lon": 91.4612, "pop": 247240, "temp": 27.9, "rh": 67.0, "wbgt": 23.4, "utci": 28.6, "surge": 5, "tier": "Green", "uhi": 2.7, "state_code": "ML", "state_name": "Meghalaya", "zone": "Highland Pluvial"}, {"name": "Meghalaya District 4", "lat": 25.7607, "lon": 91.0721, "pop": 247240, "temp": 26.9, "rh": 68.0, "wbgt": 23.4, "utci": 27.5, "surge": 5, "tier": "Green", "uhi": 3.4, "state_code": "ML", "state_name": "Meghalaya", "zone": "Highland Pluvial"}, {"name": "Meghalaya District 5", "lat": 25.8713, "lon": 91.199, "pop": 247240, "temp": 28.3, "rh": 69.0, "wbgt": 23.9, "utci": 28.0, "surge": 5, "tier": "Green", "uhi": 3.0, "state_code": "ML", "state_name": "Meghalaya", "zone": "Highland Pluvial"}, {"name": "Manipur District 1", "lat": 24.2877, "lon": 94.4687, "pop": 178487, "temp": 30.3, "rh": 67.0, "wbgt": 26.2, "utci": 33.1, "surge": 5, "tier": "Green", "uhi": 3.1, "state_code": "MN", "state_name": "Manipur", "zone": "Sub-Himalayan Valley"}, {"name": "Manipur District 2", "lat": 24.3952, "lon": 93.6022, "pop": 178487, "temp": 30.0, "rh": 65.0, "wbgt": 26.2, "utci": 33.1, "surge": 5, "tier": "Green", "uhi": 2.7, "state_code": "MN", "state_name": "Manipur", "zone": "Sub-Himalayan Valley"}, {"name": "Manipur District 3", "lat": 24.9245, "lon": 94.416, "pop": 178487, "temp": 31.8, "rh": 69.0, "wbgt": 25.9, "utci": 32.5, "surge": 5, "tier": "Green", "uhi": 2.7, "state_code": "MN", "state_name": "Manipur", "zone": "Sub-Himalayan Valley"}, {"name": "Manipur District 4", "lat": 24.2424, "lon": 94.5768, "pop": 178487, "temp": 31.4, "rh": 67.0, "wbgt": 26.3, "utci": 33.0, "surge": 5, "tier": "Green", "uhi": 2.1, "state_code": "MN", "state_name": "Manipur", "zone": "Sub-Himalayan Valley"}, {"name": "Manipur District 5", "lat": 24.9165, "lon": 93.7742, "pop": 178487, "temp": 32.2, "rh": 72.0, "wbgt": 25.6, "utci": 33.1, "surge": 5, "tier": "Green", "uhi": 3.3, "state_code": "MN", "state_name": "Manipur", "zone": "Sub-Himalayan Valley"}, {"name": "Nagaland District 1", "lat": 26.0056, "lon": 94.4287, "pop": 123656, "temp": 30.5, "rh": 70.0, "wbgt": 25.9, "utci": 31.8, "surge": 5, "tier": "Green", "uhi": 3.1, "state_code": "NL", "state_name": "Nagaland", "zone": "Naga Hills"}, {"name": "Nagaland District 2", "lat": 25.5973, "lon": 94.3624, "pop": 123656, "temp": 29.7, "rh": 62.0, "wbgt": 24.8, "utci": 31.7, "surge": 5, "tier": "Green", "uhi": 1.8, "state_code": "NL", "state_name": "Nagaland", "zone": "Naga Hills"}, {"name": "Nagaland District 3", "lat": 25.6105, "lon": 94.3843, "pop": 123656, "temp": 31.3, "rh": 62.0, "wbgt": 25.2, "utci": 31.8, "surge": 5, "tier": "Green", "uhi": 2.8, "state_code": "NL", "state_name": "Nagaland", "zone": "Naga Hills"}, {"name": "Nagaland District 4", "lat": 26.5735, "lon": 93.8942, "pop": 123656, "temp": 30.1, "rh": 61.0, "wbgt": 25.6, "utci": 31.8, "surge": 5, "tier": "Green", "uhi": 3.6, "state_code": "NL", "state_name": "Nagaland", "zone": "Naga Hills"}, {"name": "Nagaland District 5", "lat": 26.3527, "lon": 95.3011, "pop": 123656, "temp": 30.3, "rh": 69.0, "wbgt": 25.1, "utci": 32.8, "surge": 5, "tier": "Green", "uhi": 2.8, "state_code": "NL", "state_name": "Nagaland", "zone": "Naga Hills"}, {"name": "Mizoram District 1", "lat": 22.7514, "lon": 93.1455, "pop": 99746, "temp": 29.3, "rh": 61.0, "wbgt": 24.2, "utci": 30.8, "surge": 5, "tier": "Green", "uhi": 2.9, "state_code": "MZ", "state_name": "Mizoram", "zone": "Lushai Hills"}, {"name": "Mizoram District 2", "lat": 23.1483, "lon": 92.8693, "pop": 99746, "temp": 30.0, "rh": 67.0, "wbgt": 24.9, "utci": 31.0, "surge": 5, "tier": "Green", "uhi": 2.4, "state_code": "MZ", "state_name": "Mizoram", "zone": "Lushai Hills"}, {"name": "Mizoram District 3", "lat": 23.0168, "lon": 93.3251, "pop": 99746, "temp": 28.2, "rh": 60.0, "wbgt": 25.6, "utci": 30.7, "surge": 5, "tier": "Green", "uhi": 3.1, "state_code": "MZ", "state_name": "Mizoram", "zone": "Lushai Hills"}, {"name": "Mizoram District 4", "lat": 23.2992, "lon": 92.1394, "pop": 99746, "temp": 29.2, "rh": 67.0, "wbgt": 24.5, "utci": 31.4, "surge": 5, "tier": "Green", "uhi": 2.9, "state_code": "MZ", "state_name": "Mizoram", "zone": "Lushai Hills"}, {"name": "Mizoram District 5", "lat": 22.4083, "lon": 93.3249, "pop": 99746, "temp": 29.0, "rh": 61.0, "wbgt": 24.6, "utci": 30.3, "surge": 5, "tier": "Green", "uhi": 3.4, "state_code": "MZ", "state_name": "Mizoram", "zone": "Lushai Hills"}, {"name": "Sikkim District 1", "lat": 27.8479, "lon": 88.0271, "pop": 101762, "temp": 24.0, "rh": 63.0, "wbgt": 20.9, "utci": 22.9, "surge": 5, "tier": "Green", "uhi": 3.7, "state_code": "SK", "state_name": "Sikkim", "zone": "Alpine Eco"}, {"name": "Sikkim District 2", "lat": 27.3675, "lon": 87.902, "pop": 101762, "temp": 24.9, "rh": 60.0, "wbgt": 19.7, "utci": 23.1, "surge": 5, "tier": "Green", "uhi": 2.4, "state_code": "SK", "state_name": "Sikkim", "zone": "Alpine Eco"}, {"name": "Sikkim District 3", "lat": 28.1145, "lon": 87.8297, "pop": 101762, "temp": 25.5, "rh": 59.0, "wbgt": 20.0, "utci": 23.4, "surge": 5, "tier": "Green", "uhi": 2.9, "state_code": "SK", "state_name": "Sikkim", "zone": "Alpine Eco"}, {"name": "Sikkim District 4", "lat": 27.3466, "lon": 88.1194, "pop": 101762, "temp": 25.4, "rh": 64.0, "wbgt": 20.2, "utci": 24.2, "surge": 5, "tier": "Green", "uhi": 3.4, "state_code": "SK", "state_name": "Sikkim", "zone": "Alpine Eco"}, {"name": "Sikkim District 5", "lat": 27.0206, "lon": 87.7343, "pop": 101762, "temp": 25.5, "rh": 61.0, "wbgt": 20.0, "utci": 23.5, "surge": 5, "tier": "Green", "uhi": 2.9, "state_code": "SK", "state_name": "Sikkim", "zone": "Alpine Eco"}, {"name": "Arunachal Pradesh District 1", "lat": 28.0208, "lon": 95.1938, "pop": 53220, "temp": 31.3, "rh": 75.0, "wbgt": 25.6, "utci": 31.7, "surge": 5, "tier": "Green", "uhi": 2.1, "state_code": "AR", "state_name": "Arunachal Pradesh", "zone": "Trans-Himalayan"}, {"name": "Arunachal Pradesh District 2", "lat": 28.2491, "lon": 95.2222, "pop": 53220, "temp": 30.7, "rh": 75.0, "wbgt": 26.8, "utci": 33.2, "surge": 5.2, "tier": "Green", "uhi": 2.5, "state_code": "AR", "state_name": "Arunachal Pradesh", "zone": "Trans-Himalayan"}, {"name": "Arunachal Pradesh District 3", "lat": 27.4899, "lon": 95.2648, "pop": 53220, "temp": 30.9, "rh": 71.0, "wbgt": 25.8, "utci": 32.0, "surge": 5, "tier": "Green", "uhi": 4.0, "state_code": "AR", "state_name": "Arunachal Pradesh", "zone": "Trans-Himalayan"}, {"name": "Arunachal Pradesh District 4", "lat": 28.3276, "lon": 94.1536, "pop": 53220, "temp": 32.5, "rh": 72.0, "wbgt": 25.3, "utci": 33.3, "surge": 5, "tier": "Green", "uhi": 3.4, "state_code": "AR", "state_name": "Arunachal Pradesh", "zone": "Trans-Himalayan"}, {"name": "Arunachal Pradesh District 5", "lat": 28.0347, "lon": 95.2063, "pop": 53220, "temp": 31.4, "rh": 71.0, "wbgt": 26.4, "utci": 31.6, "surge": 5, "tier": "Green", "uhi": 3.5, "state_code": "AR", "state_name": "Arunachal Pradesh", "zone": "Trans-Himalayan"}, {"name": "Puducherry District 1", "lat": 12.0089, "lon": 79.1476, "pop": 311988, "temp": 37.5, "rh": 72.0, "wbgt": 32.0, "utci": 40.9, "surge": 39.0, "tier": "Yellow", "uhi": 2.5, "state_code": "PY", "state_name": "Puducherry", "zone": "Coastal Enclave"}, {"name": "Puducherry District 2", "lat": 11.7111, "lon": 79.569, "pop": 311988, "temp": 37.8, "rh": 76.0, "wbgt": 33.2, "utci": 42.4, "surge": 46.8, "tier": "Yellow", "uhi": 2.5, "state_code": "PY", "state_name": "Puducherry", "zone": "Coastal Enclave"}, {"name": "Puducherry District 3", "lat": 11.973, "lon": 80.0994, "pop": 311988, "temp": 39.2, "rh": 70.0, "wbgt": 32.7, "utci": 41.6, "surge": 43.6, "tier": "Yellow", "uhi": 3.2, "state_code": "PY", "state_name": "Puducherry", "zone": "Coastal Enclave"}, {"name": "Puducherry District 4", "lat": 12.201, "lon": 79.7141, "pop": 311988, "temp": 38.0, "rh": 74.0, "wbgt": 33.1, "utci": 41.8, "surge": 46.2, "tier": "Yellow", "uhi": 3.4, "state_code": "PY", "state_name": "Puducherry", "zone": "Coastal Enclave"}, {"name": "Chandigarh District 1", "lat": 31.5227, "lon": 76.1989, "pop": 1055450, "temp": 44.8, "rh": 33.0, "wbgt": 31.4, "utci": 44.0, "surge": 35.1, "tier": "Orange", "uhi": 3.0, "state_code": "CH", "state_name": "Chandigarh", "zone": "Shivalik Planned"}, {"name": "Andaman & Nicobar District 1", "lat": 11.6622, "lon": 92.1652, "pop": 126860, "temp": 34.1, "rh": 87.0, "wbgt": 30.1, "utci": 38.0, "surge": 26.7, "tier": "Yellow", "uhi": 3.6, "state_code": "AN", "state_name": "Andaman & Nicobar", "zone": "Island Marine"}, {"name": "Andaman & Nicobar District 2", "lat": 11.027, "lon": 93.0648, "pop": 126860, "temp": 34.1, "rh": 85.0, "wbgt": 30.5, "utci": 38.6, "surge": 29.2, "tier": "Yellow", "uhi": 3.8, "state_code": "AN", "state_name": "Andaman & Nicobar", "zone": "Island Marine"}, {"name": "Andaman & Nicobar District 3", "lat": 11.9046, "lon": 93.449, "pop": 126860, "temp": 33.4, "rh": 85.0, "wbgt": 30.6, "utci": 38.8, "surge": 29.9, "tier": "Yellow", "uhi": 2.4, "state_code": "AN", "state_name": "Andaman & Nicobar", "zone": "Island Marine"}, {"name": "Ladakh District 1", "lat": 33.6936, "lon": 77.53, "pop": 137144, "temp": 22.6, "rh": 20.0, "wbgt": 16.0, "utci": 19.4, "surge": 5, "tier": "Green", "uhi": 2.2, "state_code": "LA", "state_name": "Ladakh", "zone": "Cold Desert"}, {"name": "Ladakh District 2", "lat": 34.0745, "lon": 77.2268, "pop": 137144, "temp": 22.7, "rh": 22.0, "wbgt": 16.4, "utci": 21.0, "surge": 5, "tier": "Green", "uhi": 4.1, "state_code": "LA", "state_name": "Ladakh", "zone": "Cold Desert"}, {"name": "D&NH and D&D District 1", "lat": 21.222, "lon": 73.6264, "pop": 195652, "temp": 39.0, "rh": 71.0, "wbgt": 31.8, "utci": 40.2, "surge": 37.7, "tier": "Yellow", "uhi": 2.3, "state_code": "DN", "state_name": "D&NH and D&D", "zone": "Coastal Industrial"}, {"name": "D&NH and D&D District 2", "lat": 20.8424, "lon": 73.1772, "pop": 195652, "temp": 37.4, "rh": 68.0, "wbgt": 31.7, "utci": 41.5, "surge": 37.0, "tier": "Yellow", "uhi": 1.9, "state_code": "DN", "state_name": "D&NH and D&D", "zone": "Coastal Industrial"}, {"name": "D&NH and D&D District 3", "lat": 21.1242, "lon": 73.4705, "pop": 195652, "temp": 37.2, "rh": 65.0, "wbgt": 31.6, "utci": 40.1, "surge": 36.4, "tier": "Yellow", "uhi": 4.1, "state_code": "DN", "state_name": "D&NH and D&D", "zone": "Coastal Industrial"}, {"name": "Lakshadweep District 1", "lat": 10.119, "lon": 72.0883, "pop": 64473, "temp": 33.0, "rh": 86.0, "wbgt": 30.0, "utci": 37.3, "surge": 26.0, "tier": "Yellow", "uhi": 3.4, "state_code": "LD", "state_name": "Lakshadweep", "zone": "Coral Atoll"}];
+
+    let activeTab = 'states';
+    let currentMapMetric = 'risk';
+    let mapInstance = null;
+    let markersLayer = null;
+
+    function initMap() {
+      mapInstance = L.map('nationalMap', {
+        center: [22.5937, 78.9629],
+        zoom: 4.8,
+        zoomControl: true,
+        attributionControl: false
+      });
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 18,
+        subdomains: 'abcd',
+      }).addTo(mapInstance);
+
+      markersLayer = L.layerGroup().addTo(mapInstance);
+      renderMap();
+    }
+
+    function getTierColor(tier) {
+      if (tier === 'Red') return '#ef4444';
+      if (tier === 'Orange') return '#f97316';
+      if (tier === 'Yellow') return '#eab308';
+      return '#22c55e';
+    }
+
+    function renderMap() {
+      markersLayer.clearLayers();
+
+      if (activeTab === 'states') {
+        STATES_DATA.forEach(state => {
+          let color = getTierColor(state.tier);
+          let radius = 8 + (state.population / 15000000) * 6;
+          let circle = L.circleMarker([state.lat, state.lon], {
+            radius: radius,
+            fillColor: color,
+            color: '#ffffff',
+            weight: 1.5,
+            opacity: 0.85,
+            fillOpacity: 0.7
+          }).addTo(markersLayer);
+
+          circle.bindPopup(`
+            <div style="font-family: 'Plus Jakarta Sans', sans-serif; color: #fff; min-width: 190px;">
+              <div style="font-weight: 800; font-size: 14px;">${state.name} (${state.code})</div>
+              <div style="font-size: 11px; color: #94a3b8; margin-bottom: 6px;">Zone: ${state.zone}</div>
+              <div style="font-size: 11px;">Temp: <b>${state.base_temp}°C</b> | RH: <b>${state.base_rh}%</b></div>
+              <div style="font-size: 11px;">WBGT: <b style="color:${color}">${state.base_wbgt}°C</b></div>
+              <div style="margin-top: 6px;">
+                <button onclick="openStateDistrictModal('${state.code}')" style="background:#38bdf8; color:#000; border:none; padding:4px 8px; border-radius:4px; font-weight:700; cursor:pointer; font-size:10px;">
+                  Explore ${state.districts_count} Districts
+                </button>
+              </div>
+            </div>
+          `);
+        });
+      } else {
+        DISTRICTS_DATA.forEach(dist => {
+          let color = getTierColor(dist.tier);
+          let circle = L.circleMarker([dist.lat, dist.lon], {
+            radius: 6,
+            fillColor: color,
+            color: '#ffffff',
+            weight: 1,
+            opacity: 0.9,
+            fillOpacity: 0.8
+          }).addTo(markersLayer);
+
+          circle.bindPopup(`
+            <div style="font-family: 'Plus Jakarta Sans', sans-serif; color: #fff; min-width: 170px;">
+              <div style="font-weight: 800; font-size: 13px;">${dist.name}</div>
+              <div style="font-size: 10px; color: #94a3b8; margin-bottom: 4px;">State: ${dist.state_name}</div>
+              <div style="font-size: 11px;">Temp: <b>${dist.temp}°C</b> | WBGT: <b style="color:${color}">${dist.wbgt}°C</b></div>
+              <div style="font-size: 11px;">Surge: <b>+${dist.surge}%</b> | UHI: <b>+${dist.uhi}°C</b></div>
+            </div>
+          `);
+        });
+      }
+    }
+
+    function switchMapMetric(metric) {
+      currentMapMetric = metric;
+      document.querySelectorAll('.layer-chip').forEach(c => c.classList.remove('active'));
+      event.target.classList.add('active');
+      renderMap();
+    }
+
+    function switchListTab(tab) {
+      activeTab = tab;
+      document.getElementById('tabStates').classList.toggle('active', tab === 'states');
+      document.getElementById('tabDistricts').classList.toggle('active', tab === 'districts');
+      renderSpatialItems();
+      renderMap();
+    }
+
+    function renderSpatialItems(items = null) {
+      const container = document.getElementById('spatialContainer');
+      container.innerHTML = '';
+
+      if (activeTab === 'states') {
+        const list = items || STATES_DATA;
+        list.forEach(state => {
+          const card = document.createElement('div');
+          card.className = 'glass-card item-row-card';
+          card.onclick = () => selectState(state);
+          card.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div class="tier-dot ${state.tier.toLowerCase()}"></div>
+              <div>
+                <div style="font-weight: 700; font-size: 0.88rem;">${state.name} <span style="font-size: 0.7rem; color: #64748b;">(${state.code})</span></div>
+                <div style="font-size: 0.7rem; color: var(--text-dim);">${state.zone} · ${state.districts_count} Dist.</div>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-family: var(--font-mono); font-weight: 700; color: ${getTierColor(state.tier)};">${state.base_wbgt}°C</div>
+              <div style="font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase;">WBGT</div>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } else {
+        const list = items || DISTRICTS_DATA;
+        list.forEach(dist => {
+          const card = document.createElement('div');
+          card.className = 'glass-card item-row-card';
+          card.onclick = () => openDistrictDetail(dist);
+          card.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div class="tier-dot ${dist.tier.toLowerCase()}"></div>
+              <div>
+                <div style="font-weight: 700; font-size: 0.85rem;">${dist.name}</div>
+                <div style="font-size: 0.7rem; color: var(--text-dim);">${dist.state_name}</div>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-family: var(--font-mono); font-weight: 700; color: ${getTierColor(dist.tier)};">+${dist.surge}%</div>
+              <div style="font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase;">Surge</div>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      }
+    }
+
+    function filterSpatialItems() {
+      const q = document.getElementById('spatialSearch').value.toLowerCase();
+      if (activeTab === 'states') {
+        const filtered = STATES_DATA.filter(s => s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q) || s.zone.toLowerCase().includes(q));
+        renderSpatialItems(filtered);
+      } else {
+        const filtered = DISTRICTS_DATA.filter(d => d.name.toLowerCase().includes(q) || d.state_name.toLowerCase().includes(q) || d.zone.toLowerCase().includes(q));
+        renderSpatialItems(filtered);
+      }
+    }
+
+    function selectState(state) {
+      mapInstance.flyTo([state.lat, state.lon], 6.5, { duration: 1.2 });
+      document.getElementById('tempSlider').value = state.base_temp;
+      document.getElementById('rhSlider').value = state.base_rh;
+      updateBiotechSim();
+    }
+
+    function openDistrictDetail(dist) {
+      document.getElementById('modalDistrictTitle').innerText = dist.name + ' (' + dist.state_name + ')';
+      document.getElementById('modalTemp').innerText = dist.temp + ' °C';
+      document.getElementById('modalRH').innerText = dist.rh + ' %';
+      document.getElementById('modalWBGT').innerText = dist.wbgt + ' °C';
+      document.getElementById('modalUTCI').innerText = dist.utci + ' °C';
+      document.getElementById('modalPop').innerText = (dist.pop).toLocaleString('en-IN') + ' Citizens';
+      document.getElementById('modalUHI').innerText = '+' + dist.uhi + ' °C (Built-up Core)';
+      document.getElementById('modalSurge').innerText = '+' + dist.surge + '% (ER Admissions)';
+      document.getElementById('modalTier').innerText = dist.tier + ' Tier';
+
+      const linkBox = document.getElementById('modalSubstateLinkBox');
+      if (dist.state_code === 'OD') {
+        linkBox.style.display = 'block';
+        document.getElementById('modalSubstateLink').href = '/dashboard/odisha';
+      } else {
+        linkBox.style.display = 'none';
+      }
+
+      document.getElementById('districtModal').style.display = 'flex';
+    }
+
+    function closeDistrictModal() {
+      document.getElementById('districtModal').style.display = 'none';
+    }
+
+    function onTimelineScrub() {
+      const val = parseInt(document.getElementById('timelineSlider').value);
+      const labels = [
+        'Today (t0 · 14:00 IST)',
+        'Tomorrow (t+1 · Peak Heat)',
+        'Day t+2 (High Evaporative Strain)',
+        'Day t+3 (Cumulative Fatigue)',
+        'Day t+4 (Subsiding Gradient)'
+      ];
+      const badges = ['+0h (Live Ingestion)', '+24h Forecast', '+48h Forecast', '+72h Forecast', '+96h Forecast'];
+      document.getElementById('forecastTimeLabel').innerText = 'Forecast Time: ' + labels[val];
+      document.getElementById('timelineDayBadge').innerText = badges[val];
+    }
+
+    // Biotech Math
+    function updateBiotechSim() {
+      const T = parseFloat(document.getElementById('tempSlider').value);
+      const RH = parseFloat(document.getElementById('rhSlider').value);
+      const workload = parseInt(document.getElementById('workloadSlider').value);
+
+      document.getElementById('tempVal').innerText = T.toFixed(1) + ' °C';
+      document.getElementById('rhVal').innerText = RH + ' %';
+
+      let workloadK = workload === 3 ? 1.75 : (workload === 2 ? 1.35 : 1.0);
+      let Tw = T * Math.atan(0.151977 * Math.pow(RH + 8.313659, 0.5)) + Math.atan(T + RH) - Math.atan(RH - 1.676331) + 0.00391838 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH) - 4.686035;
+      let Tg = T + (0.02 * 800) / (1 + 3.0);
+      let wbgt = 0.7 * Tw + 0.2 * Tg + 0.1 * T;
+
+      document.getElementById('resWbgt').innerText = wbgt.toFixed(1) + ' °C';
+
+      let es = 0.61078 * Math.exp((17.27 * T) / (T + 237.3));
+      let ea = (RH / 100.0) * es;
+      let vpd = Math.max(0.1, es - ea);
+      let evapEfficiency = Math.max(15, Math.min(95, (vpd / 3.5) * 100));
+
+      let evapText = evapEfficiency.toFixed(0) + '% ';
+      if (evapEfficiency < 40) evapText += '(Critical Deficit)';
+      else if (evapEfficiency < 65) evapText += '(Moderate Deficit)';
+      else evapText += '(Adequate Cooling)';
+      document.getElementById('resEvap').innerText = evapText;
+
+      let safeWindow = Math.max(10, Math.min(60, Math.round(60 - (wbgt - 28) * 7.5 / workloadK)));
+      document.getElementById('resWorkWindow').innerText = safeWindow + ' min / hour';
+      let coreEscalation = Math.max(0.2, (wbgt / 30.0) * 1.1 * workloadK);
+      document.getElementById('resCoreTemp').innerText = '+' + coreEscalation.toFixed(1) + '°C / 45min';
+    }
+
+    function renderSurgeChart() {
+      const options = {
+        series: [
+          { name: 'DLNM Stage 1 Baseline', data: [140, 210, 310, 430, 380, 290] },
+          { name: 'XGBoost Final Predicted Surge', data: [155, 235, 360, 485, 415, 320] }
+        ],
+        chart: { type: 'area', height: 200, background: 'transparent', toolbar: { show: false } },
+        colors: ['#38bdf8', '#ef4444'],
+        stroke: { curve: 'smooth', width: 2 },
+        fill: { type: 'gradient', gradient: { opacityFrom: 0.45, opacityTo: 0.05 } },
+        xaxis: { categories: ['Day t-2', 'Day t-1', 'Today (t0)', 'Day t+1', 'Day t+2', 'Day t+3'], labels: { style: { colors: '#94a3b8' } } },
+        yaxis: { labels: { style: { colors: '#94a3b8' } } },
+        legend: { position: 'top', horizontalAlign: 'right', labels: { colors: '#f8fafc' } },
+        grid: { borderColor: 'rgba(255,255,255,0.06)' }
+      };
+      new ApexCharts(document.querySelector("#hospitalSurgeChart"), options).render();
+    }
+
+    function openDispatchModal() { document.getElementById('dispatchModal').style.display = 'flex'; }
+    function closeDispatchModal() { document.getElementById('dispatchModal').style.display = 'none'; }
+    function confirmDispatch() {
+      confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+      alert('✅ Standard Operating Procedure transmitted across all 36 State Disaster Management Authorities & 108 Emergency Networks.');
+      closeDispatchModal();
+    }
+    function downloadSitRep() { alert('📄 Generating MoES / NDMA National Situation Report (SitRep-2026-HTWV-09)... Downloading Summary PDF.'); }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initMap();
+      renderSpatialItems();
+      updateBiotechSim();
+      renderSurgeChart();
+    });
+  </script>
+</body>
+</html>
