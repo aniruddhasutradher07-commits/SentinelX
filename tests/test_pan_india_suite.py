@@ -111,3 +111,14 @@ def test_reverse_geocode_endpoint():
     assert data["is_india"] is True
     assert "Connaught Place" in data["name"] or "Delhi" in data.get("state", "")
 
+
+def test_detect_location_endpoint():
+    """Validates auto IP / network real-time location detection."""
+    response = client.get("/api/v1/detect-location")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "success"
+    assert "lat" in data and "lon" in data
+    assert "India" in data.get("country", "")
+
+

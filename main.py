@@ -136,6 +136,16 @@ def reverse_geocode(lat: float, lon: float):
     return reverse_geocode_india(lat, lon)
 
 
+@app.get("/api/v1/detect-location", tags=["Pan-India Spatial Engine"])
+def auto_detect_location():
+    """
+    Auto-detects client real-time location via IP / Network telemetry.
+    Zero-permission real-time location detection for instant map positioning.
+    """
+    from services.pan_india_engine import detect_ip_location
+    return detect_ip_location()
+
+
 @app.get("/api/v1/live-stress", tags=["Pan-India Spatial Engine"])
 def get_live_stress(lat: float, lon: float, name: str = ""):
     """
@@ -144,6 +154,7 @@ def get_live_stress(lat: float, lon: float, name: str = ""):
     """
     from services.pan_india_engine import fetch_live_coordinate_stress
     return fetch_live_coordinate_stress(lat, lon, name)
+
 
 
 

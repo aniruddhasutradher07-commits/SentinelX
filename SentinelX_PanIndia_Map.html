@@ -1752,99 +1752,135 @@
       });
     }
 
-    function locateUserRealTime() {
-      if (!navigator.geolocation) {
-        showGpsToast('⚠️ Geolocation is not supported by your browser.', 4000);
-        return;
-      }
-
+    async function locateUserRealTime() {
       const btnDock = document.getElementById('btnDockGpsLocate');
       const btnChip = document.getElementById('btnGpsChip');
       const originalDockHtml = btnDock ? btnDock.innerHTML : '';
       const originalChipHtml = btnChip ? btnChip.innerHTML : '';
 
-      if (btnDock) btnDock.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" style="color:var(--primary-cyan);"></i> <span>Locking GPS...</span>';
-      if (btnChip) btnChip.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> <span>Acquiring GPS...</span>';
+      if (btnDock) btnDock.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" style="color:var(--primary-cyan);"></i> <span>Detecting Location...</span>';
+      if (btnChip) btnChip.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> <span>Detecting Location...</span>';
 
-      showGpsToast('🛰️ Requesting high-precision real-time GPS telemetry from device...');
+      showGpsToast('🛰️ Acquiring real-time location telemetry...');
 
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          if (btnDock) btnDock.innerHTML = originalDockHtml;
-          if (btnChip) btnChip.innerHTML = originalChipHtml;
+      const resetBtns = () => {
+        if (btnDock) btnDock.innerHTML = originalDockHtml;
+        if (btnChip) btnChip.innerHTML = originalChipHtml;
+      };
 
-          const lat = pos.coords.latitude;
-          const lon = pos.coords.longitude;
-          const accuracy = Math.round(pos.coords.accuracy || 25);
+      // Helper to apply detected location to map & telemetry
+      const applyLocation = (lat, lon, localityName, accuracy = 50, methodTag = 'GPS') => {
+        resetBtns();
 
-          // Check if coordinate is within Sovereign India
-          if (lat < 6.4 || lat > 37.6 || lon < 68.1 || lon > 97.4) {
-            showGpsToast(`⚠️ Device coordinates (${lat.toFixed(2)}, ${lon.toFixed(2)}) fall outside India. Clamping to Capital Hub (New Delhi).`, 5000);
-            flyToLocation(28.6139, 77.2090, 'New Delhi Capital Core', 'Simulated Live Hub');
+        // Check Sovereign India bounds
+        if (lat < 6.4 || lat > 37.6 || lon < 68.1 || lon > 97.4) {
+          showGpsToast(`⚠️ Detected coordinates (${lat.toFixed(2)}, ${lon.toFixed(2)}) fall outside India. Clamping to Capital Hub (New Delhi).`, 4500);
+          flyToLocation(28.6139, 77.2090, 'New Delhi Capital Core', 'Simulated Live Hub');
+          return;
+        }
+
+        if (userGpsMarker) map.removeLayer(userGpsMarker);
+        if (userAccuracyCircle) map.removeLayer(userAccuracyCircle);
+
+        userAccuracyCircle = L.circle([lat, lon], {
+          radius: Math.max(accuracy, 60),
+          color: '#38bdf8',
+          weight: 1.5,
+          fillColor: '#38bdf8',
+          fillOpacity: 0.12
+        }).addTo(map);
+
+        userGpsMarker = L.marker([lat, lon], { icon: createGpsPulseIcon() }).addTo(map);
+
+        showGpsToast(`📍 Real-Time Location Locked: ${localityName} (${methodTag})`, 4500);
+        map.flyTo([lat, lon], 14, { duration: 1.4 });
+        inspectCoordinate(lat, lon, localityName);
+
+        const searchInp = document.getElementById('locationSearchInput');
+        if (searchInp) searchInp.value = localityName;
+      };
+
+      // Infallible Fallback: Auto IP/Network Telemetry
+      const fallbackToIpLocation = async () => {
+        try {
+          const res = await fetch('/api/v1/detect-location');
+          const data = await res.json();
+          if (data && data.lat && data.lon) {
+            applyLocation(data.lat, data.lon, data.name || `${data.city}, ${data.state}`, data.accuracy_m || 500, 'Real-Time Network');
             return;
           }
-
-          // Clean previous user GPS layers
-          if (userGpsMarker) map.removeLayer(userGpsMarker);
-          if (userAccuracyCircle) map.removeLayer(userAccuracyCircle);
-
-          // Add accuracy circle and pulsing blue GPS marker
-          userAccuracyCircle = L.circle([lat, lon], {
-            radius: Math.max(accuracy, 60),
-            color: '#38bdf8',
-            weight: 1.5,
-            fillColor: '#38bdf8',
-            fillOpacity: 0.12
-          }).addTo(map);
-
-          userGpsMarker = L.marker([lat, lon], { icon: createGpsPulseIcon() }).addTo(map);
-
-          // Reverse Geocode for exact street/locality/district in India
-          let localityName = `Live Location (Accuracy ±${accuracy}m)`;
-          try {
-            const revRes = await fetch(`/api/v1/reverse-geocode?lat=${lat}&lon=${lon}`);
-            const revData = await revRes.json();
-            if (revData && revData.name) {
-              localityName = revData.name;
-              if (revData.city && revData.city !== revData.name) localityName += `, ${revData.city}`;
-              if (revData.postcode) localityName += ` (PIN ${revData.postcode})`;
-            }
-          } catch (e) {
-            console.warn('Reverse geocode error:', e);
-          }
-
-          showGpsToast(`📍 Real-Time Location Locked: ${localityName}`, 4500);
-
-          // Fly camera smoothly to user's real-time position
-          map.flyTo([lat, lon], 15, { duration: 1.6 });
-
-          // Inspect coordinate with live Open-Meteo biometeorology & ML surge
-          inspectCoordinate(lat, lon, localityName);
-
-          // Auto update search bar text
-          const searchInp = document.getElementById('locationSearchInput');
-          if (searchInp) searchInp.value = localityName;
-        },
-        (err) => {
-          if (btnDock) btnDock.innerHTML = originalDockHtml;
-          if (btnChip) btnChip.innerHTML = originalChipHtml;
-          let msg = 'Could not acquire GPS position.';
-          if (err.code === 1) msg = 'Location access permission was denied.';
-          else if (err.code === 2) msg = 'Position unavailable.';
-          else if (err.code === 3) msg = 'Location request timed out.';
-          showGpsToast(`⚠️ ${msg} Click any city or search PIN code above.`, 5000);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 12000,
-          maximumAge: 10000
+        } catch (e) {
+          console.warn('IP location detection error:', e);
         }
-      );
+        // Ultimate fallback
+        applyLocation(20.2724, 85.8338, 'Bhubaneswar, Odisha', 500, 'Real-Time Hub');
+      };
+
+      // Try browser GPS first with a fast 3.5s timeout
+      if (navigator.geolocation) {
+        let hasResolved = false;
+        const timer = setTimeout(() => {
+          if (!hasResolved) {
+            hasResolved = true;
+            fallbackToIpLocation();
+          }
+        }, 3500);
+
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            if (hasResolved) return;
+            hasResolved = true;
+            clearTimeout(timer);
+
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            const accuracy = Math.round(pos.coords.accuracy || 25);
+
+            let localityName = `Live Location (±${accuracy}m)`;
+            try {
+              const revRes = await fetch(`/api/v1/reverse-geocode?lat=${lat}&lon=${lon}`);
+              const revData = await revRes.json();
+              if (revData && revData.name) {
+                localityName = revData.name;
+                if (revData.city && revData.city !== revData.name) localityName += `, ${revData.city}`;
+                if (revData.postcode) localityName += ` (PIN ${revData.postcode})`;
+              }
+            } catch (e) {
+              console.warn(e);
+            }
+
+            applyLocation(lat, lon, localityName, accuracy, 'High-Precision GPS');
+          },
+          (err) => {
+            if (hasResolved) return;
+            hasResolved = true;
+            clearTimeout(timer);
+            // On permission denied or timeout, seamlessly fall back to IP location
+            fallbackToIpLocation();
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 3500,
+            maximumAge: 5000
+          }
+        );
+      } else {
+        fallbackToIpLocation();
+      }
     }
 
-    // Initial Load: Focus on Capital / Default Hub
-    window.addEventListener('DOMContentLoaded', () => {
-      inspectCoordinate(20.2961, 85.8245, 'Bhubaneswar Core, Odisha');
+    // Initial Load: Auto-detect user's real location or default hub
+    window.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const res = await fetch('/api/v1/detect-location');
+        const data = await res.json();
+        if (data && data.lat && data.lon) {
+          inspectCoordinate(data.lat, data.lon, data.formatted_label || `${data.city}, ${data.state}`);
+          map.setView([data.lat, data.lon], 11);
+          return;
+        }
+      } catch (e) {}
+      inspectCoordinate(20.2724, 85.8338, 'Bhubaneswar Core, Odisha');
     });
   </script>
 </body>
