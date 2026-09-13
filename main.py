@@ -146,7 +146,24 @@ def auto_detect_location():
     return detect_ip_location()
 
 
+@app.get("/api/v1/india-mask", tags=["Pan-India Spatial Engine"])
+def get_india_mask():
+    """Returns inverted world mask GeoJSON to obscure all territory outside India."""
+    if os.path.exists("india_mask.geojson"):
+        return FileResponse("india_mask.geojson", media_type="application/json")
+    return {"status": "error", "detail": "india_mask.geojson not found"}
+
+
+@app.get("/api/v1/india-boundary", tags=["Pan-India Spatial Engine"])
+def get_india_boundary():
+    """Returns sovereign India boundary GeoJSON (Survey of India standard)."""
+    if os.path.exists("india_simplified.geojson"):
+        return FileResponse("india_simplified.geojson", media_type="application/json")
+    return {"status": "error", "detail": "india_simplified.geojson not found"}
+
+
 @app.get("/api/v1/live-stress", tags=["Pan-India Spatial Engine"])
+
 def get_live_stress(lat: float, lon: float, name: str = ""):
     """
     Fetches real-time weather & computes WBGT, UTCI, Heat Index, and 2-Stage hospital surge

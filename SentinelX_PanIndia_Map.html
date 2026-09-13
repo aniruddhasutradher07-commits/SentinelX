@@ -922,7 +922,7 @@
       <div class="brand-glass-badge">
         <span style="font-size: 1.2rem;">🛡️</span>
         <div>
-          <h1>SentinelX <span class="tag">REAL-DATA PAN-INDIA</span></h1>
+          <h1>SentinelX <span class="tag">PAN-INDIA</span> <span class="tag" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);color:#4ade80;"><i class="fa-solid fa-shield-halved"></i> SOVEREIGN INDIA ONLY</span></h1>
         </div>
       </div>
 
@@ -1266,9 +1266,9 @@
     const INDIA_BOUNDS = L.latLngBounds(INDIA_SOUTH_WEST, INDIA_NORTH_EAST);
 
     const map = L.map('map-canvas', {
-      center: [22.5, 82.0],
+      center: [22.8, 80.5],
       zoom: 5,
-      minZoom: 4,
+      minZoom: 4.8,
       maxZoom: 18,
       maxBounds: INDIA_BOUNDS,
       maxBoundsViscosity: 1.0,
@@ -1282,20 +1282,60 @@
       dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         maxZoom: 18,
         subdomains: 'abcd',
-        attribution: '&copy; CartoDB &copy; OpenStreetMap contributors'
+        bounds: INDIA_BOUNDS,
+        attribution: '&copy; CartoDB &copy; OpenStreetMap contributors · Survey of India Compliant'
       }),
       satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         maxZoom: 18,
+        bounds: INDIA_BOUNDS,
         attribution: '&copy; Esri &mdash; Maxar, Earthstar Geographics'
       }),
       terrain: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
         maxZoom: 17,
+        bounds: INDIA_BOUNDS,
         attribution: '&copy; OpenTopoMap contributors'
       })
     };
 
     let currentBaseLayer = baseLayers.dark;
     currentBaseLayer.addTo(map);
+
+    // Inverted Sovereign Mask: Obscures all territories outside India
+    let indiaMaskLayer = null;
+    let indiaBorderLayer = null;
+
+    async function loadSovereignIndiaMask() {
+      try {
+        const maskRes = await fetch('/api/v1/india-mask');
+        const maskData = await maskRes.json();
+        indiaMaskLayer = L.geoJSON(maskData, {
+          style: {
+            fillColor: '#070a13',
+            fillOpacity: 0.98,
+            color: '#38bdf8',
+            weight: 2.2,
+            opacity: 0.95
+          },
+          interactive: false
+        }).addTo(map);
+
+        const bndRes = await fetch('/api/v1/india-boundary');
+        const bndData = await bndRes.json();
+        indiaBorderLayer = L.geoJSON(bndData, {
+          style: {
+            fillColor: 'transparent',
+            fillOpacity: 0,
+            color: '#38bdf8',
+            weight: 2.2,
+            opacity: 0.95
+          },
+          interactive: false
+        }).addTo(map);
+      } catch (e) {
+        console.error('Error loading sovereign India mask:', e);
+      }
+    }
+    loadSovereignIndiaMask();
 
     function switchBaseLayer(type) {
       document.querySelectorAll('.dock-pill-btn').forEach(btn => btn.classList.remove('active'));
@@ -1306,6 +1346,10 @@
       map.removeLayer(currentBaseLayer);
       currentBaseLayer = baseLayers[type];
       map.addLayer(currentBaseLayer);
+
+      // Re-bring mask layers to front to ensure non-Indian world remains blacked out
+      if (indiaMaskLayer) indiaMaskLayer.bringToFront();
+      if (indiaBorderLayer) indiaBorderLayer.bringToFront();
     }
 
     // Active Pulse Marker
