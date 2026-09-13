@@ -104,14 +104,14 @@ def serve_national_dashboard():
 def get_national_feed():
     """Returns real-time synoptic thermal stress metrics for all 36 States & UTs."""
     try:
-        from build_national_dashboard import STATES_DATA
+        from build_national_dashboard import STATES_METADATA
         return {
             "status": "success",
             "jurisdiction": "Pan-India National Disaster Management Authority (NDMA) & MoES",
-            "total_states_covered": len(STATES_DATA),
-            "red_alert_count": sum(1 for s in STATES_DATA if s.get("tier") == "Red"),
-            "orange_alert_count": sum(1 for s in STATES_DATA if s.get("tier") == "Orange"),
-            "states": STATES_DATA
+            "total_states_covered": len(STATES_METADATA),
+            "red_alert_count": sum(1 for s in STATES_METADATA if s.get("tier") == "Red"),
+            "orange_alert_count": sum(1 for s in STATES_METADATA if s.get("tier") == "Orange"),
+            "states": STATES_METADATA
         }
     except Exception as e:
         return {"status": "error", "detail": str(e)}

@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sentinelx-config
+  namespace: disaster-management
+data:
+  APP_ENV: "production"
+  JURISDICTION: "Sovereign Territory of India"
+  MAX_BOUNDS_SW: "6.4627, 68.1097"
+  MAX_BOUNDS_NE: "37.6, 97.4"
+  SPATIAL_GRID_PRECISION_DEG: "0.1"
+  GRID_CACHE_TTL_SECONDS: "3600"
+  HOSPITAL_SURGE_MODEL: "DLNM_XGBOOST_STAGE2"
+  DEFAULT_LANGUAGE: "en"
+  SUPPORTED_LANGUAGES: "en,hi,bn,or,mr,ta,te,gu,pa,kn,ml"
+  NDMA_HOTLINE: "1078"
+  EMERGENCY_AMBULANCE_NUMBER: "108"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sentinelx-secrets
+  namespace: disaster-management
+type: Opaque
+stringData:
+  GEMINI_API_KEY: "AIzaSyDR9BlDJxO2z4RQEUcqGH4W9sE2E28S5d4"
