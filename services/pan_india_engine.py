@@ -446,34 +446,63 @@ def detect_ip_location(client_ip: Optional[str] = None) -> Dict[str, Any]:
     """
     Detects real-time geographical position via IP / Network telemetry.
     Acts as an infallible real-time fallback when browser GPS is denied or unavailable.
+    Uses multi-provider redundancy (ipwho.is, ip-api.com, ipapi.co).
     """
+    is_local = not client_ip or client_ip in ("127.0.0.1", "localhost", "::1")
+
+    # Provider 1: ipwho.is
     try:
-        url = "https://ipwho.is/"
-        if client_ip and client_ip not in ("127.0.0.1", "localhost", "::1"):
-            url = f"https://ipwho.is/{client_ip}"
-        
-        resp = requests.get(url, timeout=3.5)
+        url = "https://ipwho.is/" if is_local else f"https://ipwho.is/{client_ip}"
+        resp = requests.get(url, timeout=3.0)
         if resp.status_code == 200:
             d = resp.json()
             if d.get("success") is not False:
-                lat = float(d.get("latitude", 20.2724))
-                lon = float(d.get("longitude", 85.8338))
-                city = d.get("city") or "Bhubaneswar"
-                region = d.get("region") or "Odisha"
-                country = d.get("country") or "India"
-                
-                # Check if within India
+                lat = float(d.get("latitude", 0))
+                lon = float(d.get("longitude", 0))
                 if is_within_india(lat, lon):
+                    city = d.get("city") or "Bhubaneswar"
+                    region = d.get("region") or "Odisha"
+                    postal = d.get("postal")
+                    label = f"{city}, {region}" + (f" (PIN {postal})" if postal else "")
                     return {
                         "status": "success",
                         "city": city,
                         "state": region,
-                        "country": country,
-                        "name": f"{city}, {region}",
-                        "formatted_label": f"{city}, {region}, {country} (Real-Time Network Position)",
+                        "country": "India",
+                        "name": label,
+                        "formatted_label": f"{label}, India (Network Position)",
                         "lat": round(lat, 4),
                         "lon": round(lon, 4),
-                        "accuracy_m": 850,
+                        "accuracy_m": 800,
+                        "method": "ip_network_telemetry"
+                    }
+    except Exception:
+        pass
+
+    # Provider 2: ip-api.com
+    try:
+        url = "http://ip-api.com/json/" if is_local else f"http://ip-api.com/json/{client_ip}"
+        resp = requests.get(url, timeout=3.0)
+        if resp.status_code == 200:
+            d = resp.json()
+            if d.get("status") == "success":
+                lat = float(d.get("lat", 0))
+                lon = float(d.get("lon", 0))
+                if is_within_india(lat, lon):
+                    city = d.get("city") or "Bhubaneswar"
+                    region = d.get("regionName") or "Odisha"
+                    postal = d.get("zip")
+                    label = f"{city}, {region}" + (f" (PIN {postal})" if postal else "")
+                    return {
+                        "status": "success",
+                        "city": city,
+                        "state": region,
+                        "country": "India",
+                        "name": label,
+                        "formatted_label": f"{label}, India (Network Position)",
+                        "lat": round(lat, 4),
+                        "lon": round(lon, 4),
+                        "accuracy_m": 800,
                         "method": "ip_network_telemetry"
                     }
     except Exception:

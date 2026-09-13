@@ -1379,11 +1379,49 @@
       inspectCoordinate(lat, lng, placeName);
     });
 
-    async function inspectCoordinate(lat, lon, placeName = '') {
-      // Place marker
+    function createLocationMarker(lat, lon, isGps = false) {
       if (activeMarker) map.removeLayer(activeMarker);
-      activeMarker = L.marker([lat, lon], { icon: createPulseIcon() }).addTo(map);
+      activeMarker = L.marker([lat, lon], {
+        icon: isGps ? createGpsPulseIcon() : createPulseIcon(),
+        draggable: true
+      }).addTo(map);
 
+      activeMarker.bindTooltip('📍 Drag pin to your exact building or roof', {
+        permanent: false,
+        direction: 'top',
+        className: 'gps-marker-tooltip'
+      });
+
+      activeMarker.on('dragend', async (e) => {
+        const newPos = e.target.getLatLng();
+        if (userAccuracyCircle) userAccuracyCircle.setLatLng(newPos);
+        showGpsToast(`📍 Pin relocated: Lat ${newPos.lat.toFixed(4)}°, Lon ${newPos.lng.toFixed(4)}°`);
+
+        let cleanLoc = `Custom Pin (${newPos.lat.toFixed(3)}°, ${newPos.lng.toFixed(3)}°)`;
+        try {
+          const revRes = await fetch(`/api/v1/reverse-geocode?lat=${newPos.lat}&lon=${newPos.lng}`);
+          const revData = await revRes.json();
+          if (revData && revData.name) {
+            cleanLoc = revData.name;
+            if (revData.city && revData.city !== revData.name) cleanLoc += `, ${revData.city}`;
+            if (revData.postcode) cleanLoc += ` (PIN ${revData.postcode})`;
+          }
+        } catch (err) {}
+
+        const sInp = document.getElementById('locationSearchInput');
+        if (sInp) sInp.value = cleanLoc;
+        inspectTelemetryOnly(newPos.lat, newPos.lng, cleanLoc);
+      });
+
+      return activeMarker;
+    }
+
+    async function inspectCoordinate(lat, lon, placeName = '', isGps = false) {
+      createLocationMarker(lat, lon, isGps);
+      await inspectTelemetryOnly(lat, lon, placeName);
+    }
+
+    async function inspectTelemetryOnly(lat, lon, placeName = '') {
       // Show spinner or placeholder in card
       document.getElementById('cardLocName').querySelector('span').innerText = placeName || 'Querying Live Sensors...';
       document.getElementById('cardLocCoords').innerText = `Lat ${lat.toFixed(4)}° · Lon ${lon.toFixed(4)}° · Ingesting real-time stream...`;
@@ -1773,9 +1811,8 @@
     };
 
     // -----------------------------------------------------------------------
-    // 6. Real-Time GPS User Geolocation Engine
+    // 6. Real-Time GPS User Geolocation Engine (Fast Dual-Pass + Zero-Lag Fallback)
     // -----------------------------------------------------------------------
-    let userGpsMarker = null;
     let userAccuracyCircle = null;
 
     function showGpsToast(msg, duration = 4000) {
@@ -1806,22 +1843,30 @@
     async function locateUserRealTime() {
       const btnDock = document.getElementById('btnDockGpsLocate');
       const btnChip = document.getElementById('btnGpsChip');
-      const originalDockHtml = btnDock ? btnDock.innerHTML : '';
-      const originalChipHtml = btnChip ? btnChip.innerHTML : '';
+      const btnSearch = document.getElementById('btnSearchGps');
+      const origDock = btnDock ? btnDock.innerHTML : '';
+      const origChip = btnChip ? btnChip.innerHTML : '';
 
-      if (btnDock) btnDock.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" style="color:var(--primary-cyan);"></i> <span>Detecting Location...</span>';
-      if (btnChip) btnChip.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> <span>Detecting Location...</span>';
-
-      showGpsToast('🛰️ Acquiring real-time location telemetry...');
-
-      const resetBtns = () => {
-        if (btnDock) btnDock.innerHTML = originalDockHtml;
-        if (btnChip) btnChip.innerHTML = originalChipHtml;
+      const setLoading = (loading) => {
+        if (loading) {
+          if (btnDock) btnDock.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" style="color:var(--primary-cyan);"></i> <span>Locating...</span>';
+          if (btnChip) btnChip.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> <span>Locating...</span>';
+          if (btnSearch) btnSearch.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" style="color:var(--primary-cyan);"></i>';
+        } else {
+          if (btnDock) btnDock.innerHTML = origDock;
+          if (btnChip) btnChip.innerHTML = origChip;
+          if (btnSearch) btnSearch.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i>';
+        }
       };
 
-      // Helper to apply detected location to map & telemetry
-      const applyLocation = (lat, lon, localityName, accuracy = 25, methodTag = 'High-Precision GPS') => {
-        resetBtns();
+      setLoading(true);
+      showGpsToast('🛰️ Detecting live location...');
+
+      let resolved = false;
+
+      // Helper to apply detected location cleanly to map and telemetry
+      const applyDetectedLocation = (lat, lon, localityName, accuracy = 30, shouldFly = true) => {
+        setLoading(false);
 
         // Check Sovereign India bounds
         if (lat < 6.4 || lat > 37.6 || lon < 68.1 || lon > 97.4) {
@@ -1830,53 +1875,29 @@
           return;
         }
 
-        if (userGpsMarker) map.removeLayer(userGpsMarker);
         if (userAccuracyCircle) map.removeLayer(userAccuracyCircle);
 
         // Accuracy circle
         userAccuracyCircle = L.circle([lat, lon], {
-          radius: Math.max(accuracy, 30),
+          radius: Math.max(accuracy, 25),
           color: '#38bdf8',
           weight: 1.5,
           fillColor: '#38bdf8',
           fillOpacity: 0.12
         }).addTo(map);
 
-        // Draggable pinpoint marker
-        userGpsMarker = L.marker([lat, lon], {
-          icon: createGpsPulseIcon(),
-          draggable: true
-        }).addTo(map);
+        // Single draggable pin
+        createLocationMarker(lat, lon, true);
 
-        userGpsMarker.bindTooltip('📍 Drag pin to your exact building or roof', {
-          permanent: false,
-          direction: 'top',
-          className: 'gps-marker-tooltip'
-        });
+        const precisionMsg = accuracy <= 100 ? `±${accuracy}m Pinpoint` : `±${accuracy}m Area`;
+        showGpsToast(`📍 Located: ${localityName} (${precisionMsg}) · Drag pin to refine`, 5000);
 
-        // When user drags marker to their exact building
-        userGpsMarker.on('dragend', async (e) => {
-          const newPos = e.target.getLatLng();
-          if (userAccuracyCircle) userAccuracyCircle.setLatLng(newPos);
-          showGpsToast(`📍 Pin relocated: Lat ${newPos.lat.toFixed(4)}°, Lon ${newPos.lng.toFixed(4)}°`);
+        if (shouldFly) {
+          const targetZoom = accuracy <= 100 ? 15 : (accuracy <= 1000 ? 13 : 11);
+          map.flyTo([lat, lon], targetZoom, { duration: 1.2 });
+        }
 
-          try {
-            const revRes = await fetch(`/api/v1/reverse-geocode?lat=${newPos.lat}&lon=${newPos.lng}`);
-            const revData = await revRes.json();
-            const cleanLoc = revData.name ? `${revData.name}, ${revData.city || revData.state}` : `Custom Pin (${newPos.lat.toFixed(3)}°, ${newPos.lng.toFixed(3)}°)`;
-            inspectCoordinate(newPos.lat, newPos.lng, cleanLoc);
-            const sInp = document.getElementById('locationSearchInput');
-            if (sInp) sInp.value = cleanLoc;
-          } catch (err) {
-            inspectCoordinate(newPos.lat, newPos.lng, `Custom Pin (${newPos.lat.toFixed(3)}°, ${newPos.lng.toFixed(3)}°)`);
-          }
-        });
-
-        const precisionMsg = accuracy < 100 ? `±${accuracy}m Pinpoint` : `±${accuracy}m Area`;
-        showGpsToast(`📍 Real-Time Location: ${localityName} (${precisionMsg}) · Drag pin to refine`, 5500);
-
-        map.flyTo([lat, lon], 16, { duration: 1.5 });
-        inspectCoordinate(lat, lon, localityName);
+        inspectTelemetryOnly(lat, lon, localityName);
 
         const searchInp = document.getElementById('locationSearchInput');
         if (searchInp) searchInp.value = localityName;
@@ -1884,29 +1905,35 @@
 
       // Infallible Fallback: Auto IP/Network Telemetry
       const fallbackToIpLocation = async (errorMsg = 'GPS unavailable') => {
+        setLoading(false);
         try {
           const res = await fetch('/api/v1/detect-location');
           const data = await res.json();
           if (data && data.lat && data.lon) {
-            applyLocation(data.lat, data.lon, data.name || `${data.city}, ${data.state}`, data.accuracy_m || 800, 'Network Estimate');
-            showGpsToast(`ℹ️ ${errorMsg}. Pinned to ${data.city} (Network Estimate). Drag pin to your exact building.`, 6000);
+            const locName = data.name || `${data.city}, ${data.state}`;
+            applyDetectedLocation(data.lat, data.lon, locName, data.accuracy_m || 800, true);
+            showGpsToast(`ℹ️ ${errorMsg}. Pinned to ${data.city} (Network Position). Drag pin to refine building.`, 6000);
             return;
           }
         } catch (e) {
           console.warn('IP location detection error:', e);
         }
-        applyLocation(20.2724, 85.8338, 'Bhubaneswar, Odisha', 800, 'City Hub');
+        applyDetectedLocation(20.2724, 85.8338, 'Bhubaneswar, Odisha', 800, true);
+        showGpsToast('📍 Positioned at Regional Hub (Bhubaneswar). Drag pin to refine.', 5000);
       };
 
-      // Query High-Precision Browser GPS / Wi-Fi trilateration
+      // Fast Geolocation Request (enableHighAccuracy: false prevents desktop/laptop satellite hang)
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           async (pos) => {
+            if (resolved) return;
+            resolved = true;
+
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
-            const accuracy = Math.round(pos.coords.accuracy || 20);
+            const accuracy = Math.round(pos.coords.accuracy || 25);
 
-            let localityName = `Exact Location (±${accuracy}m)`;
+            let localityName = `Location (±${accuracy}m)`;
             try {
               const revRes = await fetch(`/api/v1/reverse-geocode?lat=${lat}&lon=${lon}`);
               const revData = await revRes.json();
@@ -1915,27 +1942,55 @@
                 if (revData.city && revData.city !== revData.name) localityName += `, ${revData.city}`;
                 if (revData.postcode) localityName += ` (PIN ${revData.postcode})`;
               }
-            } catch (e) {
-              console.warn(e);
-            }
+            } catch (e) {}
 
-            applyLocation(lat, lon, localityName, accuracy, 'High-Precision GPS');
+            applyDetectedLocation(lat, lon, localityName, accuracy, true);
+
+            // Optional background high-precision GPS pass on mobile
+            if (accuracy > 30) {
+              navigator.geolocation.getCurrentPosition(
+                (highPos) => {
+                  if (highPos.coords.accuracy < accuracy) {
+                    const hLat = highPos.coords.latitude;
+                    const hLon = highPos.coords.longitude;
+                    const hAcc = Math.round(highPos.coords.accuracy);
+                    applyDetectedLocation(hLat, hLon, localityName, hAcc, false);
+                  }
+                },
+                null,
+                { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+              );
+            }
           },
-          (err) => {
-            let reason = 'GPS permission denied or timeout';
-            if (err.code === 1) reason = 'Browser location permission was denied';
+          async (err) => {
+            if (resolved) return;
+            resolved = true;
+
+            let reason = 'GPS unavailable';
+            if (err.code === 1) reason = 'Browser location permission denied';
             else if (err.code === 2) reason = 'Position unavailable';
-            else if (err.code === 3) reason = 'GPS scan timed out';
-            fallbackToIpLocation(reason);
+            else if (err.code === 3) reason = 'Wi-Fi location timed out';
+
+            console.warn('Browser geolocation:', reason);
+            await fallbackToIpLocation(reason);
           },
           {
-            enableHighAccuracy: true,
-            timeout: 12000,
-            maximumAge: 0
+            enableHighAccuracy: false,
+            timeout: 4500,
+            maximumAge: 300000
           }
         );
+
+        // 5-second safety timer in case browser ignores prompt
+        setTimeout(() => {
+          if (!resolved) {
+            resolved = true;
+            fallbackToIpLocation('Browser prompt pending');
+          }
+        }, 5000);
+
       } else {
-        fallbackToIpLocation('Browser does not support GPS');
+        await fallbackToIpLocation('Browser does not support GPS');
       }
     }
 
@@ -1945,11 +2000,13 @@
         const res = await fetch('/api/v1/detect-location');
         const data = await res.json();
         if (data && data.lat && data.lon) {
-          inspectCoordinate(data.lat, data.lon, data.formatted_label || `${data.city}, ${data.state}`);
+          createLocationMarker(data.lat, data.lon, false);
+          inspectTelemetryOnly(data.lat, data.lon, data.formatted_label || `${data.city}, ${data.state}`);
           return;
         }
       } catch (e) {}
-      inspectCoordinate(20.2724, 85.8338, 'Bhubaneswar Core, Odisha');
+      createLocationMarker(20.2724, 85.8338, false);
+      inspectTelemetryOnly(20.2724, 85.8338, 'Bhubaneswar Core, Odisha');
     });
   </script>
 </body>

@@ -13,7 +13,7 @@ Integrates:
 """
 
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, FileResponse
 from sqlalchemy import text
@@ -137,13 +137,18 @@ def reverse_geocode(lat: float, lon: float):
 
 
 @app.get("/api/v1/detect-location", tags=["Pan-India Spatial Engine"])
-def auto_detect_location():
+def auto_detect_location(request: Request):
     """
     Auto-detects client real-time location via IP / Network telemetry.
     Zero-permission real-time location detection for instant map positioning.
     """
+    client_ip = request.headers.get("x-forwarded-for")
+    if client_ip:
+        client_ip = client_ip.split(",")[0].strip()
+    elif request.client:
+        client_ip = request.client.host
     from services.pan_india_engine import detect_ip_location
-    return detect_ip_location()
+    return detect_ip_location(client_ip)
 
 
 @app.get("/api/v1/india-mask", tags=["Pan-India Spatial Engine"])
