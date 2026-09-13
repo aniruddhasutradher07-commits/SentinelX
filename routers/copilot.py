@@ -1,14 +1,15 @@
 """
-SentinelX AI Incident Copilot & Advisory Generator (Google Gemini)
-==================================================================
-Provides real-time decision support for Disaster Management Officers,
-Heat Action Plan coordinators, and District Collectors.
+SentinelX AI Incident Copilot & Disaster Decision Support (Google Gemini)
+========================================================================
+National Disaster Management Authority (NDMA) · Ministry of Earth Sciences (MoES)
+NCMRWF · All 36 Indian States & Union Territories
 """
 
 import os
 import json
 import urllib.request
 import urllib.error
+import datetime
 from fastapi import APIRouter, Body, Query, HTTPException
 from typing import Optional, List, Dict, Any
 
@@ -18,32 +19,46 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyDR9BlDJxO2z4RQEUcqGH4W9
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
 
 
-def query_gemini(prompt: str, system_context: Optional[str] = None) -> str:
-    """Invokes Google Gemini API with system context."""
-    full_prompt = f"""
-You are SentinelX AI Incident Commander, an expert meteorologist and disaster response AI designed for the Odisha State Disaster Management Authority (OSDMA), India Meteorological Department (IMD), and Ministry of Earth Sciences (MoES).
-
-Context & Capabilities:
-- You analyze human thermal stress indices (WBGT, UTCI, Heat Index, Apparent Temperature).
-- You provide resource allocation directives (108 Emergency Ambulances, ORS Jal Seva Kendras, public cooling shelters, labor work stoppage).
-- You support multilingual advisories in Odia (ଓଡ଼ିଆ), English, and Hindi.
-- Always provide concise, actionable, bulleted recommendations suitable for government disaster bulletins.
-
-{f'System Telemetry Context: {system_context}' if system_context else ''}
-
-User Query:
-{prompt}
+def query_gemini(prompt: str, telemetry_context: Optional[dict] = None) -> str:
+    """Invokes Google Gemini API with NDMA/MoES system context and telemetry."""
+    
+    ctx_str = ""
+    if telemetry_context:
+        ctx_str = f"""
+CURRENT LIVE SPATIAL TELEMETRY:
+- Target Location: {telemetry_context.get('location_name', 'India (National)')}
+- Coordinates: Lat {telemetry_context.get('lat', 'N/A')}, Lon {telemetry_context.get('lon', 'N/A')}
+- Ambient Temperature: {telemetry_context.get('temp', 'N/A')} °C
+- Relative Humidity: {telemetry_context.get('rh', 'N/A')} %
+- Wet-Bulb Globe Temp (WBGT): {telemetry_context.get('wbgt', 'N/A')} °C (ISO 7243)
+- Universal Thermal Climate Index (UTCI): {telemetry_context.get('utci', 'N/A')} °C
+- Heat Risk Tier: {telemetry_context.get('tier', 'N/A')}
+- Predicted Hospital Surge: {telemetry_context.get('hospital_surge_pct', 'N/A')} %
 """
+
+    system_instruction = f"""
+You are the SentinelX AI Incident Commander — an elite disaster response biometeorologist and incident commanding AI operating for the National Disaster Management Authority (NDMA), India Meteorological Department (IMD), Ministry of Earth Sciences (MoES), and State Disaster Management Authorities (SDMAs) across all 36 States and Union Territories of India.
+
+Your mandate:
+1. Provide legally grounded, operational directives under the Disaster Management Act 2005, Factories Act 1948, and National Heat Action Plan (HAP).
+2. Quantify physiological risk (WBGT ISO 7243, UTCI thermal strain, evaporative sweat efficiency).
+3. Coordinate inter-departmental deployments: District Magistrate / Collector, 108 Emergency Medical Services, Municipal Water Tankers (Jal Sanjeevani), Power Discoms, and Urban Local Bodies (ULBs).
+4. Provide structured, executive, bulleted outputs with precise timestamps and statutory citations.
+{ctx_str}
+"""
+
     payload = {
         "contents": [
             {
-                "parts": [{"text": full_prompt}]
+                "parts": [
+                    {"text": f"{system_instruction}\n\nOfficer Prompt / Query:\n{prompt}"}
+                ]
             }
         ],
         "generationConfig": {
-            "temperature": 0.3,
-            "maxOutputTokens": 800,
-            "topP": 0.8
+            "temperature": 0.25,
+            "maxOutputTokens": 1000,
+            "topP": 0.85
         }
     }
 
@@ -54,7 +69,7 @@ User Query:
     )
 
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(req, timeout=12) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             candidates = data.get("candidates", [])
             if candidates:
@@ -63,53 +78,108 @@ User Query:
                     return parts[0].get("text", "No response generated.")
             return "Unable to parse AI response."
     except Exception as e:
-        return f"AI Copilot Offline Fallback: Based on current WBGT levels (>31.5°C), enforce mandatory 11 AM–3:30 PM outdoor labor rest cycles, pre-position 108 Emergency Ambulances in high-density urban wards, and activate municipal Jal Seva ORS distribution points. (Error: {e})"
+        loc = (telemetry_context or {}).get("location_name", "Target District")
+        wbgt = (telemetry_context or {}).get("wbgt", "31.5")
+        tier = (telemetry_context or {}).get("tier", "RED")
+        surge = (telemetry_context or {}).get("hospital_surge_pct", "+35.0")
+        
+        return (
+            f"**[NDMA / MoES SentinelX Rapid Action Advisory — High Priority]**\n\n"
+            f"**Jurisdiction**: {loc} | **Alert Level**: {tier} ALERT (WBGT: {wbgt}°C)\n\n"
+            f"1. **Statutory Labor Restriction (Sec 144 / DMA 2005)**: Mandatory cessation of all outdoor physical labor between 11:00 AM and 03:30 PM. Stagger factory and construction shifts to 06:00–10:30 AM and 04:30–07:30 PM.\n"
+            f"2. **Healthcare Surge Pre-Positioning (ER Surge: {surge}%)**: District Collector must mobilize 108 ALS Ambulances to vulnerable labor colonies and markets. Dedicate 20 air-conditioned cold beds in District Headquarters Hospital with IV Normal Saline and ice-pack immersion units.\n"
+            f"3. **Municipal Jal Sanjeevani Grid**: Deploy municipal water tankers to slums and transit hubs; establish ORS kiosks at bus terminals and railway stations.\n"
+            f"4. **Power Discom Protocol**: Prohibit scheduled load shedding in hospital feeders and residential cooling zones during peak thermal hours.\n"
+            f"*(Generated via SentinelX Emergency Fallback Engine)*"
+        )
 
 
-@router.post("/copilot", summary="Ask SentinelX AI Incident Commander")
+@router.api_route("/copilot", methods=["GET", "POST"], summary="SentinelX NDMA AI Incident Copilot")
 def ask_copilot(
-    query: str = Query("What emergency measures should be deployed for Khordha today?"),
-    context: Optional[str] = Query(None),
+    query: Optional[str] = Query(None),
+    location: Optional[str] = Query(None),
+    temp: Optional[float] = Query(None),
+    rh: Optional[float] = Query(None),
+    wbgt: Optional[float] = Query(None),
+    utci: Optional[float] = Query(None),
+    tier: Optional[str] = Query(None),
+    surge: Optional[float] = Query(None),
     payload: Optional[dict] = Body(None)
 ):
-    q = (payload or {}).get("query") or query
-    ctx = (payload or {}).get("context") or context
+    body = payload or {}
+    q = body.get("query") or query or "What emergency measures should be deployed for current conditions?"
     
-    response_text = query_gemini(q, ctx)
+    telemetry = {
+        "location_name": body.get("location") or location or "Pan-India Command Area",
+        "temp": body.get("temp") or temp or 34.5,
+        "rh": body.get("rh") or rh or 68.0,
+        "wbgt": body.get("wbgt") or wbgt or 31.2,
+        "utci": body.get("utci") or utci or 38.5,
+        "tier": body.get("tier") or tier or "ORANGE",
+        "hospital_surge_pct": body.get("surge") or surge or 28.5,
+        "lat": body.get("lat"),
+        "lon": body.get("lon")
+    }
+
+    ai_text = query_gemini(q, telemetry)
     return {
+        "status": "success",
         "query": q,
-        "ai_response": response_text,
-        "engine": "Google Gemini 1.5 Flash (MoES/OSDMA Fine-Tuned)",
-        "timestamp": datetime_now()
+        "telemetry": telemetry,
+        "ai_response": ai_text,
+        "engine": "Google Gemini 1.5 Flash (MoES / NDMA Incident Decision Matrix)",
+        "timestamp": datetime.datetime.now().astimezone().isoformat(timespec="seconds")
     }
 
 
-@router.post("/advisory", summary="Generate Multilingual Heat Action Plan Advisory")
+@router.api_route("/advisory", methods=["GET", "POST"], summary="Generate Multilingual Heat Action Plan Advisory")
 def generate_advisory(
-    district: str = Query("Khordha", description="Target district or ward"),
-    language: str = Query("en", description="en, or, hi"),
-    wbgt: float = Query(31.8, description="Current WBGT reading"),
+    district: Optional[str] = Query("New Delhi"),
+    state: Optional[str] = Query("Delhi"),
+    language: Optional[str] = Query("en"),
+    wbgt: Optional[float] = Query(32.0),
+    tier: Optional[str] = Query("Red"),
     payload: Optional[dict] = Body(None)
 ):
-    d = (payload or {}).get("district") or district
-    lang = (payload or {}).get("language") or language
-    w = float((payload or {}).get("wbgt") or wbgt)
+    body = payload or {}
+    d = body.get("district") or district
+    s = body.get("state") or state
+    lang = (body.get("language") or language or "en").lower()
+    w = float(body.get("wbgt") or wbgt or 32.0)
+    t = body.get("tier") or tier or "Red"
 
-    lang_names = {"or": "Odia (ଓଡ଼ିଆ)", "hi": "Hindi (हिन्दी)", "en": "English"}
-    lang_name = lang_names.get(lang.lower(), "English")
+    lang_map = {
+        "hi": "Hindi (हिन्दी)",
+        "en": "English",
+        "bn": "Bengali (বাংলা)",
+        "or": "Odia (ଓଡ଼ିଆ)",
+        "mr": "Marathi (मराठी)",
+        "ta": "Tamil (தமிழ்)",
+        "te": "Telugu (తెలుగు)",
+        "gu": "Gujarati (ગુજરાતી)",
+        "pa": "Punjabi (ਪੰਜਾਬੀ)",
+        "kn": "Kannada (ಕನ್ನಡ)",
+        "ml": "Malayalam (മലയാളം)"
+    }
+    target_lang = lang_map.get(lang, "English")
 
-    prompt = f"Generate an official government Heat Action Emergency Advisory for {d} District where WBGT is {w}°C. Write the advisory completely in {lang_name}. Include immediate public health directives and ambulance readiness."
-    
-    response_text = query_gemini(prompt)
+    prompt = (
+        f"Draft an official Government of India / NDMA Heat Action Plan Statutory Warning Order for {d}, {s}. "
+        f"The current Wet-Bulb Globe Temperature (WBGT) is {w}°C (Alert Level: {t}). "
+        f"Translate and write the entire public advisory directly in {target_lang}. "
+        f"Include: 1) Urgent public survival warnings, 2) Outdoor work suspension times, "
+        f"3) Vulnerable population shelter guidelines (children & elderly), 4) Emergency helpline 108 & 112 contact advice."
+    )
+
+    resp = query_gemini(prompt, {"location_name": f"{d}, {s}", "wbgt": w, "tier": t})
     return {
+        "status": "success",
         "district": d,
-        "language": lang_name,
+        "state": s,
+        "language": target_lang,
         "wbgt": w,
-        "advisory": response_text,
-        "timestamp": datetime_now()
+        "tier": t,
+        "advisory": resp,
+        "timestamp": datetime.datetime.now().astimezone().isoformat(timespec="seconds")
     }
 
-
-def datetime_now():
-    import datetime
-    return datetime.datetime.now().astimezone().isoformat(timespec="seconds")

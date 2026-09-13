@@ -594,6 +594,216 @@
       }
       .no-print { display: none !important; }
     }
+
+    /* AI Incident Copilot Slide-Over Drawer */
+    .copilot-drawer {
+      position: absolute;
+      top: 14px;
+      right: 16px;
+      bottom: 16px;
+      width: 450px;
+      max-width: calc(100vw - 32px);
+      background: rgba(10, 15, 30, 0.95);
+      backdrop-filter: blur(25px);
+      border: 1px solid rgba(99, 102, 241, 0.45);
+      border-radius: 18px;
+      z-index: 2500;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.95);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(120%);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+    }
+
+    .copilot-drawer.open {
+      transform: translateX(0);
+    }
+
+    .copilot-header {
+      padding: 14px 18px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.15));
+      border-bottom: 1px solid rgba(99, 102, 241, 0.3);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .copilot-avatar-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+
+    .copilot-status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 8px #22c55e;
+      margin-right: 4px;
+    }
+
+    .copilot-synced-pill {
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.72rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 8px 14px 0 14px;
+    }
+
+    .copilot-quick-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 8px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .copilot-chip-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #cbd5e1;
+      padding: 4px 9px;
+      border-radius: 14px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .copilot-chip-btn:hover {
+      background: rgba(99, 102, 241, 0.25);
+      border-color: #818cf8;
+      color: #fff;
+    }
+
+    .copilot-chat-body {
+      flex: 1;
+      padding: 12px 14px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .chat-msg-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .chat-bubble {
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      max-width: 92%;
+      word-break: break-word;
+    }
+
+    .chat-bubble.user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .chat-bubble.ai {
+      align-self: flex-start;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #e2e8f0;
+      border-bottom-left-radius: 4px;
+    }
+
+    .chat-bubble.ai strong {
+      color: #38bdf8;
+    }
+
+    .chat-bubble.ai ul, .chat-bubble.ai ol {
+      margin-left: 18px;
+      margin-top: 4px;
+    }
+
+    .chat-time-tag {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      align-self: flex-start;
+      margin-left: 6px;
+    }
+
+    .chat-time-tag.user {
+      align-self: flex-end;
+      margin-right: 6px;
+    }
+
+    .copilot-input-bar {
+      padding: 10px 14px;
+      background: rgba(13, 18, 36, 0.95);
+      border-top: 1px solid rgba(99, 102, 241, 0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .copilot-input-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .copilot-input-row input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 8px 12px;
+      color: #fff;
+      font-size: 0.8rem;
+      font-family: var(--font-main);
+      outline: none;
+    }
+
+    .copilot-input-row input:focus {
+      border-color: #818cf8;
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+    }
+
+    .copilot-send-btn {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      border: none;
+      color: #fff;
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+
+    .copilot-send-btn:hover {
+      background: linear-gradient(135deg, #4f46e5, #4338ca);
+      transform: scale(1.05);
+    }
   </style>
 </head>
 <body>
@@ -721,10 +931,16 @@
     <button class="action-btn-primary" onclick="openDirectiveModal()">
       <i class="fa-solid fa-file-shield"></i> Export District Collector Heat Action Directive (PDF)
     </button>
+    <button class="action-btn-primary" style="background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);" onclick="openCopilotWithCurrentLocation()">
+      <i class="fa-solid fa-robot"></i> Ask AI Incident Commander (NDMA Copilot)
+    </button>
   </div>
 
   <!-- Bottom-Right Map Controls -->
   <div class="map-controls-dock">
+    <button class="dock-pill-btn" id="btnCopilotToggle" onclick="toggleCopilotDrawer()" style="border-color: rgba(99, 102, 241, 0.6); background: rgba(99, 102, 241, 0.22); color: #c7d2fe;">
+      <i class="fa-solid fa-robot" style="color: #a5b4fc;"></i> <span>AI Incident Copilot</span>
+    </button>
     <button class="dock-pill-btn active" id="btnLayerDark" onclick="switchBaseLayer('dark')">
       <i class="fa-solid fa-moon"></i> Carto Dark
     </button>
@@ -734,6 +950,71 @@
     <button class="dock-pill-btn" id="btnLayerTerrain" onclick="switchBaseLayer('terrain')">
       <i class="fa-solid fa-mountain"></i> Topo Terrain
     </button>
+  </div>
+
+  <!-- SentinelX AI Incident Copilot Slide-Over Drawer -->
+  <div class="copilot-drawer" id="copilotDrawer">
+    <div class="copilot-header">
+      <div class="copilot-title-wrap">
+        <div class="copilot-avatar-icon"><i class="fa-solid fa-robot"></i></div>
+        <div>
+          <div style="font-size: 0.88rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 6px;">
+            SentinelX AI Incident Copilot
+            <span style="font-size: 0.62rem; background: #6366f1; color: #fff; padding: 2px 6px; border-radius: 6px; font-weight: 700;">MoES / NDMA</span>
+          </div>
+          <div style="font-size: 0.7rem; color: #94a3b8; display: flex; align-items: center; margin-top: 2px;">
+            <span class="copilot-status-dot"></span> Online Decision Matrix · Gemini 1.5
+          </div>
+        </div>
+      </div>
+      <button onclick="toggleCopilotDrawer()" style="background: none; border: none; color: #94a3b8; font-size: 1.3rem; cursor: pointer;">&times;</button>
+    </div>
+
+    <!-- Location Telemetry Synced Pill -->
+    <div class="copilot-synced-pill" id="copilotSyncedPill">
+      <div style="display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+        <i class="fa-solid fa-satellite-dish" style="color: #818cf8;"></i>
+        <strong id="copilotSyncedLoc" style="color: #e0e7ff;">India National</strong>
+      </div>
+      <span id="copilotSyncedWbgt" style="color: #f87171; font-weight: 800;">WBGT 31.5°C</span>
+    </div>
+
+    <!-- Quick Prompts Chips for Judges/Officers -->
+    <div class="copilot-quick-chips">
+      <button class="copilot-chip-btn" onclick="triggerQuickPrompt('directive')">
+        <i class="fa-solid fa-gavel" style="color: #fca5a5;"></i> Sec 144 Labor Halt
+      </button>
+      <button class="copilot-chip-btn" onclick="triggerQuickPrompt('surge')">
+        <i class="fa-solid fa-truck-medical" style="color: #93c5fd;"></i> 108 Ambulance Plan
+      </button>
+      <button class="copilot-chip-btn" onclick="triggerQuickPrompt('water')">
+        <i class="fa-solid fa-droplet" style="color: #67e8f9;"></i> Jal Sanjeevani Grid
+      </button>
+      <button class="copilot-chip-btn" onclick="triggerQuickPrompt('hindi')">
+        <i class="fa-solid fa-language" style="color: #fde047;"></i> चेतावनी (Hindi SMS)
+      </button>
+    </div>
+
+    <!-- Chat Messages Feed -->
+    <div class="copilot-chat-body" id="copilotChatBody">
+      <div class="chat-msg-row">
+        <div class="chat-bubble ai">
+          <strong>SentinelX AI Incident Commander Ready.</strong><br>
+          I am connected to the National Disaster Management Authority (NDMA) &amp; MoES crisis framework. Inspect any city, ward, or PIN code on the map, and I will draft real-time operational directives, calculate hospital ER influx, and coordinate inter-agency responses.
+        </div>
+        <span class="chat-time-tag">MoES Crisis Cell</span>
+      </div>
+    </div>
+
+    <!-- Bottom Input Dock -->
+    <div class="copilot-input-bar">
+      <div class="copilot-input-row">
+        <input type="text" id="copilotInput" placeholder="Ask AI Incident Commander (e.g. 'Draft school closure order')..." autocomplete="off" onkeypress="handleCopilotKeyPress(event)" />
+        <button class="copilot-send-btn" id="copilotSendBtn" onclick="sendCopilotChat()">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Official Heat Action Plan (HAP) Directive Modal -->
@@ -1173,6 +1454,170 @@
         alert('Text copied.');
       });
     }
+
+    // -----------------------------------------------------------------------
+    // 5. AI Incident Copilot Interaction Engine
+    // -----------------------------------------------------------------------
+    const copilotDrawer = document.getElementById('copilotDrawer');
+    const copilotChatBody = document.getElementById('copilotChatBody');
+    const copilotInput = document.getElementById('copilotInput');
+
+    function toggleCopilotDrawer() {
+      const isOpen = copilotDrawer.classList.toggle('open');
+      if (isOpen && currentActiveTelemetry) {
+        updateCopilotTelemetryPill(currentActiveTelemetry);
+      }
+    }
+
+    function openCopilotWithCurrentLocation() {
+      copilotDrawer.classList.add('open');
+      if (currentActiveTelemetry) {
+        updateCopilotTelemetryPill(currentActiveTelemetry);
+        triggerQuickPrompt('directive');
+      }
+    }
+
+    function updateCopilotTelemetryPill(data) {
+      if (!data) return;
+      document.getElementById('copilotSyncedLoc').innerText = data.location_name || 'Queried Region';
+      const wbgtEl = document.getElementById('copilotSyncedWbgt');
+      wbgtEl.innerText = `WBGT ${data.wbgt_c}°C · ${data.tier.toUpperCase()}`;
+      wbgtEl.style.color = data.tier === 'Red' ? '#ef4444' : data.tier === 'Orange' ? '#f97316' : '#22c55e';
+    }
+
+    function handleCopilotKeyPress(e) {
+      if (e.key === 'Enter') {
+        sendCopilotChat();
+      }
+    }
+
+    function triggerQuickPrompt(type) {
+      if (!copilotDrawer.classList.contains('open')) {
+        copilotDrawer.classList.add('open');
+      }
+      const data = currentActiveTelemetry || {};
+      const loc = data.location_name || 'Target District';
+      const wbgt = data.wbgt_c || 31.5;
+
+      let prompt = '';
+      if (type === 'directive') {
+        prompt = `Draft a statutory Heat Action Plan directive (Section 144 & Factories Act) for ${loc} where current WBGT is ${wbgt}°C. Specify labor rest cycles and school operation timings.`;
+      } else if (type === 'surge') {
+        prompt = `Formulate an emergency healthcare surge plan for ${loc}. With hospital surge at +${data.predicted_hospital_surge_pct || 28}%, deploy 108 Emergency Ambulances and dedicate hospital cold beds.`;
+      } else if (type === 'water') {
+        prompt = `Detail municipal water tanker routes (Jal Sanjeevani) and high-priority public cooling stations for ${loc}.`;
+      } else if (type === 'hindi') {
+        prompt = `${loc} के लिए हिन्दी में आपातकालीन जन-स्वास्थ्य चेतावनी और लू से बचाव के निर्देश (SMS/WhatsApp बुलेटिन) तैयार करें।`;
+      }
+
+      sendCopilotPrompt(prompt);
+    }
+
+    function sendCopilotChat() {
+      const text = copilotInput.value.trim();
+      if (!text) return;
+      copilotInput.value = '';
+      sendCopilotPrompt(text);
+    }
+
+    async function sendCopilotPrompt(promptText) {
+      // Append user bubble
+      appendMessage(promptText, 'user');
+
+      // Append typing indicator
+      const thinkingId = 'copilotThinking_' + Date.now();
+      const thinkingHtml = `<div class="chat-msg-row" id="${thinkingId}">
+        <div class="chat-bubble ai" style="display:flex;align-items:center;gap:8px;">
+          <i class="fa-solid fa-circle-notch fa-spin" style="color:#818cf8;"></i>
+          <span style="font-size:0.75rem;color:#cbd5e1;">Incident Commander analyzing spatial telemetry...</span>
+        </div>
+      </div>`;
+      copilotChatBody.insertAdjacentHTML('beforeend', thinkingHtml);
+      copilotChatBody.scrollTop = copilotChatBody.scrollHeight;
+
+      const data = currentActiveTelemetry || {};
+      const payload = {
+        query: promptText,
+        location: data.location_name || 'National Command',
+        lat: data.lat,
+        lon: data.lon,
+        temp: data.temperature_c || 34.0,
+        rh: data.relative_humidity_pct || 65.0,
+        wbgt: data.wbgt_c || 31.5,
+        utci: data.utci_c || 38.0,
+        tier: data.tier || 'Orange',
+        surge: data.predicted_hospital_surge_pct || 25.0
+      };
+
+      try {
+        const res = await fetch('/api/v1/ai/copilot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        
+        const thinkingEl = document.getElementById(thinkingId);
+        if (thinkingEl) thinkingEl.remove();
+
+        const formatted = formatMarkdown(result.ai_response || 'No response from commander.');
+        appendMessage(formatted, 'ai', true);
+      } catch (err) {
+        console.error(err);
+        const thinkingEl = document.getElementById(thinkingId);
+        if (thinkingEl) thinkingEl.remove();
+        appendMessage('⚠️ Network timeout communicating with SentinelX AI Core. Reverted to standard emergency protocols.', 'ai');
+      }
+    }
+
+    function appendMessage(content, sender, isHtml = false) {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      const row = document.createElement('div');
+      row.className = 'chat-msg-row';
+
+      const bubble = document.createElement('div');
+      bubble.className = `chat-bubble ${sender}`;
+      if (isHtml) {
+        bubble.innerHTML = content;
+      } else {
+        bubble.innerText = content;
+      }
+
+      const tag = document.createElement('span');
+      tag.className = `chat-time-tag ${sender}`;
+      tag.innerText = sender === 'user' ? `Officer · ${timeStr}` : `Incident Commander · ${timeStr}`;
+
+      row.appendChild(bubble);
+      row.appendChild(tag);
+      copilotChatBody.appendChild(row);
+      copilotChatBody.scrollTop = copilotChatBody.scrollHeight;
+    }
+
+    function formatMarkdown(text) {
+      let out = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      // Bold **text**
+      out = out.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      
+      // Markdown list items
+      out = out.replace(/\n\s*[\*\-]\s+(.*)/g, '<br>• $1');
+      out = out.replace(/\n\s*(\d+)\.\s+(.*)/g, '<br><strong>$1.</strong> $2');
+
+      // Line breaks
+      out = out.replace(/\n/g, '<br>');
+      return out;
+    }
+
+    // Also update telemetry card rendering to sync with copilot
+    const originalRenderCard = renderTelemetryCard;
+    renderTelemetryCard = function(data) {
+      originalRenderCard(data);
+      updateCopilotTelemetryPill(data);
+    };
 
     // Initial Load: Focus on Capital / Default Hub
     window.addEventListener('DOMContentLoaded', () => {
