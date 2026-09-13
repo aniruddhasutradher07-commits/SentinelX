@@ -109,6 +109,15 @@ def serve_bhubaneswar_dashboard():
     return HTMLResponse("<h3>SentinelX_Dashboard.html not found. Run 'python build_dashboard.py'.</h3>", status_code=404)
 
 
+@app.get("/map", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
+@app.get("/explore", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
+def serve_pan_india_map():
+    """Serves Flagship Pan-India Real-Data Google Maps-Style Explorer (Strictly India)."""
+    if os.path.exists("SentinelX_PanIndia_Map.html"):
+        return FileResponse("SentinelX_PanIndia_Map.html", media_type="text/html")
+    return HTMLResponse("<h3>SentinelX_PanIndia_Map.html not found.</h3>", status_code=404)
+
+
 @app.get("/api/v1/national-feed", tags=["National Situation Feed"])
 def get_national_feed():
     """Returns real-time synoptic thermal stress metrics for all 36 States & UTs."""
@@ -124,6 +133,26 @@ def get_national_feed():
         }
     except Exception as e:
         return {"status": "error", "detail": str(e)}
+
+
+@app.get("/api/v1/geocode", tags=["Pan-India Spatial Engine"])
+def geocode_india(q: str):
+    """
+    Instant autocomplete geocoding for ANY state, district, city, ward, or PIN code in India.
+    Strictly filtered to the Sovereign Territory of India.
+    """
+    from services.pan_india_engine import search_india_locations
+    return {"query": q, "results": search_india_locations(q)}
+
+
+@app.get("/api/v1/live-stress", tags=["Pan-India Spatial Engine"])
+def get_live_stress(lat: float, lon: float, name: str = ""):
+    """
+    Fetches real-time weather & computes WBGT, UTCI, Heat Index, and 2-Stage hospital surge
+    for ANY coordinate in India. Cached by spatial grid to prevent rate limits.
+    """
+    from services.pan_india_engine import fetch_live_coordinate_stress
+    return fetch_live_coordinate_stress(lat, lon, name)
 
 
 @app.on_event("startup")

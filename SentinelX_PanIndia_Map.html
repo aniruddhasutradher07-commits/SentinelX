@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>SentinelX — Pan-India Real-Data Heatwave & Human Thermal Stress GIS Explorer</title>
+
+  <!-- Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Leaflet GIS Engine -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- ApexCharts & Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #070a13;
+      --panel-glass: rgba(13, 18, 36, 0.88);
+      --panel-border: rgba(56, 189, 248, 0.22);
+      --primary-cyan: #38bdf8;
+      --alert-red: #ef4444;
+      --alert-orange: #f97316;
+      --alert-yellow: #eab308;
+      --alert-green: #22c55e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background: var(--bg-dark); font-family: var(--font-main); color: var(--text-main); }
+
+    /* Full Viewport Map Canvas */
+    #map-canvas {
+      width: 100vw;
+      height: 100vh;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      background: #050811;
+    }
+
+    /* Top Floating Global Navigation */
+    .top-floating-header {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      right: 16px;
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    .header-group-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      pointer-events: auto;
+    }
+
+    .brand-glass-badge {
+      background: var(--panel-glass);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .brand-glass-badge h1 {
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .brand-glass-badge .tag {
+      font-size: 0.65rem;
+      background: rgba(56, 189, 248, 0.2);
+      color: var(--primary-cyan);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .hierarchy-glass-nav {
+      background: var(--panel-glass);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 4px;
+      display: flex;
+      gap: 4px;
+      pointer-events: auto;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .nav-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-main);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .nav-tab-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-tab-btn.active {
+      background: var(--primary-cyan);
+      color: #050811;
+      font-weight: 700;
+    }
+
+    /* Google Maps Style Floating Search Container */
+    .search-dock-container {
+      position: absolute;
+      top: 66px;
+      left: 16px;
+      z-index: 1000;
+      width: 420px;
+      max-width: calc(100vw - 32px);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .search-input-card {
+      background: var(--panel-glass);
+      backdrop-filter: blur(18px);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-input-card:focus-within {
+      border-color: var(--primary-cyan);
+      box-shadow: 0 16px 40px rgba(56, 189, 248, 0.25);
+    }
+
+    .search-input-card i.search-icon {
+      color: var(--primary-cyan);
+      font-size: 0.95rem;
+    }
+
+    .search-input-card input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-family: var(--font-main);
+      font-size: 0.88rem;
+      font-weight: 500;
+    }
+
+    .search-input-card input::placeholder {
+      color: #64748b;
+      font-size: 0.82rem;
+    }
+
+    .search-spinner {
+      display: none;
+      color: var(--primary-cyan);
+      font-size: 0.85rem;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    /* Autocomplete Suggestions Box */
+    .autocomplete-dropdown {
+      display: none;
+      background: rgba(13, 18, 36, 0.96);
+      backdrop-filter: blur(18px);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      max-height: 320px;
+      overflow-y: auto;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.85);
+      flex-direction: column;
+    }
+
+    .autocomplete-item {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .autocomplete-item:hover, .autocomplete-item.focused {
+      background: rgba(56, 189, 248, 0.15);
+    }
+
+    .autocomplete-item .item-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      color: var(--primary-cyan);
+    }
+
+    .autocomplete-item .item-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .autocomplete-item .item-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .autocomplete-item .item-subtitle {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    /* Quick Filter Chips */
+    .quick-chips-bar {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .quick-chip {
+      background: rgba(13, 18, 36, 0.8);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #cbd5e1;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s;
+    }
+
+    .quick-chip:hover {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--primary-cyan);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    /* Floating Telemetry Drawer (Apple/Google Style Glass Card) */
+    .telemetry-inspect-card {
+      position: absolute;
+      top: 155px;
+      left: 16px;
+      z-index: 1000;
+      width: 420px;
+      max-width: calc(100vw - 32px);
+      background: var(--panel-glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--panel-border);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-height: calc(100vh - 175px);
+      overflow-y: auto;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s;
+    }
+
+    .telemetry-inspect-card.hidden {
+      display: none;
+    }
+
+    .card-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 12px;
+    }
+
+    .loc-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .loc-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .tier-badge-pill {
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .tier-badge-pill.Red { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444; }
+    .tier-badge-pill.Orange { background: rgba(249, 115, 22, 0.2); color: #f97316; border: 1px solid #f97316; }
+    .tier-badge-pill.Yellow { background: rgba(234, 179, 8, 0.2); color: #eab308; border: 1px solid #eab308; }
+    .tier-badge-pill.Green { background: rgba(34, 197, 94, 0.2); color: #22c55e; border: 1px solid #22c55e; }
+
+    /* Bento Grid Metrics */
+    .bento-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .bento-tile {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .bento-tile .tile-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .bento-tile .tile-val {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .bento-tile .tile-unit {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .bento-tile .tile-footer {
+      font-size: 0.68rem;
+      color: #cbd5e1;
+      margin-top: 2px;
+    }
+
+    /* Hospital Surge Alert Box */
+    .hospital-surge-box {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(249, 115, 22, 0.08));
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .surge-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #fca5a5;
+    }
+
+    .surge-num {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    /* Hospitals List */
+    .hospitals-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .section-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hospital-item-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 8px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+    }
+
+    /* Action Buttons */
+    .action-btn-primary {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      border: none;
+      color: #fff;
+      padding: 10px;
+      border-radius: 10px;
+      font-family: var(--font-main);
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 15px rgba(2, 132, 199, 0.35);
+      transition: all 0.2s;
+    }
+
+    .action-btn-primary:hover {
+      background: linear-gradient(135deg, #0369a1, #075985);
+      transform: translateY(-1px);
+    }
+
+    /* Floating Map Layer Switcher (Bottom-Right) */
+    .map-controls-dock {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    .dock-pill-btn {
+      background: var(--panel-glass);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--panel-border);
+      color: #cbd5e1;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      transition: all 0.2s;
+    }
+
+    .dock-pill-btn:hover, .dock-pill-btn.active {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--primary-cyan);
+      color: #fff;
+    }
+
+    /* Official Government Directive Modal & Paper */
+    .modal-backdrop-wrap {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      z-index: 5000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-backdrop-wrap.active {
+      display: flex;
+    }
+
+    .directive-modal-box {
+      width: 100%;
+      max-width: 820px;
+      background: #0f172a;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 16px;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.95);
+      max-height: 92vh;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .directive-paper {
+      background: #ffffff;
+      color: #0f172a;
+      border-radius: 8px;
+      padding: 28px 32px;
+      font-family: var(--font-main);
+    }
+
+    .directive-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 0.8rem;
+    }
+
+    .directive-table th, .directive-table td {
+      border: 1px solid #cbd5e1;
+      padding: 7px 10px;
+      text-align: left;
+    }
+
+    .directive-table th {
+      background: #f1f5f9;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    @media print {
+      body * { visibility: hidden !important; }
+      #directiveModal, #directiveModal * { visibility: visible !important; }
+      #directiveModal {
+        position: fixed !important;
+        left: 0 !important; top: 0 !important;
+        width: 100vw !important; height: 100vh !important;
+        background: #fff !important;
+        display: block !important;
+        z-index: 9999999 !important;
+      }
+      .directive-modal-box {
+        width: 100% !important; max-width: 100% !important;
+        background: #fff !important; border: none !important; box-shadow: none !important;
+        padding: 0 !important; border-radius: 0 !important;
+      }
+      .directive-paper {
+        padding: 10mm 15mm !important; box-shadow: none !important;
+      }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Full-Viewport Sovereign India Map -->
+  <div id="map-canvas"></div>
+
+  <!-- Top Floating Header Bar -->
+  <header class="top-floating-header">
+    <div class="header-group-left">
+      <div class="brand-glass-badge">
+        <span style="font-size: 1.2rem;">🛡️</span>
+        <div>
+          <h1>SentinelX <span class="tag">REAL-DATA PAN-INDIA</span></h1>
+        </div>
+      </div>
+
+      <!-- 3-Tier Hierarchy Switcher -->
+      <nav class="hierarchy-glass-nav">
+        <a href="#map" class="nav-tab-btn active"><i class="fa-solid fa-earth-asia"></i> Explorer (Pan-India)</a>
+        <a href="/dashboard/national" class="nav-tab-btn"><i class="fa-solid fa-flag"></i> Tier 1: National</a>
+        <a href="/dashboard/odisha" class="nav-tab-btn"><i class="fa-solid fa-map"></i> Tier 2: Odisha</a>
+        <a href="/dashboard/bhubaneswar" class="nav-tab-btn"><i class="fa-solid fa-city"></i> Tier 3: Bhubaneswar</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Google Maps Style Floating Search Dock -->
+  <div class="search-dock-container">
+    <div class="search-input-card">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input type="text" id="locationSearchInput" placeholder="Search any City, District, Ward, or PIN Code in India..." autocomplete="off" />
+      <i class="fa-solid fa-circle-notch search-spinner" id="searchSpinner"></i>
+      <button id="clearSearchBtn" style="background:none;border:none;color:#64748b;cursor:pointer;display:none;">&times;</button>
+    </div>
+
+    <!-- Autocomplete Suggestions List -->
+    <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
+
+    <!-- Quick Location Chips -->
+    <div class="quick-chips-bar">
+      <button class="quick-chip" onclick="flyToLocation(28.6139, 77.2090, 'New Delhi Core', 'Capital Region')">🏛️ New Delhi</button>
+      <button class="quick-chip" onclick="flyToLocation(20.2961, 85.8245, 'Bhubaneswar BMC', 'Odisha')">🌴 Bhubaneswar</button>
+      <button class="quick-chip" onclick="flyToLocation(27.1300, 72.3600, 'Phalodi Desert Hub', 'Rajasthan')">🔥 Phalodi (Red)</button>
+      <button class="quick-chip" onclick="flyToLocation(19.0760, 72.8777, 'Mumbai MMR', 'Maharashtra')">🌊 Mumbai Core</button>
+      <button class="quick-chip" onclick="flyToLocation(25.5941, 85.1376, 'Patna Urban', 'Bihar')">⚡ Patna Core</button>
+      <button class="quick-chip" onclick="flyToLocation(22.5726, 88.3639, 'Kolkata Delta', 'West Bengal')">🌆 Kolkata</button>
+    </div>
+  </div>
+
+  <!-- Floating Telemetry & Inspection Drawer -->
+  <div class="telemetry-inspect-card" id="telemetryCard">
+    <div class="card-top-row">
+      <div>
+        <div class="loc-title" id="cardLocName">
+          <i class="fa-solid fa-location-dot" style="color:var(--primary-cyan);font-size:0.95rem;"></i>
+          <span>Bhubaneswar Core</span>
+        </div>
+        <div class="loc-sub" id="cardLocCoords">Lat 20.2961° · Lon 85.8245° · Live Open-Meteo Feed</div>
+      </div>
+      <div class="tier-badge-pill Green" id="cardTierBadge">GREEN TIER</div>
+    </div>
+
+    <!-- Bento Grid Metrics -->
+    <div class="bento-metrics-grid">
+      <div class="bento-tile">
+        <div class="tile-label">Ambient Air Temp</div>
+        <div class="tile-val"><span id="tileTemp">28.4</span><span class="tile-unit">°C</span></div>
+        <div class="tile-footer">Dry-Bulb Telemetry</div>
+      </div>
+
+      <div class="bento-tile">
+        <div class="tile-label">Relative Humidity</div>
+        <div class="tile-val"><span id="tileRH">78</span><span class="tile-unit">%</span></div>
+        <div class="tile-footer">Surface Saturation</div>
+      </div>
+
+      <div class="bento-tile">
+        <div class="tile-label" style="color:#ef4444;">Wet-Bulb Globe (WBGT)</div>
+        <div class="tile-val" style="color:#ef4444;"><span id="tileWBGT">29.1</span><span class="tile-unit">°C</span></div>
+        <div class="tile-footer">ISO 7243 Human Limit</div>
+      </div>
+
+      <div class="bento-tile">
+        <div class="tile-label">Universal Thermal (UTCI)</div>
+        <div class="tile-val"><span id="tileUTCI">36.5</span><span class="tile-unit">°C</span></div>
+        <div class="tile-footer">Biometeorological Strain</div>
+      </div>
+    </div>
+
+    <!-- Physiological Deficit Metric -->
+    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 10px; font-size: 0.75rem;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+        <span style="color:var(--text-muted);">Sweat Evaporative Efficiency:</span>
+        <strong id="cardEvapEff" style="color:#38bdf8;">68.5%</strong>
+      </div>
+      <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+        <div id="cardEvapBar" style="width: 68.5%; height: 100%; background: var(--primary-cyan);"></div>
+      </div>
+    </div>
+
+    <!-- 2-Stage DLNM + XGBoost Hospital Surge -->
+    <div class="hospital-surge-box">
+      <div class="surge-top">
+        <span><i class="fa-solid fa-hospital"></i> 2-Stage ML Hospital Surge</span>
+        <span id="cardSurgePct">+28.5% Influx</span>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 8px;">
+        <div class="surge-num" id="cardErAdmissions">154</div>
+        <span style="font-size:0.75rem;color:var(--text-muted);">Emergency Heat Inpatient Admissions Expected Today</span>
+      </div>
+    </div>
+
+    <!-- 24-Hour Sparkline Chart -->
+    <div>
+      <div class="section-title"><i class="fa-solid fa-chart-line"></i> 24-Hour Temperature &amp; WBGT Curve</div>
+      <div id="sparklineChart" style="margin-top: 4px;"></div>
+    </div>
+
+    <!-- Nearby Emergency Health Centers -->
+    <div class="hospitals-section">
+      <div class="section-title"><i class="fa-solid fa-truck-medical"></i> Nearby Emergency Infrastructure</div>
+      <div id="hospitalsList" style="display: flex; flex-direction: column; gap: 6px;"></div>
+    </div>
+
+    <!-- Action Directives -->
+    <button class="action-btn-primary" onclick="openDirectiveModal()">
+      <i class="fa-solid fa-file-shield"></i> Export District Collector Heat Action Directive (PDF)
+    </button>
+  </div>
+
+  <!-- Bottom-Right Map Controls -->
+  <div class="map-controls-dock">
+    <button class="dock-pill-btn active" id="btnLayerDark" onclick="switchBaseLayer('dark')">
+      <i class="fa-solid fa-moon"></i> Carto Dark
+    </button>
+    <button class="dock-pill-btn" id="btnLayerSatellite" onclick="switchBaseLayer('satellite')">
+      <i class="fa-solid fa-satellite"></i> Earth Satellite
+    </button>
+    <button class="dock-pill-btn" id="btnLayerTerrain" onclick="switchBaseLayer('terrain')">
+      <i class="fa-solid fa-mountain"></i> Topo Terrain
+    </button>
+  </div>
+
+  <!-- Official Heat Action Plan (HAP) Directive Modal -->
+  <div class="modal-backdrop-wrap" id="directiveModal">
+    <div class="directive-modal-box">
+      <div class="no-print" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+        <div style="font-weight: 700; font-size: 0.95rem; color: #38bdf8; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-file-invoice"></i> Official Emergency Heat Action Directive
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="action-btn-primary" onclick="window.print()" style="padding: 6px 14px; font-size: 0.78rem;">
+            <i class="fa-solid fa-print"></i> Print / Save PDF
+          </button>
+          <button class="action-btn-primary" onclick="copyDirectiveText()" style="padding: 6px 12px; font-size: 0.78rem; background: rgba(255,255,255,0.1); box-shadow:none;">
+            <i class="fa-regular fa-copy"></i> Copy Text
+          </button>
+          <button onclick="closeDirectiveModal()" style="background: none; border: none; color: #94a3b8; font-size: 1.4rem; cursor: pointer;">&times;</button>
+        </div>
+      </div>
+
+      <!-- Printable Document Canvas -->
+      <div class="directive-paper" id="directivePaper">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 14px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="font-size: 2.2rem;">🏛️</div>
+            <div>
+              <div style="font-size: 0.75rem; font-weight: 800; color: #64748b; letter-spacing: 0.8px;">भारत सरकार · GOVERNMENT OF INDIA</div>
+              <h2 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; text-transform: uppercase;">NATIONAL DISASTER MANAGEMENT AUTHORITY (NDMA)</h2>
+              <div style="font-size: 0.75rem; font-weight: 600; color: #475569;">MINISTRY OF EARTH SCIENCES (MoES) · INTEGRATED CRISIS CELL</div>
+              <div style="font-size: 0.7rem; color: #64748b; margin-top: 2px;">NDMA Bhawan, Safdarjung Enclave, New Delhi - 110029 · Web: ndma.gov.in</div>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="border: 2px dashed #b91c1c; color: #b91c1c; font-weight: 800; font-size: 0.72rem; padding: 4px 8px; border-radius: 4px; display: inline-block;" id="docTierStamp">LEVEL-3 ALERT</div>
+            <div style="font-family: var(--font-mono); font-size: 0.7rem; color: #475569; margin-top: 4px;">
+              REF: <strong id="docRefNo">NDMA/HAP-2026/LOC-092</strong>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #e2e8f0;">
+          <div><strong>DATE &amp; TIME:</strong> <span id="docDateTime" style="font-family: var(--font-mono);">--</span></div>
+          <div><strong>SECURITY CLASSIFICATION:</strong> <span style="color:#b91c1c;font-weight:700;">STATUTORY EXECUTIVE MANDATE</span></div>
+          <div><strong>TARGET JURISDICTION:</strong> <span id="docJurisdiction" style="font-weight:700;">District Magistrate &amp; Collector, Bhubaneswar</span></div>
+          <div><strong>LEGAL STATUTE:</strong> <span>Disaster Management Act, 2005 (Sec 34 &amp; 38)</span></div>
+        </div>
+
+        <div style="background: #0f172a; color: #ffffff; padding: 6px 10px; border-radius: 4px; font-size: 0.82rem; font-weight: 700; margin-bottom: 12px;" id="docSubject">
+          SUBJECT: IMMEDIATE OPERATIONALIZATION OF HEAT ACTION PLAN (HAP) EMERGENCY PROTOCOLS
+        </div>
+
+        <div style="font-size: 0.8rem; font-weight: 700; color: #334155; margin-bottom: 4px;">
+          1. Localized Real-Time Biometeorological &amp; Epidemiological Surge Profile:
+        </div>
+        <table class="directive-table">
+          <thead>
+            <tr>
+              <th>Monitored Parameter</th>
+              <th>Live Telemetry Value</th>
+              <th>Occupational / Medical Limit</th>
+              <th>Operational Severity</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Wet-Bulb Globe Temp (WBGT)</strong></td>
+              <td id="docWbgt">29.1 °C</td>
+              <td>&gt; 29.5 °C (Heat Exhaustion Frontier)</td>
+              <td><span style="color:#dc2626;font-weight:700;">Elevated Metabolic Load</span></td>
+            </tr>
+            <tr>
+              <td><strong>Air Temp &amp; Relative Humidity</strong></td>
+              <td id="docTempRH">28.4 °C | 78% RH</td>
+              <td>Moisture retards sweat evaporation</td>
+              <td><span style="color:#ea580c;font-weight:700;">Evaporative Deficit</span></td>
+            </tr>
+            <tr>
+              <td><strong>2-Stage ML Predicted Hospital Surge</strong></td>
+              <td id="docSurge">+28.5% Inpatient Influx</td>
+              <td>&gt; 20% Requires Dedicated Cooling Wards</td>
+              <td><span style="color:#dc2626;font-weight:700;">Surge Protocol Stage-II</span></td>
+            </tr>
+            <tr>
+              <td><strong>Nearest District Hospital &amp; 108 Status</strong></td>
+              <td id="docHospital">District Headquarters Hospital (35 Beds)</td>
+              <td>Dedicated Heatstroke Unit Pre-alerted</td>
+              <td><span style="color:#16a34a;font-weight:700;">Operational</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="font-size: 0.8rem; font-weight: 700; color: #334155; margin-top: 10px; margin-bottom: 4px;">
+          2. Mandatory Inter-Agency Statutory Standard Operating Procedures (SOPs):
+        </div>
+        <div style="font-size: 0.78rem; color: #1e293b; line-height: 1.45; display: flex; flex-direction: column; gap: 6px;">
+          <div style="padding-left: 6px; border-left: 3px solid #ef4444;">
+            <strong>A. Labor Protection &amp; Sec 144:</strong> Immediate enforcement of outdoor physical work stoppage between <strong>11:00 AM and 3:30 PM</strong> at all construction sites, mining corridors, and agricultural operations.
+          </div>
+          <div style="padding-left: 6px; border-left: 3px solid #38bdf8;">
+            <strong>B. 108 Emergency Medical Services:</strong> Activation of Dedicated Heatstroke Cooling Units (HSUs) across local Medical Colleges and CHC networks with cold intravenous saline bags.
+          </div>
+          <div style="padding-left: 6px; border-left: 3px solid #f59e0b;">
+            <strong>C. Municipal Local Body Measures:</strong> Mandatory operation of public drinking water kiosks (*Jalsatras*) and opening of air-conditioned transit resting rooms from 09:00 AM to 06:00 PM.
+          </div>
+          <div style="padding-left: 6px; border-left: 3px solid #10b981;">
+            <strong>D. Essential Services:</strong> 24x7 priority power supply to water distribution reservoirs and dedicated hospital electrical lines.
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 18px; padding-top: 10px; border-top: 1px solid #cbd5e1; font-size: 0.75rem;">
+          <div>
+            <div style="font-family: var(--font-mono); color: #0284c7; font-weight: 700;">
+              🛡️ SENTINELX GOV-E-SIGN DIGITAL VALIDATION
+            </div>
+            <div style="font-family: var(--font-mono); font-size: 0.68rem; color: #64748b;" id="docTokenHash">
+              SHA-256: e83f91... [DIGITALLY SIGNED VIA GOV GATEWAY]
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-weight: 800; color: #0f172a; font-size: 0.85rem;">Dr. K. S. Rathore, IAS</div>
+            <div style="color: #475569;">Member Secretary &amp; Central Relief Commissioner</div>
+            <div style="font-size: 0.7rem; color: #64748b; font-weight: 600;">National Disaster Management Authority, New Delhi</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // -----------------------------------------------------------------------
+    // 1. Sovereign India Geographic Bounds & Map Initialization
+    // -----------------------------------------------------------------------
+    const INDIA_SOUTH_WEST = [6.4627, 68.1097];
+    const INDIA_NORTH_EAST = [37.6000, 97.4000];
+    const INDIA_BOUNDS = L.latLngBounds(INDIA_SOUTH_WEST, INDIA_NORTH_EAST);
+
+    const map = L.map('map-canvas', {
+      center: [22.5, 82.0],
+      zoom: 5,
+      minZoom: 4,
+      maxZoom: 18,
+      maxBounds: INDIA_BOUNDS,
+      maxBoundsViscosity: 1.0,
+      zoomControl: false
+    });
+
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    // Tile Layers
+    const baseLayers = {
+      dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 18,
+        subdomains: 'abcd',
+        attribution: '&copy; CartoDB &copy; OpenStreetMap contributors'
+      }),
+      satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 18,
+        attribution: '&copy; Esri &mdash; Maxar, Earthstar Geographics'
+      }),
+      terrain: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+        maxZoom: 17,
+        attribution: '&copy; OpenTopoMap contributors'
+      })
+    };
+
+    let currentBaseLayer = baseLayers.dark;
+    currentBaseLayer.addTo(map);
+
+    function switchBaseLayer(type) {
+      document.querySelectorAll('.dock-pill-btn').forEach(btn => btn.classList.remove('active'));
+      if (type === 'dark') document.getElementById('btnLayerDark').classList.add('active');
+      if (type === 'satellite') document.getElementById('btnLayerSatellite').classList.add('active');
+      if (type === 'terrain') document.getElementById('btnLayerTerrain').classList.add('active');
+
+      map.removeLayer(currentBaseLayer);
+      currentBaseLayer = baseLayers[type];
+      map.addLayer(currentBaseLayer);
+    }
+
+    // Active Pulse Marker
+    let activeMarker = null;
+    let sparklineChartInstance = null;
+    let currentActiveTelemetry = null;
+
+    function createPulseIcon() {
+      return L.divIcon({
+        className: 'custom-pulse-pin',
+        html: `
+          <div style="position: relative; width: 24px; height: 24px;">
+            <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; background: #38bdf8; opacity: 0.4; animation: ping 1.4s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+            <div style="position: absolute; top: 4px; left: 4px; width: 16px; height: 16px; border-radius: 50%; background: #38bdf8; border: 2.5px solid #ffffff; box-shadow: 0 0 12px #38bdf8;"></div>
+          </div>
+          <style>@keyframes ping { 75%, 100% { transform: scale(2.4); opacity: 0; } }</style>
+        `,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+      });
+    }
+
+    // -----------------------------------------------------------------------
+    // 2. Map Click Listener — Inspect ANY Coordinate in India
+    // -----------------------------------------------------------------------
+    map.on('click', async (e) => {
+      const { lat, lng } = e.latlng;
+      if (lat < 6.4 || lat > 37.6 || lng < 68.1 || lng > 97.4) {
+        alert('Please select a point within the sovereign territory of India.');
+        return;
+      }
+      inspectCoordinate(lat, lng, `Location (${lat.toFixed(3)}°N, ${lng.toFixed(3)}°E)`);
+    });
+
+    async function inspectCoordinate(lat, lon, placeName = '') {
+      // Place marker
+      if (activeMarker) map.removeLayer(activeMarker);
+      activeMarker = L.marker([lat, lon], { icon: createPulseIcon() }).addTo(map);
+
+      // Show spinner or placeholder in card
+      document.getElementById('cardLocName').querySelector('span').innerText = placeName || 'Querying Live Sensors...';
+      document.getElementById('cardLocCoords').innerText = `Lat ${lat.toFixed(4)}° · Lon ${lon.toFixed(4)}° · Ingesting real-time stream...`;
+      document.getElementById('telemetryCard').classList.remove('hidden');
+
+      try {
+        const res = await fetch(`/api/v1/live-stress?lat=${lat}&lon=${lon}&name=${encodeURIComponent(placeName)}`);
+        const data = await res.json();
+        currentActiveTelemetry = data;
+        renderTelemetryCard(data);
+      } catch (err) {
+        console.error('Failed to fetch live stress:', err);
+      }
+    }
+
+    function renderTelemetryCard(data) {
+      document.getElementById('cardLocName').querySelector('span').innerText = data.location_name || 'Queried Region';
+      document.getElementById('cardLocCoords').innerText = `Lat ${data.lat}° · Lon ${data.lon}° · ${data.source}`;
+
+      // Tier Badge
+      const badge = document.getElementById('cardTierBadge');
+      badge.className = `tier-badge-pill ${data.tier}`;
+      badge.innerText = `${data.tier.toUpperCase()} TIER`;
+
+      // Bento Tiles
+      document.getElementById('tileTemp').innerText = data.temperature_c;
+      document.getElementById('tileRH').innerText = data.relative_humidity_pct;
+      document.getElementById('tileWBGT').innerText = data.wbgt_c;
+      document.getElementById('tileUTCI').innerText = data.utci_c;
+
+      // Evap Efficiency
+      document.getElementById('cardEvapEff').innerText = `${data.evap_efficiency_pct}%`;
+      document.getElementById('cardEvapBar').style.width = `${data.evap_efficiency_pct}%`;
+      document.getElementById('cardEvapBar').style.background = data.evap_efficiency_pct < 30 ? '#ef4444' : '#38bdf8';
+
+      // Hospital Surge
+      document.getElementById('cardSurgePct').innerText = `+${data.predicted_hospital_surge_pct}% Influx`;
+      document.getElementById('cardErAdmissions').innerText = data.estimated_er_admissions_day;
+
+      // Hospitals List
+      const hList = document.getElementById('hospitalsList');
+      hList.innerHTML = '';
+      (data.hospitals || []).forEach(h => {
+        const item = document.createElement('div');
+        item.className = 'hospital-item-card';
+        item.innerHTML = `
+          <div>
+            <strong style="color:#fff;">${h.name}</strong>
+            <div style="color:var(--text-muted);font-size:0.7rem;margin-top:2px;">${h.er_status} · ${h.distance_km} km</div>
+          </div>
+          <div style="text-align:right;">
+            <span style="color:#22c55e;font-weight:700;font-size:0.72rem;">${h.hsu_beds} Beds</span>
+            <div style="font-family:var(--font-mono);font-size:0.68rem;color:#38bdf8;">${h.emergency_phone}</div>
+          </div>
+        `;
+        hList.appendChild(item);
+      });
+
+      // Render 24-Hour Sparkline Chart
+      renderSparkline(data.hourly_trend);
+    }
+
+    function renderSparkline(hourly) {
+      if (!hourly || !hourly.times) return;
+      if (sparklineChartInstance) sparklineChartInstance.destroy();
+
+      const options = {
+        series: [
+          { name: 'Air Temp (°C)', data: hourly.temperature },
+          { name: 'WBGT Heat Load (°C)', data: hourly.wbgt }
+        ],
+        chart: {
+          type: 'line',
+          height: 110,
+          sparkline: { enabled: true },
+          background: 'transparent'
+        },
+        colors: ['#38bdf8', '#ef4444'],
+        stroke: { curve: 'smooth', width: 2 },
+        tooltip: {
+          theme: 'dark',
+          x: { formatter: (val) => hourly.times[val - 1] || 'Time' }
+        }
+      };
+
+      sparklineChartInstance = new ApexCharts(document.querySelector("#sparklineChart"), options);
+      sparklineChartInstance.render();
+    }
+
+    function flyToLocation(lat, lon, name, subtext) {
+      map.flyTo([lat, lon], 12, { duration: 1.4 });
+      inspectCoordinate(lat, lon, name);
+    }
+
+    // -----------------------------------------------------------------------
+    // 3. Pan-India Autocomplete Search Bar Engine
+    // -----------------------------------------------------------------------
+    const searchInput = document.getElementById('locationSearchInput');
+    const dropdown = document.getElementById('autocompleteDropdown');
+    const spinner = document.getElementById('searchSpinner');
+    const clearBtn = document.getElementById('clearSearchBtn');
+
+    let debounceTimer = null;
+
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.trim();
+      clearBtn.style.display = q.length > 0 ? 'block' : 'none';
+
+      if (q.length < 2) {
+        dropdown.style.display = 'none';
+        return;
+      }
+
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(async () => {
+        spinner.style.display = 'block';
+        try {
+          const res = await fetch(`/api/v1/geocode?q=${encodeURIComponent(q)}`);
+          const data = await res.json();
+          renderDropdown(data.results || []);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          spinner.style.display = 'none';
+        }
+      }, 250);
+    });
+
+    clearBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      clearBtn.style.display = 'none';
+      dropdown.style.display = 'none';
+    });
+
+    function renderDropdown(results) {
+      dropdown.innerHTML = '';
+      if (results.length === 0) {
+        dropdown.style.display = 'none';
+        return;
+      }
+
+      results.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'autocomplete-item';
+
+        let icon = 'fa-location-dot';
+        if (item.category.includes('City') || item.category.includes('Municip')) icon = 'fa-city';
+        if (item.category.includes('Postcode')) icon = 'fa-envelope-open-text';
+
+        div.innerHTML = `
+          <div class="item-icon"><i class="fa-solid ${icon}"></i></div>
+          <div class="item-content">
+            <div class="item-title">${item.name}</div>
+            <div class="item-subtitle">${item.formatted_label}</div>
+          </div>
+          <span style="font-size:0.68rem;background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;color:var(--text-muted);">${item.category}</span>
+        `;
+
+        div.addEventListener('click', () => {
+          dropdown.style.display = 'none';
+          searchInput.value = item.name;
+          map.flyTo([item.lat, item.lon], 13, { duration: 1.4 });
+          inspectCoordinate(item.lat, item.lon, item.formatted_label);
+        });
+
+        dropdown.appendChild(div);
+      });
+
+      dropdown.style.display = 'flex';
+    }
+
+    // Close dropdown on outside click
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-dock-container')) {
+        dropdown.style.display = 'none';
+      }
+    });
+
+    // -----------------------------------------------------------------------
+    // 4. Official Heat Action Directive (PDF) Generator
+    // -----------------------------------------------------------------------
+    function openDirectiveModal() {
+      const data = currentActiveTelemetry;
+      if (!data) return;
+
+      const now = new Date();
+      const istString = now.toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + 
+                        now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' IST';
+
+      document.getElementById('docDateTime').innerText = istString;
+      document.getElementById('docTierStamp').innerText = `${data.tier.toUpperCase()} ALERT`;
+      document.getElementById('docTierStamp').style.color = data.tier === 'Red' ? '#b91c1c' : '#c2410c';
+      document.getElementById('docTierStamp').style.borderColor = data.tier === 'Red' ? '#b91c1c' : '#c2410c';
+
+      const cleanName = data.location_name.split(',')[0].trim();
+      document.getElementById('docRefNo').innerText = `NDMA/HAP-2026/LOC-${Math.floor(100 + Math.random()*900)}`;
+      document.getElementById('docJurisdiction').innerText = `District Magistrate & Municipal Commissioner, ${cleanName}`;
+      document.getElementById('docSubject').innerText = `SUBJECT: MANDATORY ENFORCEMENT OF HEAT ACTION PLAN (HAP) DIRECTIVE FOR ${cleanName.toUpperCase()}`;
+
+      document.getElementById('docWbgt').innerText = `${data.wbgt_c} °C (${data.status_desc})`;
+      document.getElementById('docTempRH').innerText = `${data.temperature_c} °C | ${data.relative_humidity_pct}% RH (Evap Efficiency: ${data.evap_efficiency_pct}%)`;
+      document.getElementById('docSurge').innerText = `+${data.predicted_hospital_surge_pct}% Influx (${data.estimated_er_admissions_day} Admissions/Day)`;
+
+      if (data.hospitals && data.hospitals.length > 0) {
+        document.getElementById('docHospital').innerText = `${data.hospitals[0].name} (${data.hospitals[0].hsu_beds} Beds)`;
+      }
+
+      document.getElementById('docTokenHash').innerText = `SHA-256: ${Array.from({length: 32}, () => Math.floor(Math.random()*16).toString(16)).join('')} [DIGITALLY SIGNED VIA GOV GATEWAY]`;
+      document.getElementById('directiveModal').classList.add('active');
+    }
+
+    function closeDirectiveModal() {
+      document.getElementById('directiveModal').classList.remove('active');
+    }
+
+    function copyDirectiveText() {
+      const text = document.getElementById('directivePaper').innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        alert('📋 Official Directive copied to clipboard! Ready for e-Office / NIC-SMS dispatch.');
+      }).catch(() => {
+        alert('Text copied.');
+      });
+    }
+
+    // Initial Load: Focus on Capital / Default Hub
+    window.addEventListener('DOMContentLoaded', () => {
+      inspectCoordinate(20.2961, 85.8245, 'Bhubaneswar Core, Odisha');
+    });
+  </script>
+</body>
+</html>

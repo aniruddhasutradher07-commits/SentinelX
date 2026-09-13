@@ -1010,6 +1010,7 @@ def compile_national_dashboard():
     <!-- 3-Tier Drill-Down Switcher -->
     <div style="display: flex; align-items: center; gap: 12px;">
       <div class="hierarchy-nav">
+        <a href="/map" class="nav-btn" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4);"><i class="fa-solid fa-location-crosshairs"></i> Explorer (Pan-India)</a>
         <a href="#national" class="nav-btn active"><i class="fa-solid fa-earth-asia"></i> Tier 1: National (36 States)</a>
         <a href="/dashboard/odisha" class="nav-btn"><i class="fa-solid fa-map"></i> Tier 2: Odisha (30 Districts)</a>
         <a href="/dashboard/bhubaneswar" class="nav-btn"><i class="fa-solid fa-city"></i> Tier 3: Bhubaneswar (67 Wards)</a>
