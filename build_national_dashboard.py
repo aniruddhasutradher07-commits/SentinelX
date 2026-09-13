@@ -1010,10 +1010,8 @@ def compile_national_dashboard():
     <!-- 3-Tier Drill-Down Switcher -->
     <div style="display: flex; align-items: center; gap: 12px;">
       <div class="hierarchy-nav">
-        <a href="/map" class="nav-btn" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4);"><i class="fa-solid fa-location-crosshairs"></i> Explorer (Pan-India)</a>
-        <a href="#national" class="nav-btn active"><i class="fa-solid fa-earth-asia"></i> Tier 1: National (36 States)</a>
-        <a href="/dashboard/odisha" class="nav-btn"><i class="fa-solid fa-map"></i> Tier 2: Odisha (30 Districts)</a>
-        <a href="/dashboard/bhubaneswar" class="nav-btn"><i class="fa-solid fa-city"></i> Tier 3: Bhubaneswar (67 Wards)</a>
+        <a href="/map" class="nav-btn"><i class="fa-solid fa-location-crosshairs"></i> Real-Data Explorer (Pan-India)</a>
+        <a href="/national" class="nav-btn active"><i class="fa-solid fa-flag"></i> National Situation Room (36 States)</a>
       </div>
 
       <button class="action-btn-secondary" onclick="openHapDirectiveModal()">
@@ -1291,9 +1289,9 @@ def compile_national_dashboard():
         </div>
       </div>
 
-      <div id="modalSubstateLinkBox" style="display: none; background: rgba(56, 189, 248, 0.1); border: 1px solid var(--primary-cyan); padding: 12px; border-radius: 8px; text-align: center;">
-        <span style="font-size: 0.85rem; margin-right: 12px;">🌟 Detailed Micro-GIS Ward Model available for this region:</span>
-        <a id="modalSubstateLink" href="#" style="background: var(--primary-cyan); color: #000; font-weight: 700; padding: 4px 12px; border-radius: 6px; text-decoration: none; font-size: 0.8rem;">Open Sub-State Command Center</a>
+      <div id="modalSubstateLinkBox" style="background: rgba(56, 189, 248, 0.1); border: 1px solid var(--primary-cyan); padding: 12px; border-radius: 8px; text-align: center;">
+        <span style="font-size: 0.85rem; margin-right: 12px;">🌟 Real-Time On-Demand Spatial GIS Telemetry available:</span>
+        <a id="modalSubstateLink" href="/map" style="background: var(--primary-cyan); color: #000; font-weight: 700; padding: 5px 14px; border-radius: 6px; text-decoration: none; font-size: 0.8rem;">Inspect on Live Vector Map</a>
       </div>
 
       <button class="action-btn-secondary" onclick="generateSelectedDistrictDirective()" style="margin-top: 10px; width: 100%; justify-content: center; font-size: 0.82rem; background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;">
@@ -1658,12 +1656,9 @@ EMERGENCY PROTOCOLS:
       document.getElementById('modalTier').innerText = dist.tier + ' Tier';
 
       const linkBox = document.getElementById('modalSubstateLinkBox');
-      if (dist.state_code === 'OD') {{
-        linkBox.style.display = 'block';
-        document.getElementById('modalSubstateLink').href = '/dashboard/odisha';
-      }} else {{
-        linkBox.style.display = 'none';
-      }}
+      linkBox.style.display = 'block';
+      document.getElementById('modalSubstateLink').href = '/map';
+      document.getElementById('modalSubstateLink').innerText = 'Inspect ' + dist.name + ' on Live Vector Map';
 
       document.getElementById('districtModal').style.display = 'flex';
     }}

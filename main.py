@@ -78,37 +78,9 @@ app.include_router(copilot.router)
 
 
 # ---------------------------------------------------------------------------
-# Interactive HTML Command Center Dashboards (3-Tier Hierarchy)
+# Interactive Command Center Dashboards (100% Pan-India Sovereign Platform)
 # ---------------------------------------------------------------------------
 @app.get("/", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
-@app.get("/dashboard/national", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
-@app.get("/national", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
-def serve_national_dashboard():
-    """Serves Tier 1: Pan-India National Early Warning & Thermal Stress Situation Room."""
-    if os.path.exists("SentinelX_National_Dashboard.html"):
-        return FileResponse("SentinelX_National_Dashboard.html", media_type="text/html")
-    return HTMLResponse("<h3>SentinelX_National_Dashboard.html not found. Run 'python build_national_dashboard.py'.</h3>", status_code=404)
-
-
-@app.get("/dashboard/odisha", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
-@app.get("/odisha", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
-def serve_odisha_dashboard():
-    """Serves Tier 2: Statewide 30-District Command Center for Odisha."""
-    if os.path.exists("SentinelX_Odisha_Dashboard.html"):
-        return FileResponse("SentinelX_Odisha_Dashboard.html", media_type="text/html")
-    return HTMLResponse("<h3>SentinelX_Odisha_Dashboard.html not found. Run 'python build_odisha_dashboard.py'.</h3>", status_code=404)
-
-
-@app.get("/dashboard/bhubaneswar", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
-@app.get("/bhubaneswar", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
-@app.get("/dashboard/wards", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
-def serve_bhubaneswar_dashboard():
-    """Serves Tier 3: Hyperlocal Bhubaneswar Municipal Corporation 67-Ward Command Center."""
-    if os.path.exists("SentinelX_Dashboard.html"):
-        return FileResponse("SentinelX_Dashboard.html", media_type="text/html")
-    return HTMLResponse("<h3>SentinelX_Dashboard.html not found. Run 'python build_dashboard.py'.</h3>", status_code=404)
-
-
 @app.get("/map", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
 @app.get("/explore", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
 def serve_pan_india_map():
@@ -116,6 +88,16 @@ def serve_pan_india_map():
     if os.path.exists("SentinelX_PanIndia_Map.html"):
         return FileResponse("SentinelX_PanIndia_Map.html", media_type="text/html")
     return HTMLResponse("<h3>SentinelX_PanIndia_Map.html not found.</h3>", status_code=404)
+
+
+@app.get("/national", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
+@app.get("/situation-room", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
+@app.get("/dashboard/national", response_class=HTMLResponse, tags=["Interactive Command Dashboards"])
+def serve_national_dashboard():
+    """Serves Pan-India National Early Warning & Thermal Stress Situation Room (36 States & UTs)."""
+    if os.path.exists("SentinelX_National_Dashboard.html"):
+        return FileResponse("SentinelX_National_Dashboard.html", media_type="text/html")
+    return HTMLResponse("<h3>SentinelX_National_Dashboard.html not found. Run 'python build_national_dashboard.py'.</h3>", status_code=404)
 
 
 @app.get("/api/v1/national-feed", tags=["National Situation Feed"])
@@ -173,13 +155,13 @@ def health_check():
         db.close()
     return {
         "status": "healthy",
-        "service": "SentinelX / THERMO-SHIELD Unified Master Backend",
+        "service": "SentinelX / THERMO-SHIELD Unified Pan-India Engine",
+        "jurisdiction": "Sovereign Territory of India (MoES / NCMRWF / NDMA)",
         "database": database_status,
         "swagger_docs": "/docs",
         "redoc": "/redoc",
-        "national_dashboard": "/dashboard/national",
-        "statewide_dashboard": "/dashboard/odisha",
-        "ward_dashboard": "/dashboard/bhubaneswar"
+        "gis_explorer": "/map",
+        "national_situation_room": "/national"
     }
 
 
