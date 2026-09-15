@@ -45,6 +45,7 @@ export const Header: React.FC<HeaderProps> = ({
   isSimulatingPulse,
 }) => {
   const tabs = [
+    { id: 'command', label: 'Command Center', icon: ShieldAlert, badge: 'Stitch/Figma' },
     { id: 'odisha', label: 'Odisha Statewide', icon: MapPin, badge: 'Overview 3.1' },
     { id: 'wards', label: 'Bhubaneswar Core', icon: Building2, badge: 'Operations 3.2' },
     { id: 'citizen', label: 'Citizen Advisory', icon: Users, badge: 'Public 3.4' },

@@ -10,6 +10,8 @@ import { ApiExplorer } from './components/ApiExplorer';
 import { CitizenAdvisoryView } from './components/CitizenAdvisoryView';
 import { WhatIfSimulator } from './components/WhatIfSimulator';
 import { AlertDispatchModal } from './components/AlertDispatchModal';
+// @ts-ignore
+import Dashboard from './pages/Dashboard';
 import { Zap, X } from 'lucide-react';
 import { subscribeToWardRiskUpdates } from './services/supabaseClient';
 import { 
@@ -20,7 +22,7 @@ import {
 } from './types';
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<string>('odisha');
+  const [activeTab, setActiveTab] = useState<string>('command');
   const [summary, setSummary] = useState<SystemSummary | null>(null);
   const [telemetry, setTelemetry] = useState<LiveTelemetry | null>(null);
   const [districts, setDistricts] = useState<DistrictRiskRecord[]>([]);
@@ -223,6 +225,18 @@ export function App() {
           </div>
         ) : (
           <>
+            {activeTab === 'command' && (
+              <Dashboard
+                districts={districts}
+                wards={wards}
+                telemetry={telemetry}
+                summary={summary}
+                onOpenDispatcher={(region: string) => handleOpenDispatcher(region)}
+                onNavigateTab={(tab: string) => setActiveTab(tab)}
+                realtimeStatus={realtimeStatus}
+              />
+            )}
+
             {activeTab === 'odisha' && (
               <OdishaMap
                 districts={districts}

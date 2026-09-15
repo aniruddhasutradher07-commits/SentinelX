@@ -263,33 +263,42 @@ function loadDatasets() {
       }));
     }
 
-    // Odisha Districts GeoJSON fallback if file not on disk
-    const geoJsonPath = path.join(process.cwd(), 'District/odisha_districts_with_population.geojson');
-    if (fs.existsSync(geoJsonPath)) {
-      odishaGeoJson = JSON.parse(fs.readFileSync(geoJsonPath, 'utf8'));
-    } else {
-      // Build valid GeoJSON FeatureCollection from ODISHA_30_DISTRICTS
+    // Odisha Districts GeoJSON: Load real 30-district polygon geometries
+    const candidatePaths = [
+      path.join(process.cwd(), 'odisha_districts.geojson'),
+      path.join(process.cwd(), 'District/odisha_districts_with_population.geojson'),
+    ];
+    let loadedGeo = false;
+    for (const p of candidatePaths) {
+      if (fs.existsSync(p)) {
+        const parsed = JSON.parse(fs.readFileSync(p, 'utf8'));
+        if (parsed && parsed.features && parsed.features.length > 0) {
+          // Normalize district names across Census / GADM properties
+          parsed.features.forEach((feat: any) => {
+            const rawName = feat.properties?.NAME_2 || feat.properties?.district || feat.properties?.dtname || '';
+            feat.properties.dtname = rawName;
+            feat.properties.district = rawName;
+          });
+          odishaGeoJson = parsed;
+          loadedGeo = true;
+          console.log(`[Data] Loaded real Odisha 30-District GeoJSON boundaries (${parsed.features.length} districts) from ${p}`);
+          break;
+        }
+      }
+    }
+
+    if (!loadedGeo) {
+      // Fallback only if no real file exists
       odishaGeoJson = {
         type: 'FeatureCollection',
         features: ODISHA_30_DISTRICTS.map(d => {
           const delta = 0.35;
           return {
             type: 'Feature',
-            properties: {
-              district: d.district,
-              dtname: d.district,
-              population: d.pop,
-              wbgt: d.wbgt
-            },
+            properties: { district: d.district, dtname: d.district, population: d.pop, wbgt: d.wbgt },
             geometry: {
               type: 'Polygon',
-              coordinates: [[
-                [d.lon - delta, d.lat - delta],
-                [d.lon + delta, d.lat - delta],
-                [d.lon + delta, d.lat + delta],
-                [d.lon - delta, d.lat + delta],
-                [d.lon - delta, d.lat - delta]
-              ]]
+              coordinates: [[[d.lon - delta, d.lat - delta], [d.lon + delta, d.lat - delta], [d.lon + delta, d.lat + delta], [d.lon - delta, d.lat + delta], [d.lon - delta, d.lat - delta]]]
             }
           };
         })
@@ -857,6 +866,9 @@ app.all('/api/v1/realtime/simulate-update', (req, res) => {
     const newLst = Math.round((newTemp + 6.4 + (target.uhi_offset_c || 0.2) * 1.5) * 10) / 10;
     const newUhiAnomaly = Math.round((newLst - 41.2) * 10) / 10;
     const newUhiTier = newUhiAnomaly >= 4.0 ? 'EXTREME_HOTSPOT' : (newUhiAnomaly >= 2.0 ? 'MODERATE_UHI' : 'NEUTRAL');
+    const newHazard = Math.min(100, Math.round(((newWbgt - 24.0) / 12.0) * 100));
+    const newRisk = Math.min(100, Math.round(newHazard * vuln.vulnerability_multiplier));
+    const newTier = newRisk >= 80 ? 'Red' : newRisk >= 60 ? 'Orange' : newRisk >= 40 ? 'Yellow' : 'Green';
 
     const updatedRecord = {
       ...target,

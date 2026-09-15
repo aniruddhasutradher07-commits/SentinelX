@@ -12,10 +12,13 @@ import {
   Sliders, 
   TrendingUp, 
   Calendar,
-  Send
+  Send,
+  Globe,
+  Layers,
+  Sparkles
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar, Cell } from 'recharts';
-import { DistrictRiskRecord, DistrictImpactRecord } from '../types';
+import { DistrictRiskRecord } from '../types';
 
 interface OdishaMapProps {
   districts: DistrictRiskRecord[];
@@ -33,10 +36,11 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const geoJsonLayerRef = useRef<L.GeoJSON | null>(null);
+  const baseTileLayerRef = useRef<L.TileLayer | null>(null);
 
   const [selectedDistrictName, setSelectedDistrictName] = useState<string>('Khordha');
   const [metricMode, setMetricMode] = useState<'wbgt' | 'risk' | 'vulnerability' | 'lst' | 'uhi' | 'admissions' | 'temp'>('wbgt');
-  const [selectedHourIndex, setSelectedHourIndex] = useState<number>(12); // Noon peak default
+  const [baseMapStyle, setBaseMapStyle] = useState<'dark' | 'satellite'>('dark');
   const [districtDetail, setDistrictDetail] = useState<any>(null);
   const [loadingDetail, setLoadingDetail] = useState<boolean>(false);
 
@@ -69,91 +73,119 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
       });
   }, [selectedDistrictName]);
 
-  // Color helper based on metric
+  // Color helper based on metric using PRD Risk & Operations palette
   const getFeatureColor = (districtName: string) => {
     const dist = uniqueDistricts.find(d => d.district.toLowerCase() === districtName.toLowerCase());
-    if (!dist) return '#334155';
+    if (!dist) return '#1e293b';
 
     if (metricMode === 'vulnerability') {
       const mult = dist.vulnerability_multiplier || 1.0;
-      if (mult >= 1.25) return '#c026d3'; // Purple (Extreme compound vulnerability)
-      if (mult >= 1.10) return '#f43f5e'; // Rose (High vulnerability)
-      if (mult >= 0.95) return '#fb923c'; // Orange (Moderate)
-      return '#10b981'; // Emerald (Resilient green canopy buffer)
+      if (mult >= 1.25) return '#9333ea'; // Purple (Extreme compound vulnerability)
+      if (mult >= 1.10) return '#C0392B'; // Red (High vulnerability)
+      if (mult >= 0.95) return '#D9772E'; // Orange (Moderate)
+      return '#3A7D5C'; // Resilient green canopy buffer
     }
 
     if (metricMode === 'lst') {
       const lst = dist.modis_lst_c || (dist.temperature_c ? dist.temperature_c + 7.2 : 44.5);
-      if (lst >= 48) return '#9333ea'; // Deep Purple (Extreme Radiant Skin Heat)
-      if (lst >= 44) return '#f43f5e'; // Red
-      if (lst >= 40) return '#fb923c'; // Orange
-      return '#10b981'; // Emerald Cool buffer
+      if (lst >= 48) return '#7e22ce'; // Deep Purple (Extreme Radiant Skin Heat)
+      if (lst >= 44) return '#C0392B'; // Red
+      if (lst >= 40) return '#D9772E'; // Orange
+      return '#3A7D5C'; // Resilient Cool buffer
     }
 
     if (metricMode === 'uhi') {
       const uhi = dist.uhi_anomaly_c !== undefined ? dist.uhi_anomaly_c : ((dist.temperature_c || 38) > 38 ? 3.6 : 1.2);
       if (uhi >= 4.0) return '#7e22ce'; // Extreme Hotspot
-      if (uhi >= 2.5) return '#e11d48'; // High UHI
-      if (uhi >= 1.0) return '#f59e0b'; // Moderate
-      return '#10b981'; // Cooling Buffer
+      if (uhi >= 2.5) return '#C0392B'; // High UHI
+      if (uhi >= 1.0) return '#C9A227'; // Moderate
+      return '#3A7D5C'; // Cooling Buffer
     }
 
     if (metricMode === 'wbgt') {
       const wbgt = dist.WBGT_celsius || 26;
-      if (wbgt >= 32) return '#f43f5e'; // Red
-      if (wbgt >= 30) return '#fb923c'; // Orange
-      if (wbgt >= 28) return '#facc15'; // Yellow
-      return '#34d399'; // Green
+      if (wbgt >= 32) return '#C0392B'; // Red
+      if (wbgt >= 30) return '#D9772E'; // Orange
+      if (wbgt >= 28) return '#C9A227'; // Yellow
+      return '#3A7D5C'; // Green
     }
 
     if (metricMode === 'risk') {
       const tier = dist.RiskTier;
-      if (tier === 'Red') return '#f43f5e';
-      if (tier === 'Orange') return '#fb923c';
-      if (tier === 'Yellow') return '#facc15';
-      return '#34d399';
+      if (tier === 'Red') return '#C0392B';
+      if (tier === 'Orange') return '#D9772E';
+      if (tier === 'Yellow') return '#C9A227';
+      return '#3A7D5C';
     }
 
     if (metricMode === 'temp') {
       const temp = dist.temperature_c || 30;
-      if (temp >= 40) return '#e11d48';
-      if (temp >= 36) return '#ea580c';
-      if (temp >= 32) return '#ca8a04';
-      return '#059669';
+      if (temp >= 40) return '#C0392B';
+      if (temp >= 36) return '#D9772E';
+      if (temp >= 32) return '#C9A227';
+      return '#3A7D5C';
     }
 
     // admissions
     const tier = dist.RiskTier;
-    if (tier === 'Red' || tier === 'Orange') return '#f43f5e';
-    if (tier === 'Yellow') return '#fb923c';
-    return '#34d399';
+    if (tier === 'Red' || tier === 'Orange') return '#C0392B';
+    if (tier === 'Yellow') return '#D9772E';
+    return '#3A7D5C';
   };
 
-  // Initialize Map
+  // Initialize Map Instance
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
     if (!mapInstanceRef.current) {
       const map = L.map(mapContainerRef.current, {
-        center: [20.4, 84.5], // Center of Odisha
+        center: [20.45, 84.8], // Center of Odisha
         zoom: 7.2,
         minZoom: 6,
-        maxZoom: 12,
+        maxZoom: 13,
         zoomControl: false,
         attributionControl: false,
       });
 
       L.control.zoom({ position: 'topright' }).addTo(map);
-
-      // Dark Carto tile layer
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        subdomains: 'abcd',
-        maxZoom: 19,
-      }).addTo(map);
-
       mapInstanceRef.current = map;
     }
+  }, []);
 
+  // Update Basemap Tiles (Carto Dark Matter vs. ArcGIS Satellite)
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+    const map = mapInstanceRef.current;
+
+    if (baseTileLayerRef.current) {
+      map.removeLayer(baseTileLayerRef.current);
+    }
+
+    if (baseMapStyle === 'satellite') {
+      const satLayer = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        {
+          maxZoom: 18,
+          attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+        }
+      ).addTo(map);
+      baseTileLayerRef.current = satLayer;
+    } else {
+      const darkLayer = L.tileLayer(
+        'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+        {
+          subdomains: 'abcd',
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://carto.com/">CARTO</a>'
+        }
+      ).addTo(map);
+      baseTileLayerRef.current = darkLayer;
+    }
+  }, [baseMapStyle]);
+
+  // Update GeoJSON Layer with district boundaries
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
     const map = mapInstanceRef.current;
 
     // Remove existing layer if any
@@ -166,13 +198,19 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
         style: (feature) => {
           const dname = feature?.properties?.dtname || feature?.properties?.district || feature?.properties?.NAME_2 || '';
           const isSelected = dname.toLowerCase() === selectedDistrictName.toLowerCase();
+          const isSatellite = baseMapStyle === 'satellite';
+          
           return {
             fillColor: getFeatureColor(dname),
-            weight: isSelected ? 2.5 : 1,
+            weight: isSelected ? 3 : isSatellite ? 1.5 : 1,
             opacity: 1,
-            color: isSelected ? '#38bdf8' : 'rgba(255, 255, 255, 0.2)',
-            dashArray: isSelected ? '' : '2',
-            fillOpacity: isSelected ? 0.85 : 0.65,
+            color: isSelected 
+              ? '#38bdf8' 
+              : isSatellite 
+              ? 'rgba(255, 255, 255, 0.45)' 
+              : 'rgba(255, 255, 255, 0.18)',
+            dashArray: isSelected ? '' : isSatellite ? '' : '2',
+            fillOpacity: isSelected ? 0.85 : isSatellite ? 0.6 : 0.65,
           };
         },
         onEachFeature: (feature, layer) => {
@@ -183,7 +221,7 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
             mouseover: (e) => {
               const l = e.target;
               l.setStyle({
-                weight: 2,
+                weight: 2.5,
                 color: '#ffffff',
                 fillOpacity: 0.9,
               });
@@ -193,20 +231,34 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
                 geoJsonLayerRef.current.resetStyle(e.target);
               }
             },
-            click: () => {
+            click: (e) => {
               setSelectedDistrictName(dname);
               if (dist) onSelectDistrict(dist);
+              // Fly to clicked polygon bounds smoothly
+              try {
+                const bounds = e.target.getBounds();
+                map.flyToBounds(bounds, {
+                  padding: [60, 60],
+                  maxZoom: 9.5,
+                  duration: 0.9,
+                });
+              } catch (err) {
+                // Leaflet bounds calculation fallback
+              }
             },
           });
 
           if (dist) {
             layer.bindTooltip(
               `<div class="text-xs font-sans">
-                <div class="font-bold text-slate-100">${dname}</div>
-                <div class="text-slate-300">WBGT: <b class="text-sky-300">${dist.WBGT_celsius}°C</b></div>
-                <div class="text-slate-300">Risk: <b class="${
-                  dist.RiskTier === 'Red' ? 'text-red-400' : dist.RiskTier === 'Orange' ? 'text-amber-400' : 'text-emerald-400'
-                }">${dist.RiskTier}</b></div>
+                <div class="font-bold text-slate-100 flex items-center justify-between gap-3">
+                  <span>${dname}</span>
+                  <span class="text-[10px] font-mono px-1.5 py-0.2 rounded" style="background-color: ${
+                    dist.RiskTier === 'Red' ? '#C0392B' : dist.RiskTier === 'Orange' ? '#D9772E' : dist.RiskTier === 'Yellow' ? '#C9A227' : '#3A7D5C'
+                  }">${dist.RiskTier}</span>
+                </div>
+                <div class="text-slate-300 mt-1">WBGT: <b class="text-amber-300 font-mono">${dist.WBGT_celsius}°C</b></div>
+                <div class="text-slate-300">Vulnerability M_v: <b class="text-purple-300 font-mono">×${(dist.vulnerability_multiplier || 1.0).toFixed(2)}</b></div>
               </div>`,
               { sticky: true, className: 'leaflet-tooltip-dark' }
             );
@@ -217,39 +269,78 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
       layer.addTo(map);
       geoJsonLayerRef.current = layer;
     }
-  }, [geoJson, uniqueDistricts, metricMode, selectedDistrictName]);
+  }, [geoJson, uniqueDistricts, metricMode, selectedDistrictName, baseMapStyle]);
+
+  const riskTierColor = currentDistrict?.RiskTier === 'Red' 
+    ? '#C0392B' 
+    : currentDistrict?.RiskTier === 'Orange' 
+    ? '#D9772E' 
+    : currentDistrict?.RiskTier === 'Yellow' 
+    ? '#C9A227' 
+    : '#3A7D5C';
 
   return (
-    <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden">
+    <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden bg-[#0B0D0E] text-[#F2F1EC]">
       {/* Map Main Canvas */}
       <div className="flex-1 flex flex-col relative h-[50vh] lg:h-full">
-        {/* Map Filter & Metric Toolbar Overlay */}
-        <div className="absolute top-3 left-3 z-[1000] flex flex-wrap items-center gap-1.5 bg-slate-950/85 backdrop-blur-md p-1.5 rounded-xl border border-slate-800 shadow-xl">
-          <span className="text-[11px] font-mono text-slate-400 px-2 font-semibold">LAYER:</span>
-          {(['wbgt', 'risk', 'vulnerability', 'lst', 'uhi', 'admissions', 'temp'] as const).map((m) => (
+        {/* Top Control Bar: Layer Switcher & Basemap Toggle */}
+        <div className="absolute top-3 left-3 right-3 z-[1000] flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+          {/* Layer Selector */}
+          <div className="flex flex-wrap items-center gap-1.5 bg-[#14171A]/90 backdrop-blur-xl p-1.5 rounded-2xl border border-white/[0.08] shadow-2xl pointer-events-auto">
+            <span className="text-[10px] font-mono text-slate-400 px-2 font-bold tracking-wider">LAYER:</span>
+            {(['wbgt', 'risk', 'vulnerability', 'lst', 'uhi', 'admissions', 'temp'] as const).map((m) => (
+              <button
+                key={m}
+                id={`btn-metric-${m}`}
+                onClick={() => setMetricMode(m)}
+                className={`px-2.5 py-1 rounded-xl text-xs font-mono font-medium transition ${
+                  metricMode === m
+                    ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-md shadow-sky-500/25 font-semibold'
+                    : 'text-slate-300 hover:bg-white/[0.05]'
+                }`}
+              >
+                {m === 'wbgt' && '🔥 WBGT (Thermal Stress)'}
+                {m === 'risk' && '🛡️ Risk Index (Hazard × M_v)'}
+                {m === 'vulnerability' && '👥 Vulnerability Layer (Census/OSM)'}
+                {m === 'lst' && '🛰️ MODIS LST (Surface Skin)'}
+                {m === 'uhi' && '🏙️ Urban Heat Island (UHI)'}
+                {m === 'admissions' && '🏥 Hospital Impact'}
+                {m === 'temp' && '🌡️ Dry Bulb Temp'}
+              </button>
+            ))}
+          </div>
+
+          {/* Basemap Switcher (Dark vs Satellite) */}
+          <div className="flex items-center gap-1 bg-[#14171A]/90 backdrop-blur-xl p-1 rounded-2xl border border-white/[0.08] shadow-2xl pointer-events-auto">
             <button
-              key={m}
-              id={`btn-metric-${m}`}
-              onClick={() => setMetricMode(m)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition ${
-                metricMode === m
-                  ? 'bg-sky-500 text-white shadow-sm shadow-sky-500/30 font-semibold'
-                  : 'text-slate-300 hover:bg-slate-800'
+              id="btn-basemap-dark"
+              onClick={() => setBaseMapStyle('dark')}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-mono font-medium transition ${
+                baseMapStyle === 'dark'
+                  ? 'bg-white/[0.12] text-white font-bold shadow-inner'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
               }`}
             >
-              {m === 'wbgt' && '🔥 WBGT (Thermal Stress)'}
-              {m === 'risk' && '🛡️ Risk Index (Hazard × M_v)'}
-              {m === 'vulnerability' && '👥 Vulnerability Layer (Census/OSM)'}
-              {m === 'lst' && '🛰️ MODIS LST (Surface Skin)'}
-              {m === 'uhi' && '🏙️ Urban Heat Island (UHI)'}
-              {m === 'admissions' && '🏥 Hospital Impact'}
-              {m === 'temp' && '🌡️ Dry Bulb Temp'}
+              <Globe className="w-3.5 h-3.5 text-sky-400" />
+              <span>Dark Canvas</span>
             </button>
-          ))}
+            <button
+              id="btn-basemap-satellite"
+              onClick={() => setBaseMapStyle('satellite')}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-mono font-medium transition ${
+                baseMapStyle === 'satellite'
+                  ? 'bg-gradient-to-r from-emerald-500/30 to-sky-500/30 text-emerald-300 border border-emerald-500/40 font-bold'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5 text-emerald-400" />
+              <span>🛰️ Satellite</span>
+            </button>
+          </div>
         </div>
 
         {/* Legend Overlay */}
-        <div className="absolute bottom-4 left-4 z-[1000] bg-slate-950/85 backdrop-blur-md p-2.5 rounded-xl border border-slate-800 shadow-lg text-[11px] font-mono text-slate-300">
+        <div className="absolute bottom-4 left-4 z-[1000] bg-[#14171A]/90 backdrop-blur-xl p-3 rounded-2xl border border-white/[0.08] shadow-2xl text-[11px] font-mono text-slate-300 pointer-events-auto">
           {metricMode === 'vulnerability' ? (
             <>
               <div className="font-semibold text-slate-200 mb-1.5 flex items-center justify-between gap-4">
@@ -257,9 +348,9 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
                 <span className="text-[10px] text-purple-400 font-bold">M_v [0.70 - 1.50]</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Buffer (&lt;0.95)</span>
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-orange-400"></span> Moderate (0.95-1.10)</span>
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> High (1.10-1.25)</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#3A7D5C' }}></span> Buffer (&lt;0.95)</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#D9772E' }}></span> Moderate (0.95-1.10)</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#C0392B' }}></span> High (1.10-1.25)</span>
                 <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-purple-500"></span> Severe (&gt;1.25)</span>
               </div>
             </>
@@ -270,9 +361,9 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
                 <span className="text-[10px] text-cyan-400 font-bold">Thermal Infrared 1km</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> &lt;40°C Green</span>
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-orange-400"></span> 40-44°C Moderate</span>
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> 44-48°C High</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#3A7D5C' }}></span> &lt;40°C Skin</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#D9772E' }}></span> 40-44°C Moderate</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#C0392B' }}></span> 44-48°C High</span>
                 <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-purple-600"></span> &gt;48°C Extreme Radiant</span>
               </div>
             </>
@@ -283,23 +374,23 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
                 <span className="text-[10px] text-purple-400 font-bold">ΔT (vs Rural Baseline)</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Cool Island (&lt;+1.0°C)</span>
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Moderate (+1.0 - +2.5°C)</span>
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> High UHI (+2.5 - +4.0°C)</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#3A7D5C' }}></span> Cool Island (&lt;+1.0°C)</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#C9A227' }}></span> Moderate (+1.0 - +2.5°C)</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#C0392B' }}></span> High UHI (+2.5 - +4.0°C)</span>
                 <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-purple-600"></span> Severe Hotspot (&gt;+4.0°C)</span>
               </div>
             </>
           ) : (
             <>
               <div className="font-semibold text-slate-200 mb-1.5 flex items-center justify-between gap-4">
-                <span>THERMAL RISK TIER</span>
-                <span className="text-[10px] text-slate-500">NDMA / WBGT</span>
+                <span>OPERATIONAL THERMAL RISK TIER</span>
+                <span className="text-[10px] text-slate-400">NDMA / WBGT Standard</span>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> Green (&lt;28°C)</span>
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-yellow-400"></span> Yellow (28-30°C)</span>
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-orange-400"></span> Orange (30-32°C)</span>
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Red (&gt;32°C)</span>
+              <div className="flex items-center gap-2.5">
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#3A7D5C' }}></span> Green (&lt;28°C)</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#C9A227' }}></span> Yellow (28-30°C)</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#D9772E' }}></span> Orange (30-32°C)</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#C0392B' }}></span> Red (&gt;32°C)</span>
               </div>
             </>
           )}
@@ -310,22 +401,30 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
       </div>
 
       {/* Right Sidebar: District Deep-Dive & Top Hotspots */}
-      <div className="w-full lg:w-96 bg-slate-950/95 border-t lg:border-t-0 lg:border-l border-slate-800/80 flex flex-col h-[50vh] lg:h-full overflow-y-auto z-10 p-4 gap-4">
-        {/* District Header Card */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 relative overflow-hidden">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[11px] font-mono uppercase text-sky-400 font-semibold tracking-wide">
+      <div className="w-full lg:w-[410px] bg-[#0E1114]/95 backdrop-blur-2xl border-t lg:border-t-0 lg:border-l border-white/[0.08] flex flex-col h-[50vh] lg:h-full overflow-y-auto z-10 p-4 gap-4">
+        {/* District Header Card with Ambient Glow */}
+        <div className="relative bg-gradient-to-br from-[#14171A] to-[#1A1F24] border border-white/[0.08] rounded-2xl p-4 shadow-xl overflow-hidden">
+          {/* Ambient Glow behind Hero Metric */}
+          <div 
+            className="pointer-events-none absolute -right-6 -top-6 w-36 h-36 rounded-full blur-3xl opacity-25"
+            style={{ backgroundColor: riskTierColor }}
+          />
+
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[10px] font-mono uppercase text-sky-400 font-bold tracking-wider flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-sky-400" />
               DISTRICT PROFILE · ODISHA
             </span>
             <div className="flex items-center gap-1.5">
-              <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
-                currentDistrict?.RiskTier === 'Red'
-                  ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                  : currentDistrict?.RiskTier === 'Orange'
-                  ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                  : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
-              }`}>
-                {currentDistrict?.RiskTier || 'Yellow'} Tier
+              <span 
+                className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full text-white border"
+                style={{ 
+                  backgroundColor: `${riskTierColor}33`, 
+                  borderColor: `${riskTierColor}66`,
+                  color: riskTierColor === '#3A7D5C' ? '#a7f3d0' : '#ffffff'
+                }}
+              >
+                {currentDistrict?.RiskTier || 'Yellow'} Alert Tier
               </span>
               <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
                 M_v: ×{(currentDistrict?.vulnerability_multiplier || 1.0).toFixed(2)}
@@ -334,21 +433,24 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
           </div>
 
           <div className="flex items-baseline justify-between mt-1">
-            <h2 className="text-2xl font-bold font-display text-white tracking-tight">
-              {currentDistrict?.district || 'Khordha'}
-            </h2>
+            <div>
+              <h2 className="text-2xl font-bold font-display text-white tracking-tight">
+                {currentDistrict?.district || 'Khordha'}
+              </h2>
+              <span className="text-xs text-slate-400 font-sans">Centroid: 20.2°N, 85.8°E</span>
+            </div>
             <div className="text-right">
-              <span className="text-3xl font-mono font-black text-amber-400">
+              <span className="text-3xl font-mono font-black tracking-tight" style={{ color: riskTierColor }}>
                 {currentDistrict?.WBGT_celsius || 31.8}°
               </span>
-              <span className="text-xs text-slate-400 block -mt-1 font-mono">WBGT Index</span>
+              <span className="text-[10px] text-slate-400 block -mt-1 font-mono uppercase font-semibold">WBGT Heat Stress</span>
             </div>
           </div>
 
-          {/* Quick Metrics Grid */}
-          <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-slate-800/80">
-            <div className="bg-slate-950/60 p-2 rounded-xl border border-slate-800/50">
-              <div className="flex items-center gap-1 text-[11px] text-slate-400">
+          {/* Quick Atmospheric Metrics Grid */}
+          <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-white/[0.08]">
+            <div className="bg-[#0B0D0E]/60 p-2 rounded-xl border border-white/[0.05]">
+              <div className="flex items-center gap-1 text-[10px] font-mono text-slate-400">
                 <Flame className="w-3 h-3 text-rose-400" /> Air Temp
               </div>
               <div className="text-base font-bold font-mono text-slate-100 mt-0.5">
@@ -356,8 +458,8 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
               </div>
             </div>
 
-            <div className="bg-slate-950/60 p-2 rounded-xl border border-slate-800/50">
-              <div className="flex items-center gap-1 text-[11px] text-slate-400">
+            <div className="bg-[#0B0D0E]/60 p-2 rounded-xl border border-white/[0.05]">
+              <div className="flex items-center gap-1 text-[10px] font-mono text-slate-400">
                 <Droplets className="w-3 h-3 text-sky-400" /> Humidity
               </div>
               <div className="text-base font-bold font-mono text-slate-100 mt-0.5">
@@ -365,9 +467,9 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
               </div>
             </div>
 
-            <div className="bg-slate-950/60 p-2 rounded-xl border border-slate-800/50">
-              <div className="flex items-center gap-1 text-[11px] text-slate-400">
-                <Users className="w-3 h-3 text-emerald-400" /> Pop (Est)
+            <div className="bg-[#0B0D0E]/60 p-2 rounded-xl border border-white/[0.05]">
+              <div className="flex items-center gap-1 text-[10px] font-mono text-slate-400">
+                <Users className="w-3 h-3 text-emerald-400" /> Population
               </div>
               <div className="text-base font-bold font-mono text-slate-100 mt-0.5">
                 {((currentDistrict?.population_2011_est || 1500000) / 1000000).toFixed(1)}M
@@ -375,51 +477,63 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
             </div>
           </div>
 
-          {/* Census & OSM Vulnerability Matrix */}
-          <div className="mt-3 pt-2.5 border-t border-slate-800/80">
+          {/* Census & OSM Vulnerability Multipliers with progress indicators */}
+          <div className="mt-3 pt-2.5 border-t border-white/[0.08]">
             <div className="flex items-center justify-between mb-1.5 text-[11px] font-mono">
               <span className="text-indigo-400 font-semibold uppercase tracking-wider">Census &amp; OSM Multipliers</span>
-              <span className="text-slate-400 text-[10px]">Score: {currentDistrict?.vulnerability_score || 48}/100</span>
+              <span className="text-slate-400 text-[10px]">Composite Score: {currentDistrict?.vulnerability_score || 48}/100</span>
             </div>
             <div className="grid grid-cols-4 gap-1.5 text-[10px] font-mono">
-              <div className="bg-slate-950/60 p-1.5 rounded-lg border border-slate-800/60 text-center">
-                <span className="text-slate-500 block text-[9px]">Elderly</span>
+              <div className="bg-[#0B0D0E]/60 p-1.5 rounded-xl border border-white/[0.05] text-center">
+                <span className="text-slate-400 block text-[9px]">Elderly</span>
                 <span className="text-sky-300 font-bold">{currentDistrict?.elderly_pct || 9.8}%</span>
+                <div className="w-full bg-slate-800 h-1 rounded-full mt-1 overflow-hidden">
+                  <div className="bg-sky-400 h-full rounded-full" style={{ width: `${Math.min(100, (currentDistrict?.elderly_pct || 9.8) * 5)}%` }} />
+                </div>
               </div>
-              <div className="bg-slate-950/60 p-1.5 rounded-lg border border-slate-800/60 text-center">
-                <span className="text-slate-500 block text-[9px]">Labor</span>
+              <div className="bg-[#0B0D0E]/60 p-1.5 rounded-xl border border-white/[0.05] text-center">
+                <span className="text-slate-400 block text-[9px]">Labor</span>
                 <span className="text-amber-300 font-bold">{currentDistrict?.outdoor_worker_pct || 28.0}%</span>
+                <div className="w-full bg-slate-800 h-1 rounded-full mt-1 overflow-hidden">
+                  <div className="bg-amber-400 h-full rounded-full" style={{ width: `${Math.min(100, (currentDistrict?.outdoor_worker_pct || 28.0) * 2)}%` }} />
+                </div>
               </div>
-              <div className="bg-slate-950/60 p-1.5 rounded-lg border border-slate-800/60 text-center">
-                <span className="text-slate-500 block text-[9px]">Canopy</span>
+              <div className="bg-[#0B0D0E]/60 p-1.5 rounded-xl border border-white/[0.05] text-center">
+                <span className="text-slate-400 block text-[9px]">Canopy</span>
                 <span className="text-emerald-300 font-bold">{currentDistrict?.tree_cover_pct || 18.2}%</span>
+                <div className="w-full bg-slate-800 h-1 rounded-full mt-1 overflow-hidden">
+                  <div className="bg-emerald-400 h-full rounded-full" style={{ width: `${Math.min(100, (currentDistrict?.tree_cover_pct || 18.2) * 2.5)}%` }} />
+                </div>
               </div>
-              <div className="bg-slate-950/60 p-1.5 rounded-lg border border-slate-800/60 text-center">
-                <span className="text-slate-500 block text-[9px]">Tin Roof</span>
+              <div className="bg-[#0B0D0E]/60 p-1.5 rounded-xl border border-white/[0.05] text-center">
+                <span className="text-slate-400 block text-[9px]">Tin Roof</span>
                 <span className="text-rose-300 font-bold">{currentDistrict?.high_heat_roof_pct || 32.5}%</span>
+                <div className="w-full bg-slate-800 h-1 rounded-full mt-1 overflow-hidden">
+                  <div className="bg-rose-400 h-full rounded-full" style={{ width: `${Math.min(100, (currentDistrict?.high_heat_roof_pct || 32.5) * 2)}%` }} />
+                </div>
               </div>
             </div>
           </div>
 
           {/* Satellite Earth Observation (MODIS LST & NASA POWER) */}
-          <div className="mt-3 pt-2.5 border-t border-slate-800/80">
+          <div className="mt-3 pt-2.5 border-t border-white/[0.08]">
             <div className="flex items-center justify-between mb-1.5 text-[11px] font-mono">
               <span className="text-cyan-400 font-semibold uppercase tracking-wider flex items-center gap-1">
-                🛰️ Satellite Earth Observation
+                🛰️ Earth Observation Layer
               </span>
-              <span className="text-[10px] text-slate-400">MODIS &amp; NASA</span>
+              <span className="text-[10px] text-slate-400">MODIS &amp; NASA POWER</span>
             </div>
             <div className="grid grid-cols-3 gap-1.5 text-[10px] font-mono">
-              <div className="bg-slate-950/60 p-1.5 rounded-lg border border-slate-800/60 text-center">
-                <span className="text-slate-500 block text-[9px]">MODIS LST</span>
+              <div className="bg-[#0B0D0E]/60 p-1.5 rounded-xl border border-white/[0.05] text-center">
+                <span className="text-slate-400 block text-[9px]">MODIS LST</span>
                 <span className="text-rose-400 font-bold">{currentDistrict?.modis_lst_c || (Number(currentDistrict?.temperature_c || 38.5) + 6.8).toFixed(1)}°C</span>
               </div>
-              <div className="bg-slate-950/60 p-1.5 rounded-lg border border-slate-800/60 text-center">
-                <span className="text-slate-500 block text-[9px]">UHI Anomaly</span>
+              <div className="bg-[#0B0D0E]/60 p-1.5 rounded-xl border border-white/[0.05] text-center">
+                <span className="text-slate-400 block text-[9px]">UHI Anomaly</span>
                 <span className="text-purple-400 font-bold">{currentDistrict?.uhi_anomaly_c !== undefined ? (currentDistrict.uhi_anomaly_c >= 0 ? `+${currentDistrict.uhi_anomaly_c}°C` : `${currentDistrict.uhi_anomaly_c}°C`) : '+3.4°C'}</span>
               </div>
-              <div className="bg-slate-950/60 p-1.5 rounded-lg border border-slate-800/60 text-center">
-                <span className="text-slate-500 block text-[9px]">NASA Solar</span>
+              <div className="bg-[#0B0D0E]/60 p-1.5 rounded-xl border border-white/[0.05] text-center">
+                <span className="text-slate-400 block text-[9px]">NASA Solar</span>
                 <span className="text-amber-300 font-bold">{currentDistrict?.nasa_solar_wm2 || 908} W/m²</span>
               </div>
             </div>
@@ -429,21 +543,21 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
           <button
             id={`btn-dispatch-${currentDistrict?.district || 'Khordha'}`}
             onClick={() => onDispatchAlert(currentDistrict?.district || 'Khordha')}
-            className="w-full mt-3 py-2 bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-lg shadow-amber-500/20"
+            className="w-full mt-3 py-2.5 bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-amber-500/20 active:scale-[0.99]"
           >
             <Send className="w-3.5 h-3.5" />
-            Dispatch District SMS/IVRS Alert
+            <span>Dispatch SMS / IVRS Alert to {currentDistrict?.district || 'Khordha'}</span>
           </button>
         </div>
 
         {/* Hospital Surge Forecast (5-Day DLNM+XGBoost) */}
-        <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4">
+        <div className="bg-[#14171A]/80 border border-white/[0.08] rounded-2xl p-4 shadow-md">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
               <Activity className="w-4 h-4 text-rose-400" />
-              5-Day Hospital Admission Surge
+              5-Day Hospital Surge Projections
             </span>
-            <span className="text-[10px] font-mono text-slate-400">2-Stage DLNM</span>
+            <span className="text-[10px] font-mono text-slate-400">2-Stage DLNM Model</span>
           </div>
 
           {districtDetail?.hospital_impact_forecast && districtDetail.hospital_impact_forecast.length > 0 ? (
@@ -453,65 +567,79 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
                   <XAxis 
                     dataKey="date" 
                     tickFormatter={(v) => v.slice(5)} 
-                    tick={{ fill: '#94a3b8', fontSize: 10, fontFamily: 'JetBrains Mono' }} 
+                    tick={{ fill: '#8B9096', fontSize: 10, fontFamily: 'JetBrains Mono' }} 
                   />
-                  <YAxis tick={{ fill: '#94a3b8', fontSize: 10, fontFamily: 'JetBrains Mono' }} />
+                  <YAxis tick={{ fill: '#8B9096', fontSize: 10, fontFamily: 'JetBrains Mono' }} />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', fontSize: '11px' }}
+                    contentStyle={{ backgroundColor: '#14171A', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '11px', color: '#F2F1EC' }}
                     labelFormatter={(v) => `Date: ${v}`}
                     formatter={(val: any) => [`${val} admissions/day`, 'Predicted Surge']}
                   />
-                  <Bar dataKey="predicted_admissions" radius={[4, 4, 0, 0]}>
+                  <Bar dataKey="predicted_admissions" radius={[6, 6, 0, 0]}>
                     {districtDetail.hospital_impact_forecast.map((entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={entry.ImpactTier === 'Red' ? '#f43f5e' : entry.ImpactTier === 'Orange' ? '#fb923c' : '#facc15'} />
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={entry.ImpactTier === 'Red' ? '#C0392B' : entry.ImpactTier === 'Orange' ? '#D9772E' : '#C9A227'} 
+                      />
                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="text-xs text-slate-500 py-4 text-center">Loading surge projections...</div>
+            <div className="text-xs text-slate-500 py-6 text-center font-mono">Loading DLNM surge curves...</div>
           )}
         </div>
 
         {/* Top 5 Thermal Hotspots Leaderboard */}
-        <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4">
+        <div className="bg-[#14171A]/80 border border-white/[0.08] rounded-2xl p-4 shadow-md">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
               <TrendingUp className="w-4 h-4 text-amber-400" />
               Statewide Thermal Hotspots
             </span>
-            <span className="text-[10px] font-mono text-slate-400">Peak WBGT</span>
+            <span className="text-[10px] font-mono text-slate-400">Ranked by WBGT</span>
           </div>
 
           <div className="space-y-2">
-            {sortedDistricts.slice(0, 5).map((dist, idx) => (
-              <div
-                key={dist.district}
-                id={`hotspot-row-${dist.district}`}
-                onClick={() => setSelectedDistrictName(dist.district)}
-                className={`flex items-center justify-between p-2 rounded-xl cursor-pointer transition ${
-                  dist.district.toLowerCase() === selectedDistrictName.toLowerCase()
-                    ? 'bg-sky-500/15 border border-sky-500/40 text-white'
-                    : 'bg-slate-950/40 border border-slate-800/60 hover:bg-slate-800/50 text-slate-300'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-slate-800 text-[10px] font-mono font-bold flex items-center justify-center text-slate-400">
-                    {idx + 1}
-                  </span>
-                  <div>
-                    <div className="text-xs font-bold font-sans">{dist.district}</div>
-                    <div className="text-[10px] text-slate-500">{dist.RiskTier} Alert Tier</div>
+            {sortedDistricts.slice(0, 5).map((dist, idx) => {
+              const isSelected = dist.district.toLowerCase() === selectedDistrictName.toLowerCase();
+              const rankColor = idx === 0 
+                ? 'bg-amber-400/20 text-amber-300 border-amber-400/30' 
+                : idx === 1 
+                ? 'bg-slate-300/20 text-slate-200 border-slate-300/30' 
+                : idx === 2 
+                ? 'bg-amber-700/20 text-amber-500 border-amber-600/30' 
+                : 'bg-slate-800 text-slate-400 border-white/[0.05]';
+
+              return (
+                <div
+                  key={dist.district}
+                  id={`hotspot-row-${dist.district}`}
+                  onClick={() => setSelectedDistrictName(dist.district)}
+                  className={`flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition ${
+                    isSelected
+                      ? 'bg-sky-500/15 border border-sky-500/50 text-white shadow-sm shadow-sky-500/10'
+                      : 'bg-[#0B0D0E]/50 border border-white/[0.05] hover:bg-white/[0.05] text-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className={`w-5 h-5 rounded-full text-[10px] font-mono font-bold flex items-center justify-center border ${rankColor}`}>
+                      {idx + 1}
+                    </span>
+                    <div>
+                      <div className="text-xs font-bold font-sans">{dist.district}</div>
+                      <div className="text-[10px] text-slate-400">{dist.RiskTier} Alert Tier</div>
+                    </div>
+                  </div>
+
+                  <div className="text-right flex items-center gap-2">
+                    <span className="font-mono font-bold text-xs text-amber-300">{dist.WBGT_celsius}°C</span>
+                    <ChevronRight className={`w-3.5 h-3.5 transition ${isSelected ? 'text-sky-400 translate-x-0.5' : 'text-slate-500'}`} />
                   </div>
                 </div>
-
-                <div className="text-right">
-                  <span className="font-mono font-bold text-xs text-amber-400">{dist.WBGT_celsius}°C</span>
-                  <ChevronRight className="w-3.5 h-3.5 inline ml-1 text-slate-500" />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

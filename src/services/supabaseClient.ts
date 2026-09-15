@@ -18,8 +18,9 @@ export interface WardRiskChangeEvent {
 }
 
 // Read environment variables (supports Vite import.meta.env or window overrides)
-const SUPABASE_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) || '';
-const SUPABASE_ANON_KEY = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) || '';
+const metaEnv = typeof import.meta !== 'undefined' ? (import.meta as any).env : {};
+const SUPABASE_URL = metaEnv?.VITE_SUPABASE_URL || '';
+const SUPABASE_ANON_KEY = metaEnv?.VITE_SUPABASE_ANON_KEY || '';
 
 let activeChannel: any = null;
 let sseEventSource: EventSource | null = null;
