@@ -6,6 +6,8 @@ import StressIndexCard from "../components/StressIndexCard";
 import ForecastChart from "../components/ForecastChart";
 import EarlyWarning from "../components/EarlyWarning";
 import AIAdvisor from "../components/AIAdvisor";
+import { OrganStrainHologram } from "../components/OrganStrainHologram";
+import { SolarNoonFluxWidget } from "../components/SolarNoonFluxWidget";
 import { getWeatherData } from "../services/weatherAPi";
 import { 
   ShieldAlert, 
@@ -286,6 +288,13 @@ function Dashboard({
           />
         </div>
 
+        {/* 3b. Astronomical Solar Noon Countdown & Atmospheric Convective Thermal Streamlines */}
+        <SolarNoonFluxWidget
+          ambientTemp={liveTemp}
+          solarRadiation={liveSolar}
+          windSpeed={liveWind}
+        />
+
         {/* 4. Human Thermal Stress, Heat Risk & Population Exposure Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           <ThermalStressCard
@@ -306,6 +315,13 @@ function Dashboard({
             score={hThermScore}
           />
         </div>
+
+        {/* 4b. Interactive Biotech Human Physiological Organ Strain Hologram */}
+        <OrganStrainHologram
+          score={hThermScore}
+          wbgt={wbgtVal}
+          ambientTemp={liveTemp}
+        />
 
         {/* 5. Population Exposure & Demographic Vulnerability Card */}
         <div className="bg-gradient-to-br from-[#14171A] to-[#1A1F24] rounded-2xl border border-white/[0.08] p-5 shadow-xl">
