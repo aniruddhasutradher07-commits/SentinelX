@@ -33,6 +33,13 @@ class Ward(Base):
 
     vulnerability_score = Column(Float)
 
+    # --- Census & OSM Vulnerability Layer Multipliers ---
+    elderly_pct = Column(Float, nullable=True, default=9.5)
+    outdoor_worker_pct = Column(Float, nullable=True, default=24.0)
+    tree_cover_pct = Column(Float, nullable=True, default=18.0)
+    high_heat_roof_pct = Column(Float, nullable=True, default=32.0)
+    vulnerability_multiplier = Column(Float, nullable=True, default=1.0)
+
     # --- Added for SentinelX live-weather integration (additive, optional) ---
     ward_code = Column(String, nullable=True, index=True)   # e.g. "W21"
     zone = Column(String, nullable=True)                     # e.g. "North Zone"
@@ -57,6 +64,10 @@ class RiskPrediction(Base):
     utci = Column(Float, nullable=True)
 
     wbgt = Column(Float, nullable=True)
+
+    thermal_hazard_score = Column(Float, nullable=True)
+
+    vulnerability_multiplier = Column(Float, nullable=True)
 
     risk_score = Column(Float)
 

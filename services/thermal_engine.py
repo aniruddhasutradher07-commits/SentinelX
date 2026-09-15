@@ -40,14 +40,19 @@ def _natural_wet_bulb(T_c, RH):
             - 4.686035)
 
 
-def _globe_temp(T_c, solar, wind):
+def _globe_temp(T_c, solar, wind, lst_c=None):
     wind = max(wind, 0.5)
-    return T_c + (0.02 * solar) / (1 + wind)
+    base_tg = T_c + (0.02 * solar) / (1 + wind)
+    # Radiative ground skin coupling from MODIS Land Surface Temperature (LST)
+    if lst_c is not None and lst_c > T_c:
+        surface_radiant_lift = (lst_c - T_c) * 0.18
+        return base_tg + surface_radiant_lift
+    return base_tg
 
 
-def wbgt_outdoor_celsius(T_c, RH, solar, wind):
+def wbgt_outdoor_celsius(T_c, RH, solar, wind, lst_c=None):
     Tw = _natural_wet_bulb(T_c, RH)
-    Tg = _globe_temp(T_c, solar, wind)
+    Tg = _globe_temp(T_c, solar, wind, lst_c=lst_c)
     return 0.7 * Tw + 0.2 * Tg + 0.1 * T_c
 
 

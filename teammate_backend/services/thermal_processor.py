@@ -75,13 +75,23 @@ def process_thermal_reading(db, ward, temperature, humidity, wind_speed,
     db.commit()
     db.refresh(weather)
 
-    risk = calculate_risk(utci or 0, wbgt or 0, ward.vulnerability_score or 0)
+    risk = calculate_risk(
+        utci or 0,
+        wbgt or 0,
+        vulnerability=ward.vulnerability_score or 0.5,
+        elderly_pct=getattr(ward, "elderly_pct", 9.5),
+        outdoor_worker_pct=getattr(ward, "outdoor_worker_pct", 24.0),
+        tree_cover_pct=getattr(ward, "tree_cover_pct", 18.0),
+        high_heat_roof_pct=getattr(ward, "high_heat_roof_pct", 32.0),
+    )
 
     prediction = RiskPrediction(
         ward_id=ward.id, temperature=temperature, humidity=humidity,
         hi=round(hi, 1) if hi is not None else None,
         utci=round(utci, 1) if utci is not None else None,
         wbgt=round(wbgt, 1) if wbgt is not None else None,
+        thermal_hazard_score=risk.get("thermal_score"),
+        vulnerability_multiplier=risk.get("vulnerability_multiplier"),
         risk_score=risk["risk_score"], risk_level=risk["risk_level"],
         prediction_time=datetime.now(timezone.utc).isoformat(),
     )

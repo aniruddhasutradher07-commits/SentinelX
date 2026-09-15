@@ -11,7 +11,9 @@ import {
   Calculator, 
   Sparkles, 
   Database, 
-  Code 
+  Code,
+  Zap,
+  Users
 } from 'lucide-react';
 import { LiveTelemetry } from '../types';
 
@@ -22,6 +24,13 @@ interface HeaderProps {
   onOpenCopilot: () => void;
   onOpenDispatcher: () => void;
   onExportSitRep: () => void;
+  realtimeStatus?: {
+    connected: boolean;
+    status: 'connected' | 'reconnecting' | 'disconnected';
+    channelType: string;
+  };
+  onSimulateSensorPulse?: () => void;
+  isSimulatingPulse?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -31,13 +40,18 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenCopilot,
   onOpenDispatcher,
   onExportSitRep,
+  realtimeStatus,
+  onSimulateSensorPulse,
+  isSimulatingPulse,
 }) => {
   const tabs = [
-    { id: 'odisha', label: 'Odisha Statewide', icon: MapPin, badge: '30 Districts' },
-    { id: 'wards', label: 'Bhubaneswar Core', icon: Building2, badge: '67 Wards' },
+    { id: 'odisha', label: 'Odisha Statewide', icon: MapPin, badge: 'Overview 3.1' },
+    { id: 'wards', label: 'Bhubaneswar Core', icon: Building2, badge: 'Operations 3.2' },
+    { id: 'citizen', label: 'Citizen Advisory', icon: Users, badge: 'Public 3.4' },
+    { id: 'simulator', label: 'What-If Simulator', icon: Calculator, badge: 'Planning 3.5' },
     { id: 'hospital', label: 'Hospital Surge ML', icon: Activity, badge: 'DLNM + XGB' },
-    { id: 'htherm', label: 'H-THERM Calc', icon: Calculator, badge: 'Physiology' },
-    { id: 'copilot', label: 'AI Copilot & Alerts', icon: Sparkles, badge: 'Gemini AI' },
+    { id: 'htherm', label: 'H-THERM Calc', icon: Sparkles, badge: 'Physiology' },
+    { id: 'copilot', label: 'AI Copilot', icon: Bot, badge: 'Gemini' },
     { id: 'benchmarks', label: 'NDMA Validation', icon: Database, badge: '1998-2024' },
     { id: 'api', label: 'API Explorer', icon: Code, badge: 'REST' },
   ];
@@ -66,7 +80,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Live Telemetry Pill */}
+        {/* Live Telemetry Pill & CDC Realtime Indicator */}
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-full text-xs font-mono">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-sm shadow-emerald-400"></span>
@@ -74,6 +88,21 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="text-slate-500">|</span>
             <span className="text-slate-300 text-[11px]">
               {telemetry?.telemetry.peak_district || 'Khordha'}: {telemetry?.telemetry.peak_wbgt_statewide || 32.4}°C WBGT
+            </span>
+          </div>
+
+          {/* Realtime CDC Postgres / SSE status badge */}
+          <div 
+            className={`hidden md:flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-mono border transition-all ${
+              realtimeStatus?.connected 
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
+                : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+            }`}
+            title={realtimeStatus?.channelType || 'Realtime Postgres CDC / SSE Active'}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${realtimeStatus?.connected ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'}`} />
+            <span className="font-semibold tracking-wider">
+              {realtimeStatus?.connected ? 'CDC REALTIME' : 'CDC SYNC'}
             </span>
           </div>
 
@@ -112,6 +141,20 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Quick Trigger Action Buttons */}
       <div className="flex items-center gap-2">
+        {onSimulateSensorPulse && (
+          <button
+            id="btn-simulate-pulse"
+            onClick={onSimulateSensorPulse}
+            disabled={isSimulatingPulse}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/25 active:scale-95 transition text-xs font-semibold shadow-sm shadow-emerald-500/10 disabled:opacity-50"
+            title="Simulate Realtime Ingestion of Ward IoT / AWS Telemetry (Triggers Live CDC Refresh for SIH Jury Demo)"
+          >
+            <Zap className={`w-3.5 h-3.5 text-emerald-400 ${isSimulatingPulse ? 'animate-spin' : 'animate-pulse'}`} />
+            <span className="hidden sm:inline">⚡ Ingest Sensor Pulse</span>
+            <span className="text-[9px] px-1 py-0.5 bg-emerald-500/30 rounded font-mono uppercase text-emerald-200">SIH Demo</span>
+          </button>
+        )}
+
         <button
           id="btn-quick-copilot"
           onClick={onOpenCopilot}

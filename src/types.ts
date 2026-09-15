@@ -1,3 +1,14 @@
+export interface VulnerabilityProfile {
+  elderly_pct: number;
+  outdoor_worker_pct: number;
+  tree_cover_pct: number;
+  high_heat_roof_pct: number;
+  vulnerability_score: number;
+  vulnerability_multiplier: number;
+  vulnerability_tier: 'LOW' | 'MODERATE' | 'HIGH' | 'SEVERE';
+  dominant_factor?: string;
+}
+
 export interface DistrictRiskRecord {
   district: string;
   population_2011_est: number;
@@ -13,8 +24,20 @@ export interface DistrictRiskRecord {
   HI_celsius: number;
   WBGT_celsius: number;
   UTCI_celsius: number | null;
+  thermal_hazard_score?: number;
   DistrictRiskScore: number;
   RiskTier: 'Green' | 'Yellow' | 'Orange' | 'Red';
+  elderly_pct?: number;
+  outdoor_worker_pct?: number;
+  tree_cover_pct?: number;
+  high_heat_roof_pct?: number;
+  vulnerability_score?: number;
+  vulnerability_multiplier?: number;
+  vulnerability_tier?: string;
+  dominant_factor?: string;
+  modis_lst_c?: number;
+  uhi_anomaly_c?: number;
+  nasa_solar_wm2?: number;
 }
 
 export interface DistrictImpactRecord {
@@ -43,8 +66,38 @@ export interface WardRiskRecord {
   HI_celsius: number;
   WBGT_celsius: number;
   UTCI_celsius: number | null;
+  thermal_hazard_score?: number;
   WardRiskScore: number;
   RiskTier: 'Green' | 'Yellow' | 'Orange' | 'Red';
+  elderly_pct?: number;
+  outdoor_worker_pct?: number;
+  tree_cover_pct?: number;
+  high_heat_roof_pct?: number;
+  vulnerability_score?: number;
+  vulnerability_multiplier?: number;
+  vulnerability_tier?: string;
+  dominant_factor?: string;
+  modis_lst_c?: number;
+  modis_lst_day_c?: number;
+  modis_lst_night_c?: number;
+  sentinel2_ndvi?: number;
+  uhi_anomaly_c?: number;
+  uhi_classification?: string;
+  nasa_solar_wm2?: number;
+  nasa_solar_radiation_wm2?: number;
+  satellite_tree_cover_pct?: number;
+}
+
+export interface SatelliteObservation {
+  ward_no: string;
+  modis_lst_c: number;
+  modis_lst_night_c: number;
+  sentinel2_ndvi: number;
+  satellite_tree_cover_pct: number;
+  uhi_anomaly_c: number;
+  uhi_classification: string;
+  nasa_solar_radiation_wm2: number;
+  nasa_source: string;
 }
 
 export interface WardImpactRecord {

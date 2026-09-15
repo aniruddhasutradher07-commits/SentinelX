@@ -1,34 +1,72 @@
 # ==============================================================================
-# SentinelX / THERMO-SHIELD AI — Production Dockerfile
+# SentinelX / THERMO-SHIELD AI — Multi-Stage Production Dockerfile
+# ==============================================================================
+
+# ==============================================================================
+# STAGE 1: Python Build — Compile Python dependencies into wheel cache
+# ==============================================================================
+FROM python:3.13-slim AS python-builder
+
+WORKDIR /build
+
+# Install build essentials (gcc required for XGBoost, pandas, pythermalcomfort)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    make \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt ./
+
+# Build wheels into /opt/wheels
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /opt/wheels -r requirements.txt
+
+
+# ==============================================================================
+# STAGE 2: Runtime — Lean Python application image
 # ==============================================================================
 FROM python:3.13-slim
 
 WORKDIR /app
 
-# Set system environment variables
+# Install runtime-only essentials (curl for healthcheck, libgomp1 for XGBoost)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set environment
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PORT=8000
 
-# Install essential system utilities
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    gcc \
-    libgomp1 \
-    && rm -rf /var/lib/apt/lists/*
+# Copy pre-built Python wheels from builder stage
+COPY --from=python-builder /opt/wheels /opt/wheels
 
-# Install Python dependencies
+# Install Python dependencies from wheels (no compilation needed in final image)
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache /opt/wheels/* && rm -rf /opt/wheels
 
-# Copy application source code, databases, and dashboard templates
-COPY . .
+# Copy Python application code
+COPY main.py database.py schemas.py models.py ./
+COPY routers ./routers
+COPY services ./services
+COPY scripts ./scripts
 
-# Expose FastAPI Master Service Port
+# Create required directories
+RUN mkdir -p data
+
+# Copy data, GeoJSON, and pre-built HTML dashboards
+COPY data/ ./data/
+COPY *.geojson ./
+COPY *.html ./
+COPY *.csv ./
+
+# Expose port
 EXPOSE 8000
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD curl -f http://localhost:8000/health || exit 1
 
 # Start FastAPI Master Backend with Uvicorn

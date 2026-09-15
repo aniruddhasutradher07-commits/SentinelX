@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Header } from './components/Header';
+import { Header } from './components/Header.tsx';
 import { OdishaMap } from './components/OdishaMap';
 import { WardView } from './components/WardView';
 import { HospitalSurgeView } from './components/HospitalSurgeView';
@@ -7,7 +7,11 @@ import { HThermCalculator } from './components/HThermCalculator';
 import { AICopilotModal } from './components/AICopilotModal';
 import { BenchmarksView } from './components/BenchmarksView';
 import { ApiExplorer } from './components/ApiExplorer';
+import { CitizenAdvisoryView } from './components/CitizenAdvisoryView';
+import { WhatIfSimulator } from './components/WhatIfSimulator';
 import { AlertDispatchModal } from './components/AlertDispatchModal';
+import { Zap, X } from 'lucide-react';
+import { subscribeToWardRiskUpdates } from './services/supabaseClient';
 import { 
   SystemSummary, 
   DistrictRiskRecord, 
@@ -23,6 +27,24 @@ export function App() {
   const [wards, setWards] = useState<WardRiskRecord[]>([]);
   const [geoJson, setGeoJson] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
+
+  // Realtime CDC State
+  const [realtimeStatus, setRealtimeStatus] = useState<{
+    connected: boolean;
+    status: 'connected' | 'reconnecting' | 'disconnected';
+    channelType: string;
+  }>({
+    connected: false,
+    status: 'reconnecting',
+    channelType: 'Connecting to Realtime stream...',
+  });
+  const [isSimulatingPulse, setIsSimulatingPulse] = useState<boolean>(false);
+  const [realtimeToast, setRealtimeToast] = useState<{
+    message: string;
+    subtext?: string;
+    timestamp: string;
+    wardNo?: string;
+  } | null>(null);
 
   // Modals state
   const [isCopilotOpen, setIsCopilotOpen] = useState<boolean>(false);
@@ -71,6 +93,78 @@ export function App() {
     return () => clearInterval(interval);
   }, []);
 
+  // Supabase Realtime CDC Listener (with Fallback to Local SSE Stream)
+  useEffect(() => {
+    const unsubscribe = subscribeToWardRiskUpdates(
+      (event) => {
+        const record = event.record;
+        if (!record) return;
+
+        const wardNo = record.ward_no;
+        if (!wardNo) return;
+
+        // 1. Instantly update wards list in state without page reload
+        setWards((prevWards) => {
+          const idx = prevWards.findIndex(
+            (w) => String(w.ward_no).toUpperCase() === String(wardNo).toUpperCase()
+          );
+          if (idx >= 0) {
+            const updated = [...prevWards];
+            updated[idx] = { ...updated[idx], ...record };
+            return updated;
+          } else {
+            return [record, ...prevWards];
+          }
+        });
+
+        // 2. Trigger Floating Live CDC Alert Banner
+        const wbgtVal = record.WBGT_celsius ?? record.wbgt ?? 32.5;
+        const riskScore = record.WardRiskScore ?? record.risk_score ?? 75;
+        const tier = record.RiskTier ?? (riskScore >= 85 ? 'Red' : (riskScore >= 70 ? 'Orange' : 'Yellow'));
+        const multiplier = record.vulnerability_multiplier ? ` · M_v: ${record.vulnerability_multiplier}` : '';
+
+        setRealtimeToast({
+          message: `⚡ [REALTIME CDC] Ward ${wardNo} Telemetry Ingested`,
+          subtext: `WBGT: ${wbgtVal}°C · Risk Index: ${riskScore} (${tier} Alert)${multiplier}`,
+          timestamp: new Date().toLocaleTimeString(),
+          wardNo: String(wardNo),
+        });
+
+        // Auto-dismiss toast after 6 seconds
+        setTimeout(() => {
+          setRealtimeToast((curr) => (curr?.wardNo === String(wardNo) ? null : curr));
+        }, 6000);
+      },
+      (status, channelType) => {
+        setRealtimeStatus({
+          connected: status === 'connected',
+          status,
+          channelType,
+        });
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  // Simulated IoT / AWS Sensor Ingestion for SIH Jury Demo
+  const handleSimulatePulse = async () => {
+    try {
+      setIsSimulatingPulse(true);
+      const demoWards = ['W21', 'W04', 'W12', 'W35', 'W42', 'W58', 'W15', 'W09'];
+      const targetWard = demoWards[Math.floor(Math.random() * demoWards.length)];
+      await fetch(`/api/v1/realtime/simulate-update?ward_no=${targetWard}`, {
+        method: 'POST',
+      });
+    } catch (err) {
+      console.error('Pulse simulation error:', err);
+    } finally {
+      setTimeout(() => setIsSimulatingPulse(false), 600);
+    }
+  };
+
   const handleOpenDispatcher = (region: string, customMessage?: string) => {
     setDispatchTarget(region);
     if (customMessage) setDispatchMessage(customMessage);
@@ -115,6 +209,9 @@ export function App() {
         onOpenCopilot={() => setActiveTab('copilot')}
         onOpenDispatcher={() => handleOpenDispatcher('Khordha')}
         onExportSitRep={handleExportSitRep}
+        realtimeStatus={realtimeStatus}
+        onSimulateSensorPulse={handleSimulatePulse}
+        isSimulatingPulse={isSimulatingPulse}
       />
 
       {/* Main View Container */}
@@ -139,6 +236,19 @@ export function App() {
               <WardView
                 wards={wards}
                 onDispatchAlert={(wardNo) => handleOpenDispatcher(wardNo)}
+              />
+            )}
+
+            {activeTab === 'citizen' && (
+              <CitizenAdvisoryView
+                wards={wards}
+                onBackToOperations={() => setActiveTab('wards')}
+              />
+            )}
+
+            {activeTab === 'simulator' && (
+              <WhatIfSimulator
+                wards={wards}
               />
             )}
 
@@ -174,6 +284,43 @@ export function App() {
         initialRegion={dispatchTarget}
         initialMessage={dispatchMessage}
       />
+
+      {/* Floating Realtime CDC Telemetry Ingestion Banner */}
+      {realtimeToast && (
+        <div className="fixed bottom-5 right-5 z-50 max-w-sm bg-slate-900/95 border border-emerald-500/50 rounded-xl p-3.5 shadow-2xl shadow-emerald-950/70 backdrop-blur-md transition-all animate-bounce-short">
+          <div className="flex items-start gap-2.5">
+            <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 shrink-0 mt-0.5">
+              <Zap className="w-4 h-4 animate-pulse" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-xs font-bold text-emerald-300 font-mono">
+                  {realtimeToast.message}
+                </span>
+                <span className="text-[10px] font-mono text-slate-400">
+                  {realtimeToast.timestamp}
+                </span>
+              </div>
+              {realtimeToast.subtext && (
+                <p className="text-[11px] text-slate-300 font-mono mt-1 leading-snug">
+                  {realtimeToast.subtext}
+                </p>
+              )}
+              <div className="mt-1.5 flex items-center gap-1.5 text-[10px] text-emerald-400/80 font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                <span>Postgres CDC synchronized live dashboard</span>
+              </div>
+            </div>
+            <button
+              onClick={() => setRealtimeToast(null)}
+              className="text-slate-400 hover:text-slate-200 text-xs p-0.5 rounded hover:bg-slate-800"
+              title="Dismiss"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

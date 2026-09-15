@@ -150,7 +150,21 @@ def get_dashboard(
 
             "ward_name": ward.ward_name,
 
+            "ward_code": ward.ward_code,
+
+            "zone": ward.zone,
+
             "vulnerability_score": ward.vulnerability_score,
+
+            "vulnerability_multiplier": ward.vulnerability_multiplier,
+
+            "elderly_pct": ward.elderly_pct,
+
+            "outdoor_worker_pct": ward.outdoor_worker_pct,
+
+            "tree_cover_pct": ward.tree_cover_pct,
+
+            "high_heat_roof_pct": ward.high_heat_roof_pct,
 
             "weather": {
 
