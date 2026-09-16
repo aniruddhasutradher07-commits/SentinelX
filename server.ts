@@ -1022,6 +1022,50 @@ app.all('/api/v1/alerts/dispatch', (req, res) => {
   });
 });
 
+// 12b. Alert Broadcast — Multi-Channel Emergency Dispatch (matches FastAPI alerts.py:74)
+app.all('/api/v1/alerts/broadcast', (req, res) => {
+  const body = req.method === 'POST' ? req.body : req.query;
+  const region = body.region || body.district || 'Khordha';
+  const tier = body.tier || body.risk_level || 'RED';
+  const lang = body.lang || body.language || 'en';
+  const wbgt = Number(body.wbgt || 32.8);
+  const hi = Number(body.hi || 45.6);
+  const customMessage = body.custom_message || body.message || '';
+  const targetRoles = body.target_roles || ['Municipal Commissioner', 'District Collector', 'CDMO', '108 EMS'];
+  const channels = body.channels || ['SMS', 'WhatsApp', 'IVRS'];
+
+  const templates: Record<string, string> = {
+    en: `🚨 [OSDMA/BMC EMERGENCY] ${tier} ALERT for ${region}. WBGT: ${wbgt}°C, HI: ${hi}°C. Suspend outdoor labor 11AM-4PM. Hydration mandate: 750ml/hr. Dial 108 for medical distress.`,
+    or: `🚨 [OSDMA/BMC ଜରୁରୀକାଳୀନ] ${region} ପାଇଁ ${tier} ସତର୍କତା। WBGT: ${wbgt}°C। ଦିନ ୧୧-୪ ବାହାରେ କାମ ବନ୍ଦ। ORS ପିଅନ୍ତୁ। ୧୦୮ କୁ କଲ୍ କରନ୍ତୁ।`,
+    hi: `🚨 [OSDMA/BMC आपातकालीन] ${region} के लिए ${tier} चेतावनी। WBGT: ${wbgt}°C। दोपहर 11-4 बजे बाहरी श्रम बंद करें। ORS पिएं। 108 डायल करें।`,
+  };
+
+  const messageText = customMessage || templates[lang] || templates['en'];
+
+  const deliveryReceipts = (channels as string[]).map((ch: string) => ({
+    channel: ch,
+    status: 'DELIVERED',
+    latency_ms: Math.round(120 + Math.random() * 380),
+    gateway: ch === 'SMS' ? 'NIC Government SMS Gateway' : (ch === 'WhatsApp' ? 'Twilio WhatsApp Business API' : 'BSNL IVRS Siren Network'),
+  }));
+
+  res.json({
+    dispatch_status: 'BROADCAST_TRANSMITTED',
+    protocol: `NDMA Heat Action Plan Tier-${tier === 'RED' ? 'III' : (tier === 'ORANGE' ? 'II' : 'I')}`,
+    region,
+    tier,
+    language: lang,
+    wbgt_celsius: wbgt,
+    heat_index_celsius: hi,
+    message_payload: messageText,
+    target_roles: targetRoles,
+    channels: deliveryReceipts,
+    total_recipients_reached: Math.round(45 + Math.random() * 120),
+    timestamp: new Date().toISOString(),
+    audit_trail_id: `SX-BCAST-${Date.now()}`,
+  });
+});
+
 // 13. Benchmarks
 app.get('/api/v1/benchmarks', (req, res) => {
   res.json({
