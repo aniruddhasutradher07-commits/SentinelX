@@ -11,12 +11,13 @@ import {
   Bot 
 } from 'lucide-react';
 import { NDMABenchmark } from '../types';
+import { getApiUrl } from '../services/apiConfig';
 
 export const BenchmarksView: React.FC = () => {
   const [benchmarks, setBenchmarks] = useState<NDMABenchmark[]>([]);
 
   useEffect(() => {
-    fetch('/api/v1/benchmarks')
+    fetch(getApiUrl('/api/v1/benchmarks'))
       .then(res => res.json())
       .then(data => {
         if (data.benchmarks) setBenchmarks(data.benchmarks);

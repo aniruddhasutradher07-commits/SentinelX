@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar, Cell } from 'recharts';
 import { DistrictRiskRecord } from '../types';
+import { getApiUrl } from '../services/apiConfig';
 
 interface OdishaMapProps {
   districts: DistrictRiskRecord[];
@@ -61,7 +62,7 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
   useEffect(() => {
     if (!selectedDistrictName) return;
     setLoadingDetail(true);
-    fetch(`/api/v1/districts/${encodeURIComponent(selectedDistrictName)}`)
+    fetch(getApiUrl(`/api/v1/districts/${encodeURIComponent(selectedDistrictName)}`))
       .then(res => res.json())
       .then(data => {
         setDistrictDetail(data);

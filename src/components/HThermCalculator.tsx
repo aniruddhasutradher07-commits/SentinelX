@@ -13,6 +13,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { HThermResult } from '../types';
+import { getApiUrl } from '../services/apiConfig';
 
 export const HThermCalculator: React.FC = () => {
   const [temp, setTemp] = useState<number>(41.5);
@@ -26,7 +27,7 @@ export const HThermCalculator: React.FC = () => {
   const calculateHTherm = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/v1/h-therm/calculate', {
+      const res = await fetch(getApiUrl('/api/v1/h-therm/calculate'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

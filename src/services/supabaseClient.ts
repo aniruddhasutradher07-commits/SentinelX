@@ -17,6 +17,8 @@ export interface WardRiskChangeEvent {
   source: 'supabase_realtime_cdc' | 'local_sensor_stream';
 }
 
+import { getApiUrl } from './apiConfig';
+
 // Read environment variables (supports Vite import.meta.env or window overrides)
 const metaEnv = typeof import.meta !== 'undefined' ? (import.meta as any).env : {};
 const SUPABASE_URL = metaEnv?.VITE_SUPABASE_URL || '';
@@ -122,11 +124,12 @@ function connectLocalSSE(
       sseEventSource.close();
     }
 
-    const sse = new EventSource('/api/v1/realtime/ward-stream');
+    const streamUrl = getApiUrl('/api/v1/realtime/ward-stream');
+    const sse = new EventSource(streamUrl);
     sseEventSource = sse;
 
     sse.onopen = () => {
-      console.log('⚡ [Realtime Stream] Connected to /api/v1/realtime/ward-stream');
+      console.log(`⚡ [Realtime Stream] Connected to ${streamUrl}`);
       if (onConnectionStatus) {
         onConnectionStatus('connected', 'Live Telemetry EventStream (Active CDC Sync)');
       }

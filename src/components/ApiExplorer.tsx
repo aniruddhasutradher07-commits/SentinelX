@@ -9,6 +9,7 @@ import {
   RefreshCw,
   Server
 } from 'lucide-react';
+import { getApiUrl } from '../services/apiConfig';
 
 interface Endpoint {
   method: 'GET' | 'POST';
@@ -25,7 +26,7 @@ export const ApiExplorer: React.FC = () => {
     path: '/api/v1/summary',
     desc: 'City-wide & Statewide live KPIs, peak risk zones, and ML hospital surge forecast.',
   });
-  const [requestUrl, setRequestUrl] = useState('/api/v1/summary');
+  const [requestUrl, setRequestUrl] = useState(getApiUrl('/api/v1/summary'));
   const [requestBody, setRequestBody] = useState('');
   const [responseStatus, setResponseStatus] = useState<number | null>(null);
   const [responseData, setResponseData] = useState<any>(null);
@@ -117,10 +118,10 @@ export const ApiExplorer: React.FC = () => {
 
   const handleSelectEndpoint = (ep: Endpoint) => {
     setActiveEndpoint(ep);
-    setRequestUrl(ep.path);
+    setRequestUrl(getApiUrl(ep.path));
     setRequestBody(ep.sampleBody ? JSON.stringify(ep.sampleBody, null, 2) : '');
-    setResponseData(null);
     setResponseStatus(null);
+    setResponseData(null);
   };
 
   const handleExecute = async () => {
@@ -136,7 +137,7 @@ export const ApiExplorer: React.FC = () => {
         options.body = requestBody;
       }
 
-      const res = await fetch(requestUrl, options);
+      const res = await fetch(getApiUrl(requestUrl), options);
       setResponseStatus(res.status);
       const data = await res.json();
       setResponseData(data);

@@ -12,6 +12,7 @@ import {
   RefreshCw 
 } from 'lucide-react';
 import { AICopilotResponse } from '../types';
+import { getApiUrl } from '../services/apiConfig';
 
 interface AICopilotModalProps {
   onClose?: () => void;
@@ -56,7 +57,7 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({ onClose, onDispa
     setLoadingChat(true);
 
     try {
-      const res = await fetch('/api/v1/ai/copilot', {
+      const res = await fetch(getApiUrl('/api/v1/ai/copilot'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: textToSend }),
@@ -88,7 +89,7 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({ onClose, onDispa
     setLoadingAdvisory(true);
     setCopied(false);
     try {
-      const res = await fetch('/api/v1/ai/advisory', {
+      const res = await fetch(getApiUrl('/api/v1/ai/advisory'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -14,6 +14,7 @@ import {
   Globe2
 } from 'lucide-react';
 import { AlertDispatchResponse } from '../types';
+import { getApiUrl } from '../services/apiConfig';
 
 interface AlertDispatchModalProps {
   isOpen: boolean;
@@ -106,7 +107,7 @@ export const AlertDispatchModal: React.FC<AlertDispatchModalProps> = ({
   const handleDispatch = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/v1/alerts/broadcast', {
+      const res = await fetch(getApiUrl('/api/v1/alerts/broadcast'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

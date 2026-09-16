@@ -21,6 +21,8 @@ import {
   LiveTelemetry 
 } from './types';
 
+import { getApiUrl, fetchWithColdStart } from './services/apiConfig';
+
 export function App() {
   const [activeTab, setActiveTab] = useState<string>('command');
   const [summary, setSummary] = useState<SystemSummary | null>(null);
@@ -29,6 +31,7 @@ export function App() {
   const [wards, setWards] = useState<WardRiskRecord[]>([]);
   const [geoJson, setGeoJson] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isCloudWakingUp, setIsCloudWakingUp] = useState<boolean>(false);
 
   // Realtime CDC State
   const [realtimeStatus, setRealtimeStatus] = useState<{
@@ -60,22 +63,23 @@ export function App() {
       try {
         setLoading(true);
         const [sumRes, distRes, wardRes, geoRes, teleRes] = await Promise.all([
-          fetch('/api/v1/summary').then(r => r.json()),
-          fetch('/api/v1/districts').then(r => r.json()),
-          fetch('/api/v1/wards').then(r => r.json()),
-          fetch('/api/v1/odisha-geojson').then(r => r.json()),
-          fetch('/api/v1/live-feed').then(r => r.json()),
+          fetchWithColdStart('/api/v1/summary', { onColdStart: setIsCloudWakingUp }).then(r => r.json()),
+          fetchWithColdStart('/api/v1/districts').then(r => r.json()),
+          fetchWithColdStart('/api/v1/wards').then(r => r.json()),
+          fetchWithColdStart('/api/v1/odisha-geojson').then(r => r.json()),
+          fetchWithColdStart('/api/v1/live-feed').then(r => r.json()),
         ]);
 
         setSummary(sumRes);
-        if (distRes.districts) setDistricts(distRes.districts);
-        if (wardRes.wards) setWards(wardRes.wards);
+        if (distRes?.districts) setDistricts(distRes.districts);
+        if (wardRes?.wards) setWards(wardRes.wards);
         setGeoJson(geoRes);
         setTelemetry(teleRes);
       } catch (err) {
         console.error('Failed to load initial application state:', err);
       } finally {
         setLoading(false);
+        setIsCloudWakingUp(false);
       }
     }
 
@@ -84,7 +88,7 @@ export function App() {
     // Live Telemetry Polling (every 15s)
     const interval = setInterval(async () => {
       try {
-        const res = await fetch('/api/v1/live-feed');
+        const res = await fetch(getApiUrl('/api/v1/live-feed'));
         const data = await res.json();
         setTelemetry(data);
       } catch (e) {
@@ -157,7 +161,7 @@ export function App() {
       setIsSimulatingPulse(true);
       const demoWards = ['W21', 'W04', 'W12', 'W35', 'W42', 'W58', 'W15', 'W09'];
       const targetWard = demoWards[Math.floor(Math.random() * demoWards.length)];
-      await fetch(`/api/v1/realtime/simulate-update?ward_no=${targetWard}`, {
+      await fetch(getApiUrl(`/api/v1/realtime/simulate-update?ward_no=${targetWard}`), {
         method: 'POST',
       });
     } catch (err) {
@@ -219,9 +223,14 @@ export function App() {
       {/* Main View Container */}
       <main className="flex-1 flex overflow-hidden relative">
         {loading ? (
-          <div className="flex-1 flex flex-col items-center justify-center space-y-3">
+          <div className="flex-1 flex flex-col items-center justify-center space-y-3 px-4 text-center">
             <div className="w-8 h-8 rounded-full border-2 border-sky-500 border-t-transparent animate-spin" />
             <p className="text-xs font-mono text-slate-400">Booting SentinelX Telemetry &amp; Spatial Models...</p>
+            {isCloudWakingUp && (
+              <div className="mt-2 px-3 py-1.5 rounded-lg bg-sky-950/80 border border-sky-500/30 text-[11px] font-mono text-sky-300 animate-pulse max-w-md">
+                ☁️ Connecting to live Render cloud backend (https://sentinelx-pi9j.onrender.com)... Initial spin-up may take ~30s on free instance.
+              </div>
+            )}
           </div>
         ) : (
           <>
