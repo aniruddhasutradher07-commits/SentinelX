@@ -1,9 +1,9 @@
 {
-  "version": 2,
+  "framework": "vite",
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/SentinelX_Odisha_Dashboard.html"
+      "destination": "/index.html"
     }
   ]
 }
