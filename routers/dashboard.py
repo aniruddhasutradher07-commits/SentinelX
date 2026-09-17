@@ -27,7 +27,7 @@ def get_db():
 # Dashboard API
 # ============================================================
 
-@router.get("/dashboard")
+@router.get("/api/v1/dashboard")
 def get_dashboard(
     db: Session = Depends(get_db)
 ):

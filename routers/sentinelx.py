@@ -16,6 +16,8 @@ import datetime
 import pandas as pd
 import numpy as np
 from fastapi import APIRouter, Query, Body, HTTPException
+from pydantic import BaseModel
+from services.alerts import _mock_send_sms
 from typing import Optional
 from routers.news import fetch_live_news
 
@@ -110,6 +112,25 @@ def get_ist_now():
 def get_live_feed():
     now_dt = get_ist_now()
     news_items = fetch_live_news(page_size=5)
+    
+    # Import our new ML and Multi-Hazard engines
+    from ml_models.heatwave_classifier import predict_heatwave_risk
+    from core.multi_hazard import evaluate_multi_hazards
+    from services.ingestion import fetch_weather_data
+    
+    # Fetch weather for Bhubaneswar as a representative feed
+    weather = fetch_weather_data(20.2961, 85.8245, "Bhubaneswar")
+    
+    mh_result = evaluate_multi_hazards(
+        weather.precipitation_mm,
+        weather.wind_gusts_ms,
+        weather.forecast_7d_precip
+    )
+    
+    ml_pred = predict_heatwave_risk(
+        weather.temperature_c, weather.humidity_pct,
+        weather.uv_index, weather.aqi, weather.wind_speed_ms
+    )
     return {
         "sync_timestamp": now_dt.isoformat(timespec="seconds"),
         "sync_time_display": now_dt.strftime("%I:%M %p IST"),
@@ -129,7 +150,15 @@ def get_live_feed():
         "top_headlines": [
             {"title": a["title"], "source": a["source"], "threat": a["threat_level"], "url": a["url"]}
             for a in news_items[:3]
-        ]
+        ],
+        "multi_hazard": mh_result.to_dict(),
+        "ml_prediction": {
+            "risk_level": ml_pred.risk_level,
+            "risk_label": ml_pred.risk_label,
+            "confidence": ml_pred.confidence,
+            "probabilities": ml_pred.probabilities,
+            "temperature_trend_48h": ml_pred.temperature_trend_48h,
+        }
     }
 
 
@@ -209,13 +238,17 @@ def dispatch_alert(
     contact = (payload or {}).get("recipient_phone") or recipient_phone or "+91-94370XXXXX"
     msg = (payload or {}).get("advisory_text") or advisory_text or f"🚨 [BMC SENTINELX EMERGENCY ADVISORY] Ward: {w} - Severe thermal strain alert."
 
+    # Call the actual SMS service (which handles Twilio / Fast2SMS / Mock fallback)
+    sms_response = _mock_send_sms(contact, msg)
+
     return {
         "dispatch_status": "SUCCESS",
-        "gateway": "NIC / BMC Emergency SMS Gateway",
+        "gateway": sms_response.get("gateway", "NIC / BMC Emergency SMS Gateway"),
         "ward_no": w,
-        "recipient": contact,
+        "recipient": sms_response.get("recipient", contact),
         "timestamp": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
-        "message_payload": msg
+        "message_payload": msg,
+        "service_response": sms_response
     }
 
 
@@ -434,6 +467,18 @@ def get_odisha_geojson():
         from fastapi.responses import FileResponse
         return FileResponse(geojson_path, media_type="application/json")
     raise HTTPException(status_code=404, detail="odisha_districts.geojson not found.")
+
+
+@router.get("/wards-geojson", summary="Bhubaneswar 67-Ward GeoJSON Boundaries")
+def get_wards_geojson():
+    """Serve raw ward-level GeoJSON for Leaflet overlay on zoom-in."""
+    geojson_path = "wards_bhubaneswar.geojson"
+    if not os.path.exists(geojson_path):
+        geojson_path = "teammate_backend/wards_bhubaneswar.geojson"
+    if os.path.exists(geojson_path):
+        from fastapi.responses import FileResponse
+        return FileResponse(geojson_path, media_type="application/json")
+    raise HTTPException(status_code=404, detail="wards_bhubaneswar.geojson not found.")
 
 
 @router.get("/benchmarks", summary="NDMA Heatwave Benchmarks")

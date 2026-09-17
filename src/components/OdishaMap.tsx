@@ -38,12 +38,17 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
   const mapInstanceRef = useRef<L.Map | null>(null);
   const geoJsonLayerRef = useRef<L.GeoJSON | null>(null);
   const baseTileLayerRef = useRef<L.TileLayer | null>(null);
+  const wardLayerRef = useRef<L.GeoJSON | null>(null);
+  const pulseMarkersRef = useRef<L.LayerGroup | null>(null);
 
   const [selectedDistrictName, setSelectedDistrictName] = useState<string>('Khordha');
   const [metricMode, setMetricMode] = useState<'wbgt' | 'risk' | 'vulnerability' | 'lst' | 'uhi' | 'admissions' | 'temp'>('wbgt');
   const [baseMapStyle, setBaseMapStyle] = useState<'dark' | 'satellite'>('dark');
   const [districtDetail, setDistrictDetail] = useState<any>(null);
   const [loadingDetail, setLoadingDetail] = useState<boolean>(false);
+  const [wardGeoJson, setWardGeoJson] = useState<any>(null);
+  const [wardData, setWardData] = useState<any[]>([]);
+  const [showWards, setShowWards] = useState<boolean>(false);
 
   // Get unique districts list
   const uniqueDistricts = districts.reduce((acc: DistrictRiskRecord[], cur) => {
@@ -143,15 +148,162 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
         center: [20.45, 84.8], // Center of Odisha
         zoom: 7.2,
         minZoom: 6,
-        maxZoom: 13,
+        maxZoom: 16,
         zoomControl: false,
         attributionControl: false,
       });
 
       L.control.zoom({ position: 'topright' }).addTo(map);
       mapInstanceRef.current = map;
+
+      // Zoom-dependent ward layer toggle
+      map.on('zoomend', () => {
+        const z = map.getZoom();
+        setShowWards(z >= 9);
+      });
     }
   }, []);
+
+  // Fetch ward GeoJSON + telemetry on mount
+  useEffect(() => {
+    fetch(getApiUrl('/api/v1/wards-geojson'))
+      .then(res => res.json())
+      .then(data => setWardGeoJson(data))
+      .catch(() => {});
+
+    fetch(getApiUrl('/api/v1/wards'))
+      .then(res => res.json())
+      .then(data => setWardData(data.wards || []))
+      .catch(() => {});
+  }, []);
+
+  // Render ward-level GeoJSON overlay + animated pulse markers
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+    const map = mapInstanceRef.current;
+
+    // Remove existing ward layer
+    if (wardLayerRef.current) {
+      map.removeLayer(wardLayerRef.current);
+      wardLayerRef.current = null;
+    }
+    // Remove existing pulse markers
+    if (pulseMarkersRef.current) {
+      map.removeLayer(pulseMarkersRef.current);
+      pulseMarkersRef.current = null;
+    }
+
+    if (!showWards || !wardGeoJson || !wardGeoJson.features) return;
+
+    // Ward boundary choropleth
+    const wardLayer = L.geoJSON(wardGeoJson, {
+      style: (feature) => {
+        const wardNo = feature?.properties?.wardno || '';
+        const ward = wardData.find(w => w.ward_no === wardNo);
+        const risk = ward?.WardRiskScore || 50;
+        const tier = ward?.RiskTier || 'Yellow';
+        const fillColor = tier === 'Red' ? '#ef4444'
+          : tier === 'Orange' ? '#f97316'
+          : tier === 'Yellow' ? '#eab308'
+          : '#22c55e';
+
+        return {
+          fillColor,
+          weight: 1.5,
+          opacity: 1,
+          color: 'rgba(255,255,255,0.35)',
+          fillOpacity: 0.55,
+        };
+      },
+      onEachFeature: (feature, layer) => {
+        const wardNo = feature?.properties?.wardno || '';
+        const ward = wardData.find(w => w.ward_no === wardNo);
+        const pop = feature?.properties?.totalwardpopulation || 'N/A';
+        const zone = feature?.properties?.municipalzone || '';
+
+        layer.bindTooltip(
+          `<div class="text-xs font-sans">
+            <div class="font-bold text-slate-100 flex items-center justify-between gap-3">
+              <span>Ward ${wardNo}</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.2 rounded" style="background-color: ${
+                ward?.RiskTier === 'Red' ? '#ef4444' : ward?.RiskTier === 'Orange' ? '#f97316' : ward?.RiskTier === 'Yellow' ? '#eab308' : '#22c55e'
+              }">${ward?.RiskTier || '—'}</span>
+            </div>
+            <div class="text-slate-300 mt-0.5">Zone: <b>${zone}</b></div>
+            <div class="text-slate-300">Population: <b class="text-cyan-300 font-mono">${Number(pop).toLocaleString()}</b></div>
+            <div class="text-slate-300">WBGT: <b class="text-amber-300 font-mono">${ward?.WBGT_celsius || '—'}°C</b></div>
+            <div class="text-slate-300">Risk Score: <b class="text-rose-300 font-mono">${ward?.WardRiskScore || '—'}/100</b></div>
+            <div class="text-slate-300">UHI: <b class="text-purple-300 font-mono">${ward?.uhi_thermal_anomaly_c || '—'}°C</b></div>
+          </div>`,
+          { sticky: true, className: 'leaflet-tooltip-dark' }
+        );
+
+        layer.on({
+          mouseover: (e: any) => {
+            e.target.setStyle({ weight: 3, color: '#38bdf8', fillOpacity: 0.85 });
+          },
+          mouseout: (e: any) => {
+            if (wardLayerRef.current) wardLayerRef.current.resetStyle(e.target);
+          },
+        });
+      },
+    });
+
+    wardLayer.addTo(map);
+    wardLayerRef.current = wardLayer;
+
+    // Animated pulse markers for critical/high-risk wards
+    const pulseGroup = L.layerGroup();
+    const criticalWards = wardData.filter(w => w.RiskTier === 'Red' || w.RiskTier === 'Orange');
+
+    criticalWards.forEach(w => {
+      const lat = w.centroid_lat;
+      const lng = w.centroid_lon;
+      if (!lat || !lng) return;
+
+      const isRed = w.RiskTier === 'Red';
+      const color = isRed ? '#ef4444' : '#f97316';
+      const size = isRed ? 18 : 14;
+
+      const pulseIcon = L.divIcon({
+        className: '',
+        html: `
+          <div style="position:relative;width:${size}px;height:${size}px;">
+            <div style="
+              position:absolute;top:0;left:0;width:100%;height:100%;
+              background:${color};border-radius:50%;opacity:0.9;
+              box-shadow:0 0 8px ${color};
+            "></div>
+            <div style="
+              position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+              width:${size * 2.5}px;height:${size * 2.5}px;
+              border:2px solid ${color};border-radius:50%;opacity:0;
+              animation:sentinelPulse 2s ease-out infinite;
+            "></div>
+            <div style="
+              position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+              width:${size * 2.5}px;height:${size * 2.5}px;
+              border:2px solid ${color};border-radius:50%;opacity:0;
+              animation:sentinelPulse 2s ease-out 0.6s infinite;
+            "></div>
+          </div>
+        `,
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
+      });
+
+      const marker = L.marker([lat, lng], { icon: pulseIcon, interactive: true });
+      marker.bindTooltip(
+        `<div class="text-xs font-mono"><b class="text-rose-300">⚠ ${w.ward_no}</b> — Risk: <b>${w.WardRiskScore}/100</b><br/>WBGT: ${w.WBGT_celsius}°C | UHI: ${w.uhi_thermal_anomaly_c}°C</div>`,
+        { className: 'leaflet-tooltip-dark' }
+      );
+      pulseGroup.addLayer(marker);
+    });
+
+    pulseGroup.addTo(map);
+    pulseMarkersRef.current = pulseGroup;
+
+  }, [showWards, wardGeoJson, wardData]);
 
   // Update Basemap Tiles (Carto Dark Matter vs. ArcGIS Satellite)
   useEffect(() => {
@@ -340,6 +492,18 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
           </div>
         </div>
 
+        {/* Ward Mode Active Indicator */}
+        {showWards && (
+          <div className="absolute top-16 left-3 z-[1000] flex items-center gap-2 bg-gradient-to-r from-rose-500/20 to-amber-500/20 backdrop-blur-xl px-3 py-1.5 rounded-2xl border border-rose-500/30 shadow-2xl pointer-events-auto">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+            </span>
+            <span className="text-[10px] font-mono font-bold text-rose-300 uppercase tracking-wider">
+              Ward-Level Drill-Down Active · 67 Wards · Bhubaneswar
+            </span>
+          </div>
+        )}
         {/* Legend Overlay */}
         <div className="absolute bottom-4 left-4 z-[1000] bg-[#14171A]/90 backdrop-blur-xl p-3 rounded-2xl border border-white/[0.08] shadow-2xl text-[11px] font-mono text-slate-300 pointer-events-auto">
           {metricMode === 'vulnerability' ? (
