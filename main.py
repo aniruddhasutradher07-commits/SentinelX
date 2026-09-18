@@ -93,6 +93,8 @@ app.include_router(dashboard.router, tags=["Dashboard Aggregation (JSON)"])
 app.include_router(live.router, tags=["Live Ward Conditions"])
 
 # SentinelX ML, Intel & Copilot routers
+from routers import mock_api
+app.include_router(mock_api.router)
 app.include_router(sentinelx.router)
 app.include_router(news.router)
 app.include_router(copilot.router)
