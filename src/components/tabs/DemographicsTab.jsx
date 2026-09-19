@@ -16,7 +16,7 @@ export default function DemographicsTab({ activeDistrict }) {
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-center font-mono">
             <div className="p-4 rounded-xl bg-black/40 border border-white/5">
-              <span className="text-xs text-slate-400 block mb-1">TOTAL POPULATION</span>
+              <span className="text-xs text-slate-400 block mb-1">TOTAL POPULATION (Estimated)</span>
               <span className="text-2xl font-tech font-bold text-white">2.00M</span>
               <span className="text-[10px] text-slate-500 block mt-1">Under active grid</span>
             </div>
