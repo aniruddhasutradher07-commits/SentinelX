@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar, Cell, LineChart, Line, ReferenceLine, PieChart, Pie } from 'recharts';
 import { WardRiskRecord } from '../types';
+import { getApiUrl } from '../services/apiConfig';
 
 interface WardViewProps {
   wards: WardRiskRecord[];
@@ -59,6 +60,15 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
   });
 
   const activeWard = selectedWard || sortedWards[0] || wards[0];
+  const [wardDetails, setWardDetails] = useState<any>(null);
+
+  React.useEffect(() => {
+    if (!activeWard) return;
+    fetch(getApiUrl(`/api/v1/wards/${activeWard.ward_no}`))
+      .then(res => res.json())
+      .then(data => setWardDetails(data))
+      .catch(err => console.error(err));
+  }, [activeWard?.ward_no]);
 
   // Helper for Section 3.3: Exactly three plain-language driver lines, ranked
   const getTopThreeDrivers = (ward: WardRiskRecord): string[] => {
@@ -129,27 +139,38 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
   ];
 
   // Panel 3: Night Recovery
-  const next24h = Array.from({ length: 24 }).map((_, i) => {
-    const cycle = Math.sin((i - 8) * Math.PI / 12);
-    const w = (activeWard?.WBGT_celsius || 32) - 3 + cycle * 4;
-    return { hour: `${i.toString().padStart(2, '0')}:00`, wbgt: Number(w.toFixed(1)) };
-  });
-  const noRecovery = !next24h.slice(0, 6).some(d => d.wbgt < 28);
+  const next24h = wardDetails?.next_24h_weather 
+    ? wardDetails.next_24h_weather.map((w: any) => ({
+        hour: new Date(w.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        wbgt: w.WBGT_celsius
+      }))
+    : Array.from({ length: 24 }).map((_, i) => {
+        const cycle = Math.sin((i - 8) * Math.PI / 12);
+        const w = (activeWard?.WBGT_celsius || 32) - 3 + cycle * 4;
+        return { hour: `${i.toString().padStart(2, '0')}:00`, wbgt: Number(w.toFixed(1)) };
+      });
+  const noRecovery = !next24h.slice(0, 6).some((d: any) => d.wbgt < 28);
 
   // Panel 4: 5-Day Forecast
-  const forecast5d = Array.from({ length: 5 }).map((_, i) => {
-    const baseAdm = (activeWard?.population || 10000) * 0.001;
-    const trend = Math.sin(i * 0.8) * 0.5 + 1;
-    const adm = Math.round(baseAdm * trend * ((activeWard?.WardRiskScore || 50) / 50));
-    let tier = 'Green';
-    if (adm > baseAdm * 1.8) tier = 'Red';
-    else if (adm > baseAdm * 1.4) tier = 'Orange';
-    else if (adm > baseAdm * 1.1) tier = 'Yellow';
-    
-    const d = new Date();
-    d.setDate(d.getDate() + i);
-    return { date: d.toLocaleDateString('en-US', { weekday: 'short' }), admissions: adm, tier };
-  });
+  const forecast5d = wardDetails?.hospital_demand_forecast 
+    ? wardDetails.hospital_demand_forecast.map((f: any) => ({
+        date: new Date(f.date).toLocaleDateString('en-US', { weekday: 'short' }),
+        admissions: f.predicted_admissions,
+        tier: f.ImpactTier
+      }))
+    : Array.from({ length: 5 }).map((_, i) => {
+        const baseAdm = (activeWard?.population || 10000) * 0.001;
+        const trend = Math.sin(i * 0.8) * 0.5 + 1;
+        const adm = Math.round(baseAdm * trend * ((activeWard?.WardRiskScore || 50) / 50));
+        let tier = 'Green';
+        if (adm > baseAdm * 1.8) tier = 'Red';
+        else if (adm > baseAdm * 1.4) tier = 'Orange';
+        else if (adm > baseAdm * 1.1) tier = 'Yellow';
+        
+        const d = new Date();
+        d.setDate(d.getDate() + i);
+        return { date: d.toLocaleDateString('en-US', { weekday: 'short' }), admissions: adm, tier };
+      });
   const maxForecast = [...forecast5d].sort((a,b) => b.admissions - a.admissions)[0];
 
   return (
@@ -276,11 +297,11 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
 
                 {/* Census / OSM Vulnerability Strip */}
                 <div className="grid grid-cols-4 gap-1.5 mt-3 pt-2.5 border-t border-slate-800/60 text-[10px] font-mono text-slate-300">
-                  <div title="Elderly Demographic (Age 60+ %)">
+                  <div title="Elderly Demographic (Age 60+ %) - Estimated using state-average Census age-ratio (8.5%)">
                     <span className="text-[9px] text-slate-500 block flex items-center gap-0.5">
-                      <Users className="w-2.5 h-2.5 text-sky-400" /> Elderly
+                      <Users className="w-2.5 h-2.5 text-sky-400" /> Elderly<span className="text-sky-400 cursor-help" title="Estimated (State Avg)">*</span>
                     </span>
-                    <span>{w.elderly_pct || 9.5}%</span>
+                    <span>{w.elderly_pct || 8.5}%</span>
                   </div>
                   <div title="Outdoor Workers % (Construction / Vendors / Daily Wage)">
                     <span className="text-[9px] text-slate-500 block flex items-center gap-0.5">

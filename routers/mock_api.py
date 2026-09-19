@@ -3,9 +3,65 @@ import math
 import random
 import os
 import json
+import pandas as pd
 from fastapi import APIRouter, HTTPException
+import numpy as np
+import joblib
+from supabase import create_client, Client
 
 router = APIRouter(prefix="/api/v1", tags=["Mock Data Ported from server.ts"])
+
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
+supabase_client: Client | None = None
+if SUPABASE_URL and SUPABASE_KEY and SUPABASE_URL != "YOUR_SUPABASE_URL":
+    try:
+        supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        print("⚡ [mock_api] Supabase Client Initialized")
+    except Exception as e:
+        print(f"⚠️ [mock_api] Supabase initialization failed: {e}")
+
+# Load ML Models
+stage1_model = None
+stage2_model = None
+try:
+    stage1_model = joblib.load("data/stage1_dlnm.joblib")
+    stage2_model = joblib.load("data/stage2_xgboost.joblib")
+    print("🧠 [mock_api] DLNM + XGBoost Hospital Surge Models Loaded")
+except Exception as e:
+    print(f"⚠️ [mock_api] Could not load ML models: {e}")
+
+def predict_hospital_surge(population, vuln_multiplier, vuln_score, risk_score_0_to_100):
+    if stage1_model is None or stage2_model is None:
+        return round((population * 0.00018 * vuln_multiplier), 1)
+    
+    try:
+        norm_risk = risk_score_0_to_100 / 100.0
+        lags = [norm_risk] * 6
+        day_of_week = datetime.datetime.now().weekday()
+        vuln = vuln_score / 100.0
+        
+        X1 = np.array([lags])
+        stage1_pred = stage1_model.predict(X1)
+        
+        X2 = np.array([lags + [population, vuln, day_of_week]])
+        resid_pred = stage2_model.predict(X2)
+        
+        final_pred_log = stage1_pred + resid_pred
+        admissions = np.expm1(final_pred_log)[0]
+        return round(float(admissions), 1)
+    except Exception as e:
+        print(f"ML prediction failed: {e}")
+        return round((population * 0.00018 * vuln_multiplier), 1)
+
+# Load Real Census 2011 Data for Khordha District
+CENSUS_FILE = "data/odisha_census_khordha_2011.csv"
+census_df = None
+if os.path.exists(CENSUS_FILE):
+    try:
+        census_df = pd.read_csv(CENSUS_FILE, sep="\t")
+    except Exception as e:
+        print("Warning: Could not load Census CSV:", e)
 
 ODISHA_30_DISTRICTS = [
   { "district": 'Khordha', "pop": 1870115, "lat": 20.18, "lon": 85.62, "t": 39.5, "rh": 68, "wbgt": 32.4 },
@@ -40,20 +96,28 @@ ODISHA_30_DISTRICTS = [
   { "district": 'Deogarh', "pop": 312520, "lat": 21.53, "lon": 84.73, "t": 41.6, "rh": 51, "wbgt": 30.7 },
 ]
 
-def compute_vulnerability_metrics(elderly_pct, worker_pct, tree_cover_pct, roof_pct):
-    v_elderly = max(0, min(1, (elderly_pct - 4.0) / 16.0))
-    v_worker = max(0, min(1, (worker_pct - 10.0) / 40.0))
+def compute_vulnerability_metrics(social_pct, worker_pct, tree_cover_pct, roof_pct, is_illit=False):
+    if is_illit:
+        # Scale illiteracy (typically 5% to 30%)
+        v_soc = max(0, min(1, (social_pct - 5.0) / 25.0))
+        label_name = 'Illiteracy (Census)'
+        v_worker = max(0, min(1, (worker_pct - 1.0) / 10.0)) # AL/CL is lower in urban areas
+    else:
+        v_soc = max(0, min(1, (social_pct - 4.0) / 16.0))
+        label_name = 'Elderly'
+        v_worker = max(0, min(1, (worker_pct - 10.0) / 40.0))
+        
     v_roof = max(0, min(1, (roof_pct - 5.0) / 50.0))
     v_tree = max(0, min(1, (35.0 - tree_cover_pct) / 30.0))
     
-    score = (v_elderly * 0.3) + (v_worker * 0.3) + (v_tree * 0.2) + (v_roof * 0.2)
+    score = (v_soc * 0.3) + (v_worker * 0.3) + (v_tree * 0.2) + (v_roof * 0.2)
     score_scaled = round(score * 100)
     
     mult = round(0.70 + 0.80 * score, 2)
     
     factors = [
-        { "name": 'Elderly', "val": v_elderly * 0.3 },
-        { "name": 'Workers', "val": v_worker * 0.3 },
+        { "name": label_name, "val": v_soc * 0.3 },
+        { "name": 'Outdoor Workers', "val": v_worker * 0.3 },
         { "name": 'Lack of Tree Cover', "val": v_tree * 0.2 },
         { "name": 'Heat Trapping Roofs', "val": v_roof * 0.2 }
     ]
@@ -62,8 +126,9 @@ def compute_vulnerability_metrics(elderly_pct, worker_pct, tree_cover_pct, roof_
     tier = "SEVERE" if score_scaled >= 75 else ("HIGH" if score_scaled >= 50 else ("MODERATE" if score_scaled >= 30 else "LOW"))
     
     return {
-        "elderly_pct": elderly_pct,
-        "outdoor_worker_pct": worker_pct,
+        "social_vuln_pct": round(social_pct, 1),
+        "social_vuln_label": label_name,
+        "outdoor_worker_pct": round(worker_pct, 1),
         "tree_cover_pct": tree_cover_pct,
         "high_heat_roof_pct": roof_pct,
         "vulnerability_score": score_scaled,
@@ -82,16 +147,39 @@ def get_district_vulnerability(district_name):
     roofs = 42.0 if tribal_hilly else (34.0 if coastal else 25.5)
     return compute_vulnerability_metrics(elderly, workers, tree_cover, roofs)
 
-def get_ward_vulnerability(ward_no, uhi_offset=0.2):
+def get_ward_vulnerability_and_pop(ward_no, uhi_offset=0.2):
     code = str(ward_no or 'W1').upper()
     num_str = "".join(filter(str.isdigit, code))
     num = int(num_str) if num_str else 1
     norm = (num % 67) / 67.0
-    elderly = round(7.0 + (num % 10) * 1.1 + (uhi_offset * 1.5), 1)
-    workers = round(14.0 + norm * 26.0 + ((num * 7) % 10), 1)
+    
     tree_cover = round(max(4, min(44, 38 - norm * 28 + ((num * 3) % 8))), 1)
     roof = round(max(6, min(62, 10 + norm * 35 + ((num * 5) % 12))), 1)
-    return compute_vulnerability_metrics(elderly, workers, tree_cover, roof)
+    
+    tot_p = 13500 # Fallback
+    
+    if census_df is not None:
+        ward_name_pattern = f"WARD NO.-{num:04d}"
+        ward_row = census_df[(census_df["Level"] == "WARD") & (census_df["Name"].str.contains("Bhubaneswar", na=False)) & (census_df["Name"].str.contains(ward_name_pattern, na=False))]
+        if not ward_row.empty:
+            row = ward_row.iloc[0]
+            tot_p = float(row["TOT_P"]) if row["TOT_P"] > 0 else 1.0
+            illit_pct = (float(row["P_ILL"]) / tot_p) * 100.0
+            al_cl = float(row["MAIN_AL_P"]) + float(row["MAIN_CL_P"]) + float(row["MARG_AL_P"]) + float(row["MARG_CL_P"])
+            worker_pct = (al_cl / tot_p) * 100.0
+            
+            # Use ESTIMATED Elderly % for future reference, but compute vulnerability using Illiteracy
+            estimated_elderly = 8.5 # ESTIMATED - state avg ratio, not ward-level Census data
+            
+            res = compute_vulnerability_metrics(illit_pct, worker_pct, tree_cover, roof, is_illit=True)
+            res["elderly_pct_est"] = estimated_elderly
+            return res, int(tot_p)
+
+    # Fallback to procedural
+    elderly = round(7.0 + (num % 10) * 1.1 + (uhi_offset * 1.5), 1)
+    workers = round(14.0 + norm * 26.0 + ((num * 7) % 10), 1)
+    res = compute_vulnerability_metrics(elderly, workers, tree_cover, roof)
+    return res, tot_p
 
 # Generate Data
 now_ts = datetime.datetime.now().strftime("%Y-%m-%dT%H:00:00")
@@ -142,14 +230,25 @@ wardImpactData = []
 
 for idx in range(67):
     wNo = f"W{idx + 1}"
-    pop = 13500
     uhi = round(((idx % 10) * 0.22 + 0.1), 2)
-    vuln = get_ward_vulnerability(wNo, uhi)
+    vuln, pop = get_ward_vulnerability_and_pop(wNo, uhi)
     temp = round((38.0 + uhi), 1)
     wbgt = round((30.8 + uhi * 0.6), 1)
     thermalHazard = round((wbgt / 33.0) * 75.0)
     riskScore = min(100.0, round(thermalHazard * vuln["vulnerability_multiplier"], 1))
-    tier = 'Red' if riskScore >= 85 else ('Orange' if riskScore >= 70 else ('Yellow' if riskScore >= 45 else 'Green'))
+    
+    # MRI grade consistency with WBGT thresholds
+    if wbgt >= 32.0:
+        tier = 'Red'
+        riskScore = max(riskScore, 85.0)
+    elif wbgt >= 30.5:
+        tier = 'Red' if riskScore >= 85 else 'Orange'
+        riskScore = max(riskScore, 70.0)
+    elif wbgt >= 29.0:
+        tier = 'Red' if riskScore >= 85 else ('Orange' if riskScore >= 70 else 'Yellow')
+        riskScore = max(riskScore, 45.0)
+    else:
+        tier = 'Red' if riskScore >= 85 else ('Orange' if riskScore >= 70 else ('Yellow' if riskScore >= 45 else 'Green'))
     
     lstDay = round((temp + 6.4 + uhi * 1.5), 1)
     lstNight = round((28.0 + uhi * 0.8), 1)
@@ -195,9 +294,59 @@ for idx in range(67):
         "date": today,
         "population": pop,
         "wbgt_max": wbgt,
-        "predicted_admissions": round((pop * 0.00018 * vuln["vulnerability_multiplier"]), 1),
+        "predicted_admissions": predict_hospital_surge(pop, vuln["vulnerability_multiplier"], vuln["vulnerability_score"], riskScore),
         "ImpactTier": tier
     })
+
+# ========== SUPABASE SYNC LOGIC ==========
+def sync_wards_to_supabase(data_list):
+    if not supabase_client:
+        return
+    
+    upsert_payload = []
+    for w in data_list:
+        drivers = [w.get("dominant_factor", "High temperature")]
+        
+        record = {
+            "ward_no": w["ward_no"],
+            "zone": w.get("zone", "North Zone"),
+            "population": w.get("population", 12000),
+            "centroid_lat": w["centroid_lat"],
+            "centroid_lon": w["centroid_lon"],
+            "timestamp": w["timestamp"],
+            "temperature_c": w["temperature_c"],
+            "relative_humidity_pct": w["relative_humidity_pct"],
+            "wind_speed_ms": w["wind_speed_ms"],
+            "solar_radiation_wm2": w["solar_radiation_wm2"],
+            "apparent_temp_c": w["apparent_temp_c"],
+            "uhi_offset_c": w["uhi_offset_c"],
+            "adjusted_temp_c": w["adjusted_temp_c"],
+            "hi_celsius": w["HI_celsius"],
+            "wbgt_celsius": w["WBGT_celsius"],
+            "utci_celsius": w.get("UTCI_celsius", 0),
+            "thermal_hazard_score": w["thermal_hazard_score"],
+            "elderly_pct": w.get("elderly_pct", w.get("elderly_pct_est", 9.5)),
+            "outdoor_worker_pct": w.get("outdoor_worker_pct", 24.0),
+            "tree_cover_pct": w.get("tree_cover_pct", 18.0),
+            "high_heat_roof_pct": w.get("high_heat_roof_pct", 32.0),
+            "vulnerability_score": w.get("vulnerability_score", 48.0),
+            "vulnerability_multiplier": w.get("vulnerability_multiplier", 1.08),
+            "ward_risk_score": w["WardRiskScore"],
+            "risk_tier": w["RiskTier"],
+            "top_drivers": drivers,
+            "hospitalisation_flag": w["WardRiskScore"] >= 85.0
+        }
+        upsert_payload.append(record)
+    
+    try:
+        supabase_client.table("ward_risk_index").insert(upsert_payload).execute()
+        print(f"⚡ [mock_api] Synced {len(upsert_payload)} wards to Supabase")
+    except Exception as e:
+        print(f"⚠️ [mock_api] Supabase sync failed: {e}")
+
+# Perform initial sync
+import threading
+threading.Thread(target=sync_wards_to_supabase, args=(wardRiskData,), daemon=True).start()
 
 # ========== ENDPOINTS ==========
 
@@ -307,22 +456,42 @@ def ward_detail(ward_no: str):
         raise HTTPException(status_code=404, detail="Ward not found")
         
     first = match[0]
-    vuln = get_ward_vulnerability(first["ward_no"], first["uhi_offset_c"])
-    impacts = [w for w in wardImpactData if w["ward_no"].lower() == ward_no.lower()]
+    vuln, pop = get_ward_vulnerability_and_pop(first["ward_no"], first["uhi_offset_c"])
     
+    # 1. Dynamic 24h Diurnal Curve
     next_24h_weather = []
+    base_temp = first["temperature_c"]
+    base_wbgt = first["WBGT_celsius"]
     for h in range(24):
+        # Sine wave modeling diurnal cycle (trough at hour 4, peak at hour 14)
+        cycle = math.sin((h - 8) * math.pi / 12)
         next_24h_weather.append({
             "timestamp": (datetime.datetime.now() + datetime.timedelta(hours=h)).isoformat(),
-            "temperature_c": first["temperature_c"],
+            "temperature_c": round(base_temp - 3 + cycle * 4, 1),
             "relative_humidity_pct": first["relative_humidity_pct"],
             "wind_speed_ms": first["wind_speed_ms"],
-            "solar_radiation_wm2": first["solar_radiation_wm2"],
-            "apparent_temp_c": first["apparent_temp_c"],
-            "HI_celsius": first["HI_celsius"],
-            "WBGT_celsius": first["WBGT_celsius"],
+            "solar_radiation_wm2": max(0, round(first["solar_radiation_wm2"] * math.sin((h - 6) * math.pi / 12), 1)) if 6 <= h <= 18 else 0,
+            "apparent_temp_c": round(first["apparent_temp_c"] - 3 + cycle * 4, 1),
+            "HI_celsius": round(first["HI_celsius"] - 3 + cycle * 4, 1),
+            "WBGT_celsius": round(base_wbgt - 2.5 + cycle * 3.5, 1),
             "WardRiskScore": first["WardRiskScore"],
             "RiskTier": first["RiskTier"],
+        })
+        
+    # 2. 5-Day Forecast Horizon
+    forecast5d = []
+    for i in range(5):
+        d = (datetime.datetime.now() + datetime.timedelta(days=i))
+        trend = math.sin(i * 0.8) * 0.5 + 1
+        adm = round(pop * 0.00015 * trend * vuln["vulnerability_multiplier"], 1)
+        tier = 'Red' if adm > pop * 0.00025 else ('Orange' if adm > pop * 0.00020 else ('Yellow' if adm > pop * 0.00010 else 'Green'))
+        forecast5d.append({
+            "ward_no": first["ward_no"],
+            "date": d.strftime("%Y-%m-%d"),
+            "population": pop,
+            "wbgt_max": round(first["WBGT_celsius"] + (trend - 1) * 2, 1),
+            "predicted_admissions": adm,
+            "ImpactTier": tier
         })
         
     return {
@@ -333,11 +502,59 @@ def ward_detail(ward_no: str):
             "centroid_lat": first["centroid_lat"],
             "centroid_lon": first["centroid_lon"],
             "uhi_offset_c": first["uhi_offset_c"],
+            "temperature_c": first["temperature_c"],
+            "relative_humidity_pct": first["relative_humidity_pct"],
+            "wind_speed_ms": first["wind_speed_ms"],
+            "solar_radiation_wm2": first["solar_radiation_wm2"],
+            "WardRiskScore": first["WardRiskScore"],
+            "RiskTier": first["RiskTier"],
             **vuln
         },
-        "hospital_demand_forecast": impacts,
+        "hospital_demand_forecast": forecast5d,
         "next_24h_weather": next_24h_weather
     }
+
+@router.get("/realtime/simulate-update")
+def simulate_update(ward_no: str):
+    import random
+    match = next((w for w in wardRiskData if w["ward_no"].lower() == ward_no.lower()), None)
+    if not match:
+        raise HTTPException(status_code=404, detail="Ward not found")
+        
+    match["temperature_c"] += random.uniform(0.5, 1.5)
+    match["temperature_c"] = round(match["temperature_c"], 1)
+    match["WBGT_celsius"] += random.uniform(0.3, 0.8)
+    match["WBGT_celsius"] = round(match["WBGT_celsius"], 1)
+    
+    thermalHazard = round((match["WBGT_celsius"] / 33.0) * 75.0)
+    match["thermal_hazard_score"] = thermalHazard
+    riskScore = min(100.0, round(thermalHazard * match["vulnerability_multiplier"], 1))
+    
+    if match["WBGT_celsius"] >= 32.0:
+        match["RiskTier"] = 'Red'
+        riskScore = max(riskScore, 85.0)
+    elif match["WBGT_celsius"] >= 30.5:
+        match["RiskTier"] = 'Red' if riskScore >= 85 else 'Orange'
+        riskScore = max(riskScore, 70.0)
+    elif match["WBGT_celsius"] >= 29.0:
+        match["RiskTier"] = 'Red' if riskScore >= 85 else ('Orange' if riskScore >= 70 else 'Yellow')
+        riskScore = max(riskScore, 45.0)
+    else:
+        match["RiskTier"] = 'Red' if riskScore >= 85 else ('Orange' if riskScore >= 70 else ('Yellow' if riskScore >= 45 else 'Green'))
+    
+    match["WardRiskScore"] = riskScore
+    match["timestamp"] = datetime.datetime.now().strftime("%Y-%m-%dT%H:00:00")
+    
+    # Also recalculate surge predictions using ML model and update wardImpactData
+    surge = predict_hospital_surge(match["population"], match["vulnerability_multiplier"], match["vulnerability_score"], riskScore)
+    impact_match = next((i for i in wardImpactData if i["ward_no"].lower() == ward_no.lower()), None)
+    if impact_match:
+        impact_match["predicted_admissions"] = surge
+        impact_match["ImpactTier"] = match["RiskTier"]
+        impact_match["wbgt_max"] = match["WBGT_celsius"]
+    
+    sync_wards_to_supabase([match])
+    return {"status": "ok", "ward": match}
 
 @router.get("/live-feed")
 def live_feed():

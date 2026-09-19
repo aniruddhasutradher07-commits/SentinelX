@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { AICopilotResponse } from '../types';
 import { getApiUrl } from '../services/apiConfig';
+import { DirectivePDFModal } from './DirectivePDFModal';
+import { FileText } from 'lucide-react';
 
 interface AICopilotModalProps {
   onClose?: () => void;
@@ -40,6 +42,10 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({ onClose, onDispa
   const [advisoryResult, setAdvisoryResult] = useState<string>('');
   const [loadingAdvisory, setLoadingAdvisory] = useState(false);
   const [copied, setCopied] = useState(false);
+  
+  // PDF Modal State
+  const [showPDF, setShowPDF] = useState(false);
+  const [pdfContent, setPdfContent] = useState('');
 
   const presetQueries = [
     'What are the mandatory cooling protocols when WBGT > 32°C?',
@@ -189,8 +195,22 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({ onClose, onDispa
                 }`}>
                   <div className="whitespace-pre-wrap font-sans">{m.text}</div>
                   {m.source && (
-                    <div className="mt-2 pt-2 border-t border-slate-800/60 text-[10px] font-mono text-purple-400">
-                      Engine: {m.source}
+                    <span className="text-[10px] uppercase tracking-wider font-semibold text-emerald-400 mt-2 block">
+                      Source: {m.source}
+                    </span>
+                  )}
+                  {m.sender === 'bot' && m.text !== "🛡️ **SentinelX AI Incident Commander Ready.**\n\nI am connected to real-time NCMRWF/ERA5 telemetry, 30 Odisha districts, and 67 Bhubaneswar wards. How can I assist disaster management operations today?" && (
+                    <div className="mt-3 pt-3 border-t border-slate-700/50">
+                      <button
+                        onClick={() => {
+                          setPdfContent(m.text);
+                          setShowPDF(true);
+                        }}
+                        className="flex items-center gap-1.5 text-xs font-medium text-emerald-400 hover:text-emerald-300 transition-colors bg-emerald-900/30 hover:bg-emerald-900/50 px-2 py-1 rounded"
+                      >
+                        <FileText size={14} />
+                        Export Collector Directive (PDF)
+                      </button>
                     </div>
                   )}
                 </div>
@@ -354,6 +374,13 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({ onClose, onDispa
           </div>
         </div>
       )}
+
+      {/* PDF Export Modal */}
+      <DirectivePDFModal 
+        isOpen={showPDF} 
+        onClose={() => setShowPDF(false)} 
+        content={pdfContent} 
+      />
     </div>
   );
 };

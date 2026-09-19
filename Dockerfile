@@ -5,7 +5,7 @@
 # ==============================================================================
 # STAGE 1: Python Build — Compile Python dependencies into wheel cache
 # ==============================================================================
-FROM python:3.13-slim AS python-builder
+FROM python:3.12-slim AS python-builder
 
 WORKDIR /build
 
@@ -19,13 +19,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt ./
 
 # Build wheels into /opt/wheels
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /opt/wheels -r requirements.txt
+RUN pip wheel --no-cache-dir --wheel-dir /opt/wheels -r requirements.txt
 
 
 # ==============================================================================
 # STAGE 2: Runtime — Lean Python application image
 # ==============================================================================
-FROM python:3.13-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 
@@ -43,9 +43,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Copy pre-built Python wheels from builder stage
 COPY --from=python-builder /opt/wheels /opt/wheels
 
-# Install Python dependencies from wheels (no compilation needed in final image)
 COPY requirements.txt ./
-RUN pip install --no-cache /opt/wheels/* && rm -rf /opt/wheels
+RUN pip install --no-cache-dir --no-index --find-links=/opt/wheels -r requirements.txt && rm -rf /opt/wheels
 
 # Copy Python application code
 COPY main.py database.py schemas.py models.py ./

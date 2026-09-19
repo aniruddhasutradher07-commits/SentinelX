@@ -41,6 +41,7 @@ import json
 import math
 import numpy as np
 import pandas as pd
+import joblib
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, r2_score
 from xgboost import XGBRegressor
@@ -58,14 +59,39 @@ LAG_DAYS = 5  # use risk score from today back to 5 days ago
 # 1. Load ward demographics (population, density-based UHI/vulnerability)
 # ---------------------------------------------------------------------------
 def load_ward_profile(path):
+    import pandas as pd
+    import os
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
+
+    # Load Census CSV for real population overrides
+    census_df = None
+    CENSUS_FILE = "data/odisha_census_khordha_2011.csv"
+    if os.path.exists(CENSUS_FILE):
+        try:
+            census_df = pd.read_csv(CENSUS_FILE, sep="\t")
+        except Exception:
+            pass
 
     profiles = {}
     for feat in data["features"]:
         p = feat["properties"]
         ward_no = p.get("wardno")
+        
         pop = p.get("totalwardpopulation") or 0
+        
+        # Override with real Census population if found
+        if census_df is not None and ward_no:
+            num_str = "".join(filter(str.isdigit, str(ward_no)))
+            if num_str:
+                num = int(num_str)
+                ward_name_pattern = f"WARD NO.-{num:04d}"
+                ward_row = census_df[(census_df["Level"] == "WARD") & (census_df["Name"].str.contains("Bhubaneswar", na=False)) & (census_df["Name"].str.contains(ward_name_pattern, na=False))]
+                if not ward_row.empty:
+                    real_pop = float(ward_row.iloc[0]["TOT_P"])
+                    if real_pop > 0:
+                        pop = int(real_pop)
+        
         area_he = p.get("area_in_he") or 1
         density = pop / area_he
         profiles[ward_no] = {
@@ -75,9 +101,10 @@ def load_ward_profile(path):
         }
 
     densities = np.array([v["density"] for v in profiles.values()])
-    dmin, dmax = densities.min(), densities.max()
-    for v in profiles.values():
-        v["vulnerability"] = (v["density"] - dmin) / (dmax - dmin + 1e-9)  # 0-1
+    if len(densities) > 0:
+        dmin, dmax = densities.min(), densities.max()
+        for v in profiles.values():
+            v["vulnerability"] = (v["density"] - dmin) / (dmax - dmin + 1e-9)  # 0-1
     return profiles
 
 
@@ -305,6 +332,13 @@ def main():
     print(f"  MAE: {metrics['MAE']:.2f} admissions/day")
     print(f"  R^2: {metrics['R2']:.3f}")
     print(f"  Risk-tier classification accuracy: {metrics['TierAccuracy']*100:.1f}%")
+    
+    # Save the models
+    import os
+    os.makedirs("data", exist_ok=True)
+    joblib.dump(stage1, "data/stage1_dlnm.joblib")
+    joblib.dump(stage2, "data/stage2_xgboost.joblib")
+    print("✅ Models saved to data/stage1_dlnm.joblib and data/stage2_xgboost.joblib")
 
     print(f"\nLoading real 5-day forecast from {RISK_INDEX_CSV}...")
     daily_forecast = aggregate_daily_forecast(RISK_INDEX_CSV)
@@ -343,11 +377,10 @@ def main():
 
     # Automatically refresh SentinelX Dashboard UI
     try:
-        from build_dashboard import build_data, generate_html
-        print("\nUpdating SentinelX_Dashboard.html with latest 2-stage predictions...")
-        payload = build_data()
-        generate_html(payload)
-        print("✅ SentinelX_Dashboard.html successfully updated!")
+        from build_national_dashboard import compile_national_dashboard
+        print("\nUpdating SentinelX_National_Dashboard.html with latest predictions...")
+        compile_national_dashboard()
+        print("✅ SentinelX_National_Dashboard.html successfully updated!")
     except Exception as e:
         print(f"Note: Dashboard auto-update skipped: {e}")
 
