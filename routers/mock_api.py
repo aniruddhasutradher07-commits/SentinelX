@@ -514,7 +514,7 @@ def ward_detail(ward_no: str):
                     recovery_good = True
                     streak_count = 0
                     
-                risk_multiplier = 1.0 + (0.15 * streak_count) if streak_count >= 1 else 1.0
+                risk_multiplier = min(2.0, 1.0 + (0.15 * streak_count)) if streak_count >= 1 else 1.0
                 
                 # Calculate HTSI / WBGT (approx) for that day
                 ts_res = compute_htsi(t_max, rh_max, uv_index=8.0, aqi=100.0, wind_speed_ms=wind_ms)
