@@ -593,7 +593,7 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
 
                 {/* Admissions Bar */}
                 <Bar yAxisId="right" dataKey="admissions" radius={[2, 2, 0, 0]} barSize={12} name="Admissions">
-                  {forecast5d.map((entry, index) => {
+                  {forecast5d.map((entry: any, index: number) => {
                     const color = entry.tier === 'Red' ? '#C0392B' : entry.tier === 'Orange' ? '#D9772E' : entry.tier === 'Yellow' ? '#C9A227' : '#3A7D5C';
                     return <Cell key={`cell-${index}`} fill={color} />;
                   })}
