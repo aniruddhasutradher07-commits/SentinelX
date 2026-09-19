@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException
 import numpy as np
 import joblib
 from supabase import create_client, Client
+from core.multi_hazard import evaluate_multi_hazards
 
 router = APIRouter(prefix="/api/v1", tags=["Mock Data Ported from server.ts"])
 
@@ -563,6 +564,11 @@ def live_feed():
     peak_wbgt = topD["WBGT_celsius"] if topD else 32.4
     peak_district = topD["district"] if topD else 'Khordha'
     
+    # Simulate dynamic multi-hazard metrics for the top district
+    precip = random.uniform(0, 150)
+    wind = random.uniform(5, 30)
+    mh_result = evaluate_multi_hazards(precip, wind, [random.uniform(0, 50) for _ in range(7)])
+
     return {
         "sync_timestamp": now.isoformat(),
         "sync_time_display": now.strftime("%I:%M:%S %p IST"),
@@ -576,6 +582,7 @@ def live_feed():
             "active_alert_level": 'ORANGE' if peak_wbgt > 32 else 'YELLOW',
             "grid_status": 'NORMAL',
             "hospitals_reporting": 48,
+            "multi_hazard": mh_result.to_dict()
         }
     }
 
