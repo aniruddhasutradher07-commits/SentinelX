@@ -181,7 +181,10 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
       date: new Date(f.date).toLocaleDateString('en-US', { weekday: 'short' }),
       admissions: f.predicted_admissions,
       tier: f.ImpactTier,
-      wbgt: f.wbgt_max
+      wbgt: f.wbgt_max,
+      tMin: f.t_min,
+      recoveryGood: f.recovery_good,
+      streakCount: f.streak_count
     }))
     : Array.from({ length: 5 }).map((_, i) => {
       const baseAdm = (activeWard?.population || 10000) * 0.001;
@@ -529,14 +532,37 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
           </h3>
           <div className="h-32 w-full mb-2">
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={forecast5d} margin={{ top: 5, right: -5, left: -25, bottom: 0 }}>
+              <ComposedChart data={forecast5d} margin={{ top: 5, right: -5, left: -25, bottom: 20 }}>
                 {/* Background color bands for WBGT danger zones */}
                 <ReferenceArea y1={32} y2={40} yAxisId="left" fill="#C0392B" fillOpacity={0.1} />
                 <ReferenceArea y1={30} y2={32} yAxisId="left" fill="#D9772E" fillOpacity={0.1} />
                 <ReferenceArea y1={28} y2={30} yAxisId="left" fill="#C9A227" fillOpacity={0.1} />
                 <ReferenceArea y1={0} y2={28} yAxisId="left" fill="#3A7D5C" fillOpacity={0.1} />
 
-                <XAxis dataKey="date" tick={{ fill: '#8B9096', fontSize: 9 }} axisLine={false} tickLine={false} />
+                <XAxis 
+                  dataKey="date" 
+                  axisLine={false} 
+                  tickLine={false}
+                  tick={(props: any) => {
+                    const { x, y, payload, index } = props;
+                    const data = forecast5d[index];
+                    if (!data) return null;
+                    return (
+                      <g transform={`translate(${x},${y})`}>
+                        <text x={0} y={0} dy={12} textAnchor="middle" fill="#8B9096" fontSize={9}>
+                          {payload.value}
+                        </text>
+                        {data.streakCount >= 2 ? (
+                          <text x={0} y={0} dy={26} textAnchor="middle" fill="#C0392B" fontSize={10} fontWeight="bold">
+                            🔥x{data.streakCount}
+                          </text>
+                        ) : (
+                          <circle cx={0} cy={22} r={3} fill={data.recoveryGood ? "#3A7D5C" : "#C0392B"} />
+                        )}
+                      </g>
+                    );
+                  }} 
+                />
                 
                 {/* Left Y Axis for WBGT */}
                 <YAxis yAxisId="left" domain={[24, 40]} tick={{ fill: '#8B9096', fontSize: 9 }} axisLine={false} tickLine={false} hide />
@@ -545,9 +571,24 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
                 <YAxis yAxisId="right" orientation="right" tick={{ fill: '#8B9096', fontSize: 9 }} axisLine={false} tickLine={false} />
 
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0B0D0E', borderColor: '#232A2E', borderRadius: '8px', fontSize: '10px' }}
-                  itemStyle={{ color: '#fff' }}
                   cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                  content={({ active, payload, label }: any) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="bg-[#0B0D0E] border border-[#232A2E] rounded-lg p-2 text-[10px] text-white">
+                          <p className="font-bold mb-1">{label}</p>
+                          <p>Max WBGT: {data.wbgt}°C</p>
+                          <p>Night Min: {data.tMin}°C</p>
+                          <p>Admissions: {data.admissions}</p>
+                          <p className={data.recoveryGood ? "text-[#3A7D5C]" : "text-[#C0392B]"}>
+                            Recovery: {data.recoveryGood ? 'Good' : 'Poor'} {data.streakCount >= 2 && `(🔥x${data.streakCount})`}
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
                 />
 
                 {/* Admissions Bar */}
@@ -565,7 +606,7 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
           </div>
           <div className="flex justify-between items-end mt-3">
             <p className="text-[10px] text-[#F2F1EC] font-sans">
-              Peak expected on <span className="font-bold">{maxForecast?.date}</span> ({maxForecast?.admissions} admissions, <span className="font-bold" style={{ color: maxForecast?.tier === 'Red' ? '#C0392B' : maxForecast?.tier === 'Orange' ? '#D9772E' : maxForecast?.tier === 'Yellow' ? '#C9A227' : '#3A7D5C' }}>{maxForecast?.tier} Tier</span>).
+              Peak expected on <span className="font-bold">{maxForecast?.date}</span> ({maxForecast?.admissions} admissions).
             </p>
             <div className="flex gap-3 text-[9px] font-mono text-[#8B9096]">
                <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-white"></div> WBGT</span>

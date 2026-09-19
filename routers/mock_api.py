@@ -487,20 +487,34 @@ def ward_detail(ward_no: str):
     try:
         lat = first.get("centroid_lat", 20.2961)
         lon = first.get("centroid_lon", 85.8245)
-        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&daily=temperature_2m_max,relative_humidity_2m_max,wind_speed_10m_max&timezone=auto&forecast_days=5"
+        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&daily=temperature_2m_max,temperature_2m_min,relative_humidity_2m_max,wind_speed_10m_max&timezone=auto&forecast_days=5"
         resp = requests.get(url, timeout=3)
         if resp.status_code == 200:
             data = resp.json()
             daily = data.get("daily", {})
             times = daily.get("time", [])
             t_maxes = daily.get("temperature_2m_max", [])
+            t_mins = daily.get("temperature_2m_min", [])
             rh_maxes = daily.get("relative_humidity_2m_max", [])
             wind_maxes = daily.get("wind_speed_10m_max", [])
             
+            streak_count = 0
+            
             for i in range(len(times)):
                 t_max = t_maxes[i]
+                t_min = t_mins[i]
                 rh_max = rh_maxes[i]
                 wind_ms = wind_maxes[i] / 3.6 # km/h to m/s
+                
+                # Night recovery logic
+                if t_min >= 28.0:
+                    recovery_good = False
+                    streak_count += 1
+                else:
+                    recovery_good = True
+                    streak_count = 0
+                    
+                risk_multiplier = 1.0 + (0.15 * streak_count) if streak_count >= 1 else 1.0
                 
                 # Calculate HTSI / WBGT (approx) for that day
                 ts_res = compute_htsi(t_max, rh_max, uv_index=8.0, aqi=100.0, wind_speed_ms=wind_ms)
@@ -518,7 +532,10 @@ def ward_detail(ward_no: str):
                     X_future = np.array([lags + [pop, vuln_norm, day_of_week]])
                     adm = max(0.0, float(stage2_model.predict(X_future)[0]))
                 else:
-                    adm = round(pop * 0.00015 * (1 + math.sin(i)) * vuln["vulnerability_multiplier"], 1)
+                    adm = pop * 0.00015 * (1 + math.sin(i)) * vuln["vulnerability_multiplier"]
+                    
+                # Apply recovery penalty
+                adm = round(adm * risk_multiplier, 1)
                 
                 tier = 'Red' if predicted_wbgt >= 32.0 else ('Orange' if predicted_wbgt >= 30.0 else ('Yellow' if predicted_wbgt >= 28.0 else 'Green'))
                 
@@ -527,7 +544,10 @@ def ward_detail(ward_no: str):
                     "date": times[i],
                     "population": pop,
                     "wbgt_max": predicted_wbgt,
-                    "predicted_admissions": round(adm, 1),
+                    "t_min": t_min,
+                    "recovery_good": recovery_good,
+                    "streak_count": streak_count,
+                    "predicted_admissions": adm,
                     "ImpactTier": tier
                 })
         else:
@@ -546,6 +566,9 @@ def ward_detail(ward_no: str):
                 "date": d.strftime("%Y-%m-%d"),
                 "population": pop,
                 "wbgt_max": wbgt,
+                "t_min": 25.0,
+                "recovery_good": True,
+                "streak_count": 0,
                 "predicted_admissions": adm,
                 "ImpactTier": tier
             })
