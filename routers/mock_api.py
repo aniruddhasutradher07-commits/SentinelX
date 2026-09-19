@@ -4,6 +4,7 @@ import random
 import os
 import json
 import pandas as pd
+import shap
 from fastapi import APIRouter, HTTPException
 import numpy as np
 import joblib
@@ -495,6 +496,36 @@ def ward_detail(ward_no: str):
             "ImpactTier": tier
         })
         
+    
+    # Calculate SHAP explainability for the ward's hospital surge prediction
+    shap_explainability = None
+    if stage2_model is not None:
+        try:
+            norm_risk = first["WardRiskScore"] / 100.0
+            lags = [norm_risk] * 6
+            day_of_week = datetime.datetime.now().weekday()
+            vuln_norm = vuln["vulnerability_score"] / 100.0
+            X2 = np.array([lags + [pop, vuln_norm, day_of_week]])
+            
+            explainer = shap.TreeExplainer(stage2_model)
+            shap_vals = explainer.shap_values(X2)[0].tolist()
+            expected_val = float(explainer.expected_value)
+            
+            feature_names = [
+                "Risk Lag 1", "Risk Lag 2", "Risk Lag 3", 
+                "Risk Lag 4", "Risk Lag 5", "Risk Lag 6", 
+                "Population", "Vulnerability Score", "Day of Week"
+            ]
+            
+            features = [{"name": feature_names[i], "value": shap_vals[i]} for i in range(len(feature_names))]
+            
+            shap_explainability = {
+                "expected_value": expected_val,
+                "features": features
+            }
+        except Exception as e:
+            print(f"SHAP calculation failed: {e}")
+
     return {
         "ward_metadata": {
             "ward_no": first["ward_no"],
@@ -512,7 +543,8 @@ def ward_detail(ward_no: str):
             **vuln
         },
         "hospital_demand_forecast": forecast5d,
-        "next_24h_weather": next_24h_weather
+        "next_24h_weather": next_24h_weather,
+        "shap_explainability": shap_explainability
     }
 
 @router.get("/realtime/simulate-update")
