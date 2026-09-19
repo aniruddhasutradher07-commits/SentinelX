@@ -546,7 +546,7 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
                   tick={(props: any) => {
                     const { x, y, payload, index } = props;
                     const data = forecast5d[index];
-                    if (!data) return null;
+                    if (!data) return <g></g>;
                     return (
                       <g transform={`translate(${x},${y})`}>
                         <text x={0} y={0} dy={12} textAnchor="middle" fill="#8B9096" fontSize={9}>
