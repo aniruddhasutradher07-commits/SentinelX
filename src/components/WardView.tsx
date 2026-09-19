@@ -20,7 +20,7 @@ import {
   Percent,
   Sparkles
 } from 'lucide-react';
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar, Cell, LineChart, Line, ReferenceLine, PieChart, Pie } from 'recharts';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar, Cell, LineChart, Line, ReferenceLine, PieChart, Pie, ComposedChart, ReferenceArea } from 'recharts';
 import { WardRiskRecord } from '../types';
 import { getApiUrl } from '../services/apiConfig';
 
@@ -180,7 +180,8 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
     ? wardDetails.hospital_demand_forecast.map((f: any) => ({
       date: new Date(f.date).toLocaleDateString('en-US', { weekday: 'short' }),
       admissions: f.predicted_admissions,
-      tier: f.ImpactTier
+      tier: f.ImpactTier,
+      wbgt: f.wbgt_max
     }))
     : Array.from({ length: 5 }).map((_, i) => {
       const baseAdm = (activeWard?.population || 10000) * 0.001;
@@ -519,31 +520,58 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
 
         {/* Panel 4: 5-day forecast horizon */}
         <div className="bg-[#14171A] border border-[#232A2E] rounded-2xl p-4">
-          <h3 className="text-[10px] font-mono text-[#8B9096] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-            <TrendingUp className="w-3.5 h-3.5 text-[#0F5C5C]" />
-            5-day forecast horizon
+          <h3 className="text-[10px] font-mono text-[#8B9096] uppercase tracking-wider mb-2 flex items-center justify-between">
+            <span className="flex items-center gap-1.5">
+              <TrendingUp className="w-3.5 h-3.5 text-[#0F5C5C]" />
+              5-day forecast horizon
+            </span>
+            <span className="text-[9px] font-sans text-slate-500 normal-case bg-white/5 px-2 py-0.5 rounded">Open-Meteo</span>
           </h3>
-          <div className="h-24 w-full mb-2">
+          <div className="h-32 w-full mb-2">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={forecast5d} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                <XAxis dataKey="date" tick={{ fill: '#8B9096', fontSize: 9 }} />
-                <YAxis tick={{ fill: '#8B9096', fontSize: 9 }} />
+              <ComposedChart data={forecast5d} margin={{ top: 5, right: -5, left: -25, bottom: 0 }}>
+                {/* Background color bands for WBGT danger zones */}
+                <ReferenceArea y1={32} y2={40} yAxisId="left" fill="#C0392B" fillOpacity={0.1} />
+                <ReferenceArea y1={30} y2={32} yAxisId="left" fill="#D9772E" fillOpacity={0.1} />
+                <ReferenceArea y1={28} y2={30} yAxisId="left" fill="#C9A227" fillOpacity={0.1} />
+                <ReferenceArea y1={0} y2={28} yAxisId="left" fill="#3A7D5C" fillOpacity={0.1} />
+
+                <XAxis dataKey="date" tick={{ fill: '#8B9096', fontSize: 9 }} axisLine={false} tickLine={false} />
+                
+                {/* Left Y Axis for WBGT */}
+                <YAxis yAxisId="left" domain={[24, 40]} tick={{ fill: '#8B9096', fontSize: 9 }} axisLine={false} tickLine={false} hide />
+                
+                {/* Right Y Axis for Admissions */}
+                <YAxis yAxisId="right" orientation="right" tick={{ fill: '#8B9096', fontSize: 9 }} axisLine={false} tickLine={false} />
+
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0B0D0E', borderColor: '#232A2E', fontSize: '10px' }}
+                  contentStyle={{ backgroundColor: '#0B0D0E', borderColor: '#232A2E', borderRadius: '8px', fontSize: '10px' }}
+                  itemStyle={{ color: '#fff' }}
                   cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                 />
-                <Bar dataKey="admissions" radius={[2, 2, 0, 0]}>
+
+                {/* Admissions Bar */}
+                <Bar yAxisId="right" dataKey="admissions" radius={[2, 2, 0, 0]} barSize={12} name="Admissions">
                   {forecast5d.map((entry, index) => {
                     const color = entry.tier === 'Red' ? '#C0392B' : entry.tier === 'Orange' ? '#D9772E' : entry.tier === 'Yellow' ? '#C9A227' : '#3A7D5C';
                     return <Cell key={`cell-${index}`} fill={color} />;
                   })}
                 </Bar>
-              </BarChart>
+
+                {/* WBGT Line */}
+                <Line yAxisId="left" type="monotone" dataKey="wbgt" stroke="#ffffff" strokeWidth={2} dot={{ r: 3, fill: '#ffffff', strokeWidth: 0 }} name="Max WBGT (°C)" />
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
-          <p className="text-[10px] text-[#F2F1EC] font-sans">
-            Peak expected on <span className="font-bold">{maxForecast?.date}</span> ({maxForecast?.admissions} admissions, <span className="font-bold" style={{ color: maxForecast?.tier === 'Red' ? '#C0392B' : maxForecast?.tier === 'Orange' ? '#D9772E' : maxForecast?.tier === 'Yellow' ? '#C9A227' : '#3A7D5C' }}>{maxForecast?.tier} Tier</span>).
-          </p>
+          <div className="flex justify-between items-end mt-3">
+            <p className="text-[10px] text-[#F2F1EC] font-sans">
+              Peak expected on <span className="font-bold">{maxForecast?.date}</span> ({maxForecast?.admissions} admissions, <span className="font-bold" style={{ color: maxForecast?.tier === 'Red' ? '#C0392B' : maxForecast?.tier === 'Orange' ? '#D9772E' : maxForecast?.tier === 'Yellow' ? '#C9A227' : '#3A7D5C' }}>{maxForecast?.tier} Tier</span>).
+            </p>
+            <div className="flex gap-3 text-[9px] font-mono text-[#8B9096]">
+               <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-white"></div> WBGT</span>
+               <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded bg-[#C0392B]"></div> Surge</span>
+            </div>
+          </div>
         </div>
 
         {/* Drivers Zone (Section 3.3): Exactly three plain-language driver lines, ranked */}

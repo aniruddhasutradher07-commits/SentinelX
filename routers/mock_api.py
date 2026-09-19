@@ -4,12 +4,14 @@ import random
 import os
 import json
 import pandas as pd
+import requests
 import shap
 from fastapi import APIRouter, HTTPException
 import numpy as np
 import joblib
 from supabase import create_client, Client
 from core.multi_hazard import evaluate_multi_hazards
+from core.thermal_stress import compute_htsi
 
 router = APIRouter(prefix="/api/v1", tags=["Mock Data Ported from server.ts"])
 
@@ -480,21 +482,74 @@ def ward_detail(ward_no: str):
             "RiskTier": first["RiskTier"],
         })
         
-    # 2. 5-Day Forecast Horizon
+    # 2. 5-Day Forecast Horizon (Real Data via Open-Meteo)
     forecast5d = []
-    for i in range(5):
-        d = (datetime.datetime.now() + datetime.timedelta(days=i))
-        trend = math.sin(i * 0.8) * 0.5 + 1
-        adm = round(pop * 0.00015 * trend * vuln["vulnerability_multiplier"], 1)
-        tier = 'Red' if adm > pop * 0.00025 else ('Orange' if adm > pop * 0.00020 else ('Yellow' if adm > pop * 0.00010 else 'Green'))
-        forecast5d.append({
-            "ward_no": first["ward_no"],
-            "date": d.strftime("%Y-%m-%d"),
-            "population": pop,
-            "wbgt_max": round(first["WBGT_celsius"] + (trend - 1) * 2, 1),
-            "predicted_admissions": adm,
-            "ImpactTier": tier
-        })
+    try:
+        lat = first.get("centroid_lat", 20.2961)
+        lon = first.get("centroid_lon", 85.8245)
+        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&daily=temperature_2m_max,relative_humidity_2m_max,wind_speed_10m_max&timezone=auto&forecast_days=5"
+        resp = requests.get(url, timeout=3)
+        if resp.status_code == 200:
+            data = resp.json()
+            daily = data.get("daily", {})
+            times = daily.get("time", [])
+            t_maxes = daily.get("temperature_2m_max", [])
+            rh_maxes = daily.get("relative_humidity_2m_max", [])
+            wind_maxes = daily.get("wind_speed_10m_max", [])
+            
+            for i in range(len(times)):
+                t_max = t_maxes[i]
+                rh_max = rh_maxes[i]
+                wind_ms = wind_maxes[i] / 3.6 # km/h to m/s
+                
+                # Calculate HTSI / WBGT (approx) for that day
+                ts_res = compute_htsi(t_max, rh_max, uv_index=8.0, aqi=100.0, wind_speed_ms=wind_ms)
+                # WBGT approximation formula (rough estimate for UI)
+                predicted_wbgt = round(t_max * 0.7 + (rh_max / 100.0) * 0.3 * t_max, 1)
+                
+                # Predict admissions if model available
+                adm = 0.0
+                if stage2_model is not None:
+                    # Using current lags but replacing the first one with the future risk score
+                    future_risk = ts_res.htsi_score * vuln["vulnerability_multiplier"]
+                    lags = [future_risk / 100.0] * 6
+                    day_of_week = (datetime.datetime.now() + datetime.timedelta(days=i)).weekday()
+                    vuln_norm = vuln["vulnerability_score"] / 100.0
+                    X_future = np.array([lags + [pop, vuln_norm, day_of_week]])
+                    adm = max(0.0, float(stage2_model.predict(X_future)[0]))
+                else:
+                    adm = round(pop * 0.00015 * (1 + math.sin(i)) * vuln["vulnerability_multiplier"], 1)
+                
+                tier = 'Red' if predicted_wbgt >= 32.0 else ('Orange' if predicted_wbgt >= 30.0 else ('Yellow' if predicted_wbgt >= 28.0 else 'Green'))
+                
+                forecast5d.append({
+                    "ward_no": first["ward_no"],
+                    "date": times[i],
+                    "population": pop,
+                    "wbgt_max": predicted_wbgt,
+                    "predicted_admissions": round(adm, 1),
+                    "ImpactTier": tier
+                })
+        else:
+            raise Exception("Open-Meteo failed")
+    except Exception as e:
+        print(f"Forecast API error: {e}")
+        # Fallback to synthetic
+        for i in range(5):
+            d = (datetime.datetime.now() + datetime.timedelta(days=i))
+            trend = math.sin(i * 0.8) * 0.5 + 1
+            adm = round(pop * 0.00015 * trend * vuln["vulnerability_multiplier"], 1)
+            wbgt = round(first["WBGT_celsius"] + (trend - 1) * 2, 1)
+            tier = 'Red' if wbgt >= 32.0 else ('Orange' if wbgt >= 30.0 else ('Yellow' if wbgt >= 28.0 else 'Green'))
+            forecast5d.append({
+                "ward_no": first["ward_no"],
+                "date": d.strftime("%Y-%m-%d"),
+                "population": pop,
+                "wbgt_max": wbgt,
+                "predicted_admissions": adm,
+                "ImpactTier": tier
+            })
+
         
     
     # Calculate SHAP explainability for the ward's hospital surge prediction
