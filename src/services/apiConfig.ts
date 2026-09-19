@@ -12,11 +12,13 @@
  */
 
 // Point to the same origin if served by FastAPI, or localhost:8000 for local dev
-export const PRODUCTION_API_URL = '';
+export const PRODUCTION_API_URL = 'https://sentinelx-pi9j.onrender.com';
 
 // Read environment variable or fallback to production URL
 const envBase = typeof import.meta !== 'undefined' ? (import.meta as any).env?.VITE_API_BASE_URL : '';
-export const API_BASE_URL = envBase || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8000');
+const isProd = typeof import.meta !== 'undefined' && (import.meta as any).env?.PROD;
+
+export const API_BASE_URL = envBase || (isProd ? PRODUCTION_API_URL : 'http://localhost:8000');
 
 /**
  * Resolves full URL for any API endpoint path.
