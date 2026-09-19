@@ -130,12 +130,36 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
   const pctSolar = Math.round((wSolar / totalW) * 100);
   const pctWind = Math.round(pWind * 5); // display value for relief
 
-  // Panel 2: MRI Grade
-  const agreementScore = Math.min(100, Math.max(0, 85 + ((activeWard?.WardRiskScore || 85) % 15)));
-  const mriGrade = agreementScore > 90 ? 'A' : agreementScore >= 75 ? 'B' : 'C';
+  // Panel 2: MRI Grade & WBGT Consistency
+  const wbgt = activeWard?.WBGT_celsius || 26;
+  let wbgtBand = 'Caution';
+  let wbgtSeverity = 1;
+  if (wbgt >= 32) { wbgtBand = 'Extreme Danger'; wbgtSeverity = 4; }
+  else if (wbgt >= 30) { wbgtBand = 'Danger'; wbgtSeverity = 3; }
+  else if (wbgt >= 28) { wbgtBand = 'Extreme Caution'; wbgtSeverity = 2; }
+
+  const riskScore = activeWard?.WardRiskScore || 40;
+  let rawMriGrade = 'Low';
+  let mriSeverity = 1;
+  if (riskScore >= 85) { rawMriGrade = 'Extreme'; mriSeverity = 4; }
+  else if (riskScore >= 70) { rawMriGrade = 'Severe'; mriSeverity = 3; }
+  else if (riskScore >= 45) { rawMriGrade = 'Moderate'; mriSeverity = 2; }
+
+  let finalMriGrade = rawMriGrade;
+  let mriAdjusted = false;
+
+  if (wbgtSeverity > mriSeverity) {
+    mriAdjusted = true;
+    if (wbgtSeverity === 4) finalMriGrade = 'Extreme';
+    else if (wbgtSeverity === 3) finalMriGrade = 'Severe';
+    else if (wbgtSeverity === 2) finalMriGrade = 'Moderate';
+  }
+
+  const finalMriColor = finalMriGrade === 'Extreme' ? '#C0392B' : finalMriGrade === 'Severe' ? '#D9772E' : finalMriGrade === 'Moderate' ? '#C9A227' : '#3A7D5C';
+  
   const mriData = [
-    { name: 'Agreement', value: agreementScore, fill: '#2DD4C4' },
-    { name: 'Variance', value: 100 - agreementScore, fill: '#1e293b' }
+    { name: 'Score', value: riskScore, fill: finalMriColor },
+    { name: 'Remainder', value: 100 - riskScore, fill: '#1e293b' }
   ];
 
   // Panel 3: Night Recovery
@@ -440,22 +464,28 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
               <ShieldAlert className="w-3.5 h-3.5 text-[#0F5C5C]" />
               Model consistency — MRI grade
             </h3>
-            <p className="text-[10px] text-[#F2F1EC] font-sans mt-1">
-              {agreementScore}% agreement with baseline clinical models.
-            </p>
+            <div className="text-[10px] text-[#F2F1EC] font-sans mt-2 space-y-1">
+              <p><span className="text-[#8B9096]">WBGT Band:</span> {wbgtBand}</p>
+              <p><span className="text-[#8B9096]">Raw MRI:</span> {rawMriGrade}</p>
+              {mriAdjusted && (
+                <p className="text-[#C0392B] font-bold mt-1 bg-red-900/20 px-1.5 py-0.5 rounded border border-red-500/20 inline-block">
+                  Adjusted upwards due to {wbgtBand} WBGT!
+                </p>
+              )}
+            </div>
           </div>
-          <div className="relative w-14 h-14 shrink-0">
+          <div className="relative w-16 h-16 shrink-0 flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={mriData} innerRadius={18} outerRadius={26} dataKey="value" stroke="none" startAngle={90} endAngle={-270}>
+                <Pie data={mriData} innerRadius={22} outerRadius={30} dataKey="value" stroke="none" startAngle={90} endAngle={-270}>
                   {mriData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.fill} />
                   ))}
                 </Pie>
               </PieChart>
             </ResponsiveContainer>
-            <div className="absolute inset-0 flex items-center justify-center font-bold font-mono text-sm" style={{ color: '#2DD4C4' }}>
-              {mriGrade}
+            <div className="absolute inset-0 flex items-center justify-center font-bold font-mono text-[9px] uppercase tracking-tighter" style={{ color: finalMriColor }}>
+              {finalMriGrade.slice(0, 3)}
             </div>
           </div>
         </div>
