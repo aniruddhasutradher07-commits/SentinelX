@@ -30,6 +30,7 @@ export function App() {
   const [districts, setDistricts] = useState<DistrictRiskRecord[]>([]);
   const [wards, setWards] = useState<WardRiskRecord[]>([]);
   const [geoJson, setGeoJson] = useState<any>(null);
+  const [wardGeoJson, setWardGeoJson] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [isCloudWakingUp, setIsCloudWakingUp] = useState<boolean>(false);
 
@@ -62,18 +63,20 @@ export function App() {
     async function loadInitialData() {
       try {
         setLoading(true);
-        const [sumRes, distRes, wardRes, geoRes, teleRes] = await Promise.all([
+        const [sumRes, distRes, wardRes, geoRes, wardGeoRes, teleRes] = await Promise.all([
           fetchWithColdStart('/api/v1/summary', { onColdStart: setIsCloudWakingUp }).then(r => r.json()),
           fetchWithColdStart('/api/v1/districts').then(r => r.json()),
           fetchWithColdStart('/api/v1/wards').then(r => r.json()),
           fetchWithColdStart('/api/v1/odisha-geojson').then(r => r.json()),
+          fetchWithColdStart('/api/v1/wards-geojson').then(r => r.json()),
           fetchWithColdStart('/api/v1/live-feed').then(r => r.json()),
         ]);
 
-        setSummary(sumRes);
+        if (sumRes) setSummary(sumRes);
         if (distRes?.districts) setDistricts(distRes.districts);
         if (wardRes?.wards) setWards(wardRes.wards);
-        setGeoJson(geoRes);
+        if (geoRes) setGeoJson(geoRes);
+        if (wardGeoRes) setWardGeoJson(wardGeoRes);
         setTelemetry(teleRes);
       } catch (err) {
         console.error('Failed to load initial application state:', err);
@@ -250,6 +253,8 @@ export function App() {
               <OdishaMap
                 districts={districts}
                 geoJson={geoJson}
+                wardData={wards}
+                wardGeoJson={wardGeoJson}
                 onSelectDistrict={(d) => {}}
                 onDispatchAlert={(distName) => handleOpenDispatcher(distName)}
               />
