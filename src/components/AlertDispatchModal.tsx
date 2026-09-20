@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Send, 
-  X, 
   CheckCircle2, 
   Radio, 
   Volume2, 
@@ -9,12 +8,11 @@ import {
   Building2, 
   Users, 
   Clock, 
-  Zap, 
-  ShieldAlert,
   Globe2
 } from 'lucide-react';
 import { AlertDispatchResponse } from '../types';
 import { getApiUrl } from '../services/apiConfig';
+import { Modal } from './ui/Modal';
 
 interface AlertDispatchModalProps {
   isOpen: boolean;
@@ -54,7 +52,7 @@ export const AlertDispatchModal: React.FC<AlertDispatchModalProps> = ({
   const [channelType, setChannelType] = useState<'citizen' | 'admin'>('citizen');
   const [adminAction, setAdminAction] = useState<'cooling' | 'work_shift' | 'asha'>('cooling');
   const [selectedLang, setSelectedLang] = useState<'or' | 'en' | 'hi'>('or');
-  const [phone, setPhone] = useState('+91-9437012345');
+  const [phone] = useState('+91-9437012345');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [receipt, setReceipt] = useState<AlertDispatchResponse | null>(null);
@@ -76,9 +74,12 @@ export const AlertDispatchModal: React.FC<AlertDispatchModalProps> = ({
     }
   }, [selectedLang, channelType, adminAction, region, initialMessage]);
 
-  if (!isOpen) return null;
+  const handleClose = () => {
+    if (isPlayingAudio) window.speechSynthesis.cancel();
+    onClose();
+  };
 
-  // Regional IVR Audio Synthesizer (Section 12 Demo step 9)
+  // Regional IVR Audio Synthesizer
   const handlePlayIvrAudio = () => {
     if (isPlayingAudio) {
       window.speechSynthesis.cancel();
@@ -136,7 +137,6 @@ export const AlertDispatchModal: React.FC<AlertDispatchModalProps> = ({
           message_payload: message,
         });
       } else {
-        // Fallback simulated receipt
         setReceipt({
           dispatch_status: 'DISPATCH_CONFIRMED (AUDIT_LOGGED)',
           gateway: 'NIC SMS / Twilio WhatsApp / IVRS Siren',
@@ -164,230 +164,218 @@ export const AlertDispatchModal: React.FC<AlertDispatchModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-      <div className="bg-slate-950 border border-slate-800 rounded-3xl max-w-xl w-full p-6 relative shadow-2xl overflow-hidden text-slate-200">
-        {/* Close Button */}
-        <button
-          onClick={() => {
-            if (isPlayingAudio) window.speechSynthesis.cancel();
-            onClose();
-          }}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-900 transition"
-        >
-          <X className="w-5 h-5" />
-        </button>
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Emergency Alert & Action Dispatcher"
+      icon={Radio}
+      maxWidth="xl"
+    >
+      {receipt ? (
+        /* Receipt / Audit Log View */
+        <div className="text-center py-4 space-y-4">
+          <div className="w-14 h-14 bg-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto border border-emerald-500/30">
+            <CheckCircle2 className="w-7 h-7" />
+          </div>
 
-        {receipt ? (
-          /* Receipt / Audit Log View */
-          <div className="text-center py-4 space-y-4">
-            <div className="w-14 h-14 bg-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto border border-emerald-500/30">
-              <CheckCircle2 className="w-7 h-7" />
+          <div>
+            <span className="inline-block px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-mono font-bold tracking-wider uppercase border border-emerald-500/20 mb-1">
+              PRD Section 6.5 · FR-E4 Audit Logged
+            </span>
+            <h2 className="text-lg font-bold font-display text-white">Emergency Dispatch Confirmed</h2>
+            <p className="text-xs text-slate-400 font-mono mt-0.5">Gateway: {receipt.gateway}</p>
+          </div>
+
+          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 text-left text-xs font-mono space-y-2.5">
+            <div className="flex justify-between">
+              <span className="text-slate-500">Status:</span>
+              <span className="text-emerald-400 font-bold">{receipt.dispatch_status}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">Target Region:</span>
+              <span className="text-slate-200 font-sans font-medium">{receipt.district || receipt.ward_no}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">Recipients & Channels:</span>
+              <span className="text-slate-300">{receipt.recipient}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">Dispatched At:</span>
+              <span className="text-slate-400">{new Date(receipt.timestamp).toLocaleTimeString()} IST</span>
+            </div>
+            <div className="pt-2 border-t border-slate-800 text-[11px] text-slate-300 font-sans">
+              <span className="text-slate-500 block font-mono text-[10px] mb-1 uppercase tracking-wider">Dispatched Payload:</span>
+              <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 leading-relaxed text-slate-300">
+                {receipt.message_payload}
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setReceipt(null);
+              handleClose();
+            }}
+            className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs transition border border-slate-800 outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+          >
+            Return to Situation Room
+          </button>
+        </div>
+      ) : (
+        /* Dispatch Form View */
+        <div className="space-y-4">
+          {/* Channel Switcher */}
+          <div className="grid grid-cols-2 gap-2 bg-slate-900/80 p-1 rounded-2xl border border-slate-800 text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => setChannelType('citizen')}
+              className={`py-2 px-3 rounded-xl flex items-center justify-center gap-2 transition outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${
+                channelType === 'citizen'
+                  ? 'bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Citizen Public Advisory</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setChannelType('admin')}
+              className={`py-2 px-3 rounded-xl flex items-center justify-center gap-2 transition outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${
+                channelType === 'admin'
+                  ? 'bg-rose-600 text-white font-bold shadow-md shadow-rose-600/20'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Building2 className="w-3.5 h-3.5" />
+              <span>Admin Action Triggers</span>
+            </button>
+          </div>
+
+          {/* Language Selector */}
+          <div className="flex items-center justify-between bg-slate-900/60 p-2.5 rounded-2xl border border-slate-800/80 text-xs">
+            <span className="flex items-center gap-1.5 text-slate-400 font-mono text-[11px]">
+              <Globe2 className="w-3.5 h-3.5 text-sky-400" />
+              Language / ଭାଷା:
+            </span>
+            <div className="flex gap-1.5">
+              {(['or', 'en', 'hi'] as const).map((lang) => (
+                <button
+                  key={lang}
+                  type="button"
+                  onClick={() => setSelectedLang(lang)}
+                  className={`px-3 py-1 rounded-lg font-bold text-xs transition outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${
+                    selectedLang === lang
+                      ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
+                      : 'bg-slate-950 text-slate-400 hover:text-slate-200 border border-transparent'
+                  }`}
+                >
+                  {TEMPLATES[lang].langName}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* If Admin Channel: Action Selector */}
+          {channelType === 'admin' && (
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <button
+                type="button"
+                onClick={() => setAdminAction('cooling')}
+                className={`p-2.5 rounded-xl border text-left flex items-start gap-2 transition outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${
+                  adminAction === 'cooling'
+                    ? 'bg-sky-500/10 border-sky-500/40 text-sky-300'
+                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'
+                }`}
+              >
+                <Building2 className="w-4 h-4 mt-0.5 shrink-0 text-sky-400" />
+                <div>
+                  <span className="font-bold block">Open Cooling Centres</span>
+                  <span className="text-[10px] text-slate-500">Kiosks & ORS points</span>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setAdminAction('work_shift')}
+                className={`p-2.5 rounded-xl border text-left flex items-start gap-2 transition outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${
+                  adminAction === 'work_shift'
+                    ? 'bg-amber-500/10 border-amber-500/40 text-amber-300'
+                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'
+                }`}
+              >
+                <Clock className="w-4 h-4 mt-0.5 shrink-0 text-amber-400" />
+                <div>
+                  <span className="font-bold block">Shift Work Hours</span>
+                  <span className="text-[10px] text-slate-500">11 AM - 3 PM ban</span>
+                </div>
+              </button>
+            </div>
+          )}
+
+          <div className="space-y-3 text-xs">
+            <div>
+              <label className="text-slate-300 font-semibold block mb-1" htmlFor="dispatch-region">
+                Target Ward / Jurisdiction
+              </label>
+              <input
+                id="dispatch-region"
+                type="text"
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-cyan-500 font-sans"
+              />
             </div>
 
             <div>
-              <span className="inline-block px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-mono font-bold tracking-wider uppercase border border-emerald-500/20 mb-1">
-                PRD Section 6.5 · FR-E4 Audit Logged
-              </span>
-              <h2 className="text-lg font-bold font-display text-white">Emergency Dispatch Confirmed</h2>
-              <p className="text-xs text-slate-400 font-mono mt-0.5">Gateway: {receipt.gateway}</p>
-            </div>
-
-            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 text-left text-xs font-mono space-y-2.5">
-              <div className="flex justify-between">
-                <span className="text-slate-500">Status:</span>
-                <span className="text-emerald-400 font-bold">{receipt.dispatch_status}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Target Region:</span>
-                <span className="text-slate-200 font-sans font-medium">{receipt.district || receipt.ward_no}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Recipients & Channels:</span>
-                <span className="text-slate-300">{receipt.recipient}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Dispatched At:</span>
-                <span className="text-slate-400">{new Date(receipt.timestamp).toLocaleTimeString()} IST</span>
-              </div>
-              <div className="pt-2 border-t border-slate-800 text-[11px] text-slate-300 font-sans">
-                <span className="text-slate-500 block font-mono text-[10px] mb-1 uppercase tracking-wider">Dispatched Payload:</span>
-                <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 leading-relaxed text-slate-300">
-                  {receipt.message_payload}
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={() => {
-                setReceipt(null);
-                onClose();
-              }}
-              className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs transition border border-slate-800"
-            >
-              Return to Situation Room
-            </button>
-          </div>
-        ) : (
-          /* Dispatch Form View */
-          <div className="space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
-                  <Radio className="w-5 h-5 animate-pulse" />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold font-display text-white">Emergency Alert & Action Dispatcher</h2>
-                  <p className="text-[11px] text-slate-400 font-mono">Module E · SMS / WhatsApp / Regional IVRS / Action Triggers</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Channel Switcher (Citizen vs Administrative Action API) */}
-            <div className="grid grid-cols-2 gap-2 bg-slate-900 p-1 rounded-2xl border border-slate-800 text-xs font-semibold">
-              <button
-                type="button"
-                onClick={() => setChannelType('citizen')}
-                className={`py-2 px-3 rounded-xl flex items-center justify-center gap-2 transition ${
-                  channelType === 'citizen'
-                    ? 'bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                <Users className="w-3.5 h-3.5" />
-                <span>Citizen Public Advisory</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setChannelType('admin')}
-                className={`py-2 px-3 rounded-xl flex items-center justify-center gap-2 transition ${
-                  channelType === 'admin'
-                    ? 'bg-rose-600 text-white font-bold shadow-md shadow-rose-600/20'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                <Building2 className="w-3.5 h-3.5" />
-                <span>Admin Action Triggers</span>
-              </button>
-            </div>
-
-            {/* Language Selector (Odia, English, Hindi) */}
-            <div className="flex items-center justify-between bg-slate-900/60 p-2.5 rounded-2xl border border-slate-800/80 text-xs">
-              <span className="flex items-center gap-1.5 text-slate-400 font-mono text-[11px]">
-                <Globe2 className="w-3.5 h-3.5 text-sky-400" />
-                Language / ଭାଷା:
-              </span>
-              <div className="flex gap-1.5">
-                {(['or', 'en', 'hi'] as const).map((lang) => (
-                  <button
-                    key={lang}
-                    type="button"
-                    onClick={() => setSelectedLang(lang)}
-                    className={`px-3 py-1 rounded-lg font-bold text-xs transition ${
-                      selectedLang === lang
-                        ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
-                        : 'bg-slate-950 text-slate-400 hover:text-slate-200 border border-transparent'
-                    }`}
-                  >
-                    {TEMPLATES[lang].langName}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* If Admin Channel: Action Selector */}
-            {channelType === 'admin' && (
-              <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-slate-300 font-semibold" htmlFor="advisory-payload">
+                  Advisory Payload & Voice Script
+                </label>
                 <button
                   type="button"
-                  onClick={() => setAdminAction('cooling')}
-                  className={`p-2.5 rounded-xl border text-left flex items-start gap-2 transition ${
-                    adminAction === 'cooling'
-                      ? 'bg-sky-500/10 border-sky-500/40 text-sky-300'
-                      : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'
+                  onClick={handlePlayIvrAudio}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-mono transition outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${
+                    isPlayingAudio
+                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse'
+                      : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800'
                   }`}
                 >
-                  <Building2 className="w-4 h-4 mt-0.5 shrink-0 text-sky-400" />
-                  <div>
-                    <span className="font-bold block">Open Cooling Centres</span>
-                    <span className="text-[10px] text-slate-500">Kiosks & ORS points</span>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAdminAction('work_shift')}
-                  className={`p-2.5 rounded-xl border text-left flex items-start gap-2 transition ${
-                    adminAction === 'work_shift'
-                      ? 'bg-amber-500/10 border-amber-500/40 text-amber-300'
-                      : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'
-                  }`}
-                >
-                  <Clock className="w-4 h-4 mt-0.5 shrink-0 text-amber-400" />
-                  <div>
-                    <span className="font-bold block">Shift Work Hours</span>
-                    <span className="text-[10px] text-slate-500">11 AM - 3 PM ban</span>
-                  </div>
+                  {isPlayingAudio ? (
+                    <>
+                      <VolumeX className="w-3.5 h-3.5" />
+                      <span>Stop Voice Call</span>
+                    </>
+                  ) : (
+                    <>
+                      <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Play Regional IVR Call</span>
+                    </>
+                  )}
                 </button>
               </div>
-            )}
-
-            <div className="space-y-3 text-xs">
-              <div>
-                <label className="text-slate-300 font-semibold block mb-1">Target Ward / Jurisdiction</label>
-                <input
-                  type="text"
-                  value={region}
-                  onChange={(e) => setRegion(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-sky-500 font-sans"
-                />
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-slate-300 font-semibold">Advisory Payload & Voice Script</label>
-                  {/* IVR Audio Player Button (Demo Step 9) */}
-                  <button
-                    type="button"
-                    onClick={handlePlayIvrAudio}
-                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-mono transition ${
-                      isPlayingAudio
-                        ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse'
-                        : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800'
-                    }`}
-                  >
-                    {isPlayingAudio ? (
-                      <>
-                        <VolumeX className="w-3.5 h-3.5" />
-                        <span>Stop Voice Call</span>
-                      </>
-                    ) : (
-                      <>
-                        <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>Play Regional IVR Call</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-                <textarea
-                  rows={4}
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-slate-100 focus:outline-none focus:border-sky-500 text-xs font-sans leading-relaxed"
-                />
-              </div>
+              <textarea
+                id="advisory-payload"
+                rows={4}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-slate-100 focus:outline-none focus:border-cyan-500 text-xs font-sans leading-relaxed"
+              />
             </div>
-
-            <button
-              onClick={handleDispatch}
-              disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-amber-500 via-rose-500 to-red-600 hover:from-amber-600 hover:to-red-700 text-slate-950 font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition shadow-xl shadow-red-500/20 disabled:opacity-50"
-            >
-              <Send className="w-4 h-4" />
-              <span>{loading ? 'Disseminating...' : channelType === 'admin' ? 'Issue Heat Action Directive' : 'Broadcast Multi-Channel Emergency Alert'}</span>
-            </button>
           </div>
-        )}
-      </div>
-    </div>
+
+          <button
+            type="button"
+            onClick={handleDispatch}
+            disabled={loading}
+            className="w-full py-3 bg-gradient-to-r from-amber-500 via-rose-500 to-red-600 hover:from-amber-600 hover:to-red-700 text-slate-950 font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition shadow-xl shadow-red-500/20 disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+          >
+            <Send className="w-4 h-4" />
+            <span>{loading ? 'Disseminating...' : channelType === 'admin' ? 'Issue Heat Action Directive' : 'Broadcast Multi-Channel Emergency Alert'}</span>
+          </button>
+        </div>
+      )}
+    </Modal>
   );
 };
 

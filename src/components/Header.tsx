@@ -16,6 +16,7 @@ import {
   Users
 } from 'lucide-react';
 import { LiveTelemetry } from '../types';
+import { TabNav } from './ui/TabNav';
 
 interface HeaderProps {
   activeTab: string;
@@ -118,27 +119,15 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Navigation Tabs */}
-      <nav className="flex items-center gap-1 overflow-x-auto max-w-full pb-1 lg:pb-0 scrollbar-none">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              id={`nav-tab-${tab.id}`}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
-                isActive
-                  ? 'bg-sky-500/15 text-sky-400 border border-sky-500/40 shadow-sm shadow-sky-500/10'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent'
-              }`}
-            >
-              <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-sky-400' : 'text-slate-500'}`} />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </nav>
+      <TabNav
+        tabs={tabs}
+        activeTab={activeTab}
+        onChange={setActiveTab}
+        orientation="horizontal"
+        variant="glass"
+        ariaLabel="Main Dashboard Views"
+        className="max-w-full"
+      />
 
       {/* Quick Trigger Action Buttons */}
       <div className="flex items-center gap-2">

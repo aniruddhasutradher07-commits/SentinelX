@@ -12,6 +12,12 @@
   --color-brand-mint: #06D6A0;
   --color-brand-purple: #9d4edd;
 
+  /* Canonical SentinelX Risk Tier Tokens */
+  --color-tier-green: #3A7D5C;
+  --color-tier-yellow: #C9A227;
+  --color-tier-orange: #D9772E;
+  --color-tier-red: #C0392B;
+
   --font-sans: 'Space Grotesk', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --font-tech: 'Chakra Petch', sans-serif;
@@ -26,7 +32,7 @@ body {
   color: #E2E8F0;
   font-family: 'Space Grotesk', sans-serif;
   overflow-x: hidden;
-  background-image: 
+  background-image:
     radial-gradient(circle at 10% 15%, rgba(0, 242, 254, 0.035) 0%, transparent 40%),
     radial-gradient(circle at 90% 85%, rgba(255, 94, 54, 0.04) 0%, transparent 45%),
     linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
@@ -50,10 +56,12 @@ body {
   width: 4px;
   height: 4px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(0, 242, 254, 0.25);
   border-radius: 4px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.2);
 }
@@ -63,9 +71,20 @@ body {
 }
 
 @keyframes pulse-ring {
-  0% { transform: scale(0.95); opacity: 0.85; }
-  50% { transform: scale(1.15); opacity: 0.3; }
-  100% { transform: scale(0.95); opacity: 0.85; }
+  0% {
+    transform: scale(0.95);
+    opacity: 0.85;
+  }
+
+  50% {
+    transform: scale(1.15);
+    opacity: 0.3;
+  }
+
+  100% {
+    transform: scale(0.95);
+    opacity: 0.85;
+  }
 }
 
 /* Leaflet Dark Canvas Overrides */
@@ -94,6 +113,46 @@ body {
 
 /* Ward-level animated pulse for critical alerts */
 @keyframes sentinelPulse {
-  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0.7; }
-  100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0.7;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(1.8);
+    opacity: 0;
+  }
+}
+
+/* Phase 1 Animations */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-bounce-short {
+  animation: bounceShort 0.5s ease-out;
+}
+
+@keyframes bounceShort {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10%);
+  }
 }

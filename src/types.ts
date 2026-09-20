@@ -9,6 +9,8 @@ export interface VulnerabilityProfile {
   dominant_factor?: string;
 }
 
+export type RiskTier = 'Green' | 'Yellow' | 'Orange' | 'Red' | 'green' | 'yellow' | 'orange' | 'red';
+
 export interface DistrictRiskRecord {
   district: string;
   population_2011_est: number;
@@ -26,7 +28,7 @@ export interface DistrictRiskRecord {
   UTCI_celsius: number | null;
   thermal_hazard_score?: number;
   DistrictRiskScore: number;
-  RiskTier: 'Green' | 'Yellow' | 'Orange' | 'Red';
+  RiskTier: RiskTier;
   elderly_pct?: number;
   outdoor_worker_pct?: number;
   tree_cover_pct?: number;

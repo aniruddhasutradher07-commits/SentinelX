@@ -1,8 +1,22 @@
 import React from "react";
+// @ts-ignore
 import ForecastChart from "../../components/ForecastChart";
+// @ts-ignore
 import AIAdvisor from "../../components/AIAdvisor";
+import { SectionHeader } from "../ui/SectionHeader";
+import { BarChart2 } from "lucide-react";
 
-export default function AnalyticsTab({ hourlyForecast, activeDistrict }) {
+interface AnalyticsTabProps {
+  hourlyForecast?: any[];
+  activeDistrict?: {
+    outdoor_worker_pct?: number;
+    tree_cover_pct?: number;
+    high_heat_roof_pct?: number;
+    [key: string]: any;
+  };
+}
+
+export default function AnalyticsTab({ hourlyForecast, activeDistrict }: AnalyticsTabProps) {
   const workers = activeDistrict?.outdoor_worker_pct || 28.5;
   const tree = activeDistrict?.tree_cover_pct || 17.2;
   const roof = activeDistrict?.high_heat_roof_pct || 33.0;
@@ -24,7 +38,13 @@ export default function AnalyticsTab({ hourlyForecast, activeDistrict }) {
 
   return (
     <div className="space-y-5">
-      <div className="glass-panel rounded-xl p-4 border border-brand-cyan/20">
+      <SectionHeader
+        title="Advanced Analytics & AI Risk Attribution"
+        subtitle="Hourly predictive trends and primary vulnerability driver breakdown"
+        icon={BarChart2}
+      />
+
+      <div className="glass-panel rounded-xl p-4 border border-cyan-500/20">
          <ForecastChart forecast={hourlyForecast} />
       </div>
 

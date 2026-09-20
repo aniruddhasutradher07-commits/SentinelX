@@ -24,6 +24,8 @@ import { getApiUrl } from '../services/apiConfig';
 interface OdishaMapProps {
   districts: DistrictRiskRecord[];
   geoJson: any;
+  wardData?: any[];
+  wardGeoJson?: any;
   onSelectDistrict: (district: DistrictRiskRecord) => void;
   onDispatchAlert: (districtName: string) => void;
 }
