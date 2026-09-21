@@ -28,7 +28,7 @@ export default function ActionCenterWidget({ currentTier }: ActionCenterWidgetPr
             "Check on elderly neighbors twice daily"
           ],
           healthcare: [
-            "Activate mass-casualty heat protocol",
+            "Activate extreme-heat response recommendations",
             "Monitor emergency admissions for heat exhaustion",
             "Ensure backup power for cooling is online"
           ]

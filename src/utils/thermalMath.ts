@@ -20,18 +20,15 @@ export function calculateHeatIndex(t_c: number, rh: number): number {
   return (HI - 32) * 5/9;
 }
 
-export function calculateWBGT(t_c: number, rh: number, wind_ms: number): number {
+export function calculateWBGT(t_c: number, rh: number, wind_ms: number, solar: number = 800): number {
   // Simplified Stull (2011) empirical natural wet bulb
   const Tw = t_c * Math.atan(0.151977 * Math.pow(rh + 8.313659, 0.5)) + 
              Math.atan(t_c + rh) - Math.atan(rh - 1.676331) + 
              0.00391838 * Math.pow(rh, 1.5) * Math.atan(0.023101 * rh) - 4.686035;
   
-  // Approximate Black Globe Temperature based on T_c and standard high solar load
-  // If wind increases, globe temperature approaches air temp
-  // Simulated high solar (800 W/m2)
-  const Tg = t_c + (20.0 * Math.exp(-wind_ms * 0.3));
+  const wind = Math.max(wind_ms, 0.5);
+  const Tg = t_c + (0.02 * solar) / (1 + wind);
   
-  // WBGT formula (outdoors with solar)
   const wbgt = 0.7 * Tw + 0.2 * Tg + 0.1 * t_c;
   return wbgt;
 }

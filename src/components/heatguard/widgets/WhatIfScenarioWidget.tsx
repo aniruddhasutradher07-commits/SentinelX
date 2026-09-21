@@ -40,9 +40,15 @@ export default function WhatIfScenarioWidget({ initialTemp, initialHum, initialW
   };
   
   const getArrow = (current: number, sim: number) => {
-    if (sim > current + 0.5) return <span className="text-red-500 text-[10px]">↑</span>;
-    if (sim < current - 0.5) return <span className="text-emerald-500 text-[10px]">↓</span>;
-    return <span className="text-slate-400 text-[10px]">-</span>;
+    if (sim > current + 0.5) return <span className="text-red-500 text-[10px] ml-auto">↑</span>;
+    if (sim < current - 0.5) return <span className="text-emerald-500 text-[10px] ml-auto">↓</span>;
+    return <span className="text-slate-400 text-[10px] ml-auto">-</span>;
+  };
+
+  const handleReset = () => {
+    setTemp(initialTemp);
+    setHum(initialHum);
+    setWind(initialWindKm);
   };
 
   return (
@@ -50,9 +56,14 @@ export default function WhatIfScenarioWidget({ initialTemp, initialHum, initialW
       <div className="absolute top-3 right-3 text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 uppercase tracking-wide">
         Calculated
       </div>
-      <div className="flex items-center gap-1.5 mb-4 pr-16">
-        <Sliders className="w-4 h-4 text-purple-600 shrink-0" />
-        <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider truncate">Simulate Future Conditions</h3>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-1.5">
+          <Sliders className="w-4 h-4 text-purple-600 shrink-0" />
+          <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider truncate">Simulate Future Conditions</h3>
+        </div>
+        <button onClick={handleReset} className="text-[9px] text-slate-500 hover:text-slate-800 underline underline-offset-2">
+          Reset to Current
+        </button>
       </div>
 
       <div className="grid grid-cols-2 gap-4 flex-1">

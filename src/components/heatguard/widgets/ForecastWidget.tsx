@@ -69,7 +69,7 @@ export default function ForecastWidget() {
   };
 
   const generateExplanation = (data: any[]) => {
-    if (data.length < 2) return "Conditions stable.";
+    if (data.length < 2) return <span className="font-bold block mb-0.5">What changed as risk increased?</span>;
     
     const day1 = data[0];
     let peakDay = data[0];
@@ -80,25 +80,44 @@ export default function ForecastWidget() {
     }
     
     if (peakDay.risk.risk_score <= day1.risk.risk_score) {
-      return "Risk is expected to gradually decrease or stabilize over the horizon.";
+      return (
+        <>
+          <span className="font-bold block mb-0.5">Risk stability</span>
+          Risk is expected to gradually decrease or stabilize over the horizon.
+        </>
+      );
     }
     
-    const reasons = [];
-    if (peakDay.weather.relative_humidity_pct > day1.weather.relative_humidity_pct + 5) {
-      reasons.push("high humidity");
+    const deltas = [];
+    if (peakDay.weather.temperature_c > day1.weather.temperature_c + 0.5) {
+      const diff = (peakDay.weather.temperature_c - day1.weather.temperature_c).toFixed(1);
+      deltas.push(<div key="temp">↑ Temperature +{diff}°C</div>);
     }
-    if (peakDay.weather.temperature_c > day1.weather.temperature_c + 1) {
-      reasons.push("elevated temperature");
+    if (peakDay.weather.relative_humidity_pct > day1.weather.relative_humidity_pct + 2) {
+      const diff = Math.round(peakDay.weather.relative_humidity_pct - day1.weather.relative_humidity_pct);
+      deltas.push(<div key="hum">↑ Humidity +{diff}%</div>);
     }
-    if (peakDay.weather.wind_speed_kmh < day1.weather.wind_speed_kmh - 2) {
-      reasons.push("reduced wind conditions");
-    }
-    if (peakDay.weather.solar_radiation_wm2 > day1.weather.solar_radiation_wm2 + 100) {
-      reasons.push("increased solar radiation");
+    if (peakDay.weather.wind_speed_kmh < day1.weather.wind_speed_kmh - 1) {
+      const diff = Math.round(day1.weather.wind_speed_kmh - peakDay.weather.wind_speed_kmh);
+      deltas.push(<div key="wind">↓ Wind -{diff} km/h</div>);
     }
     
-    if (reasons.length === 0) return "Risk increase driven by compounding localized factors.";
-    return `Why did risk increase? ${reasons.map(r => r.charAt(0).toUpperCase() + r.slice(1)).join(' + ')}.`;
+    if (deltas.length === 0) return (
+      <>
+        <span className="font-bold block mb-0.5">What changed as risk increased?</span>
+        Risk increase driven by compounding localized factors.
+      </>
+    );
+    
+    return (
+      <div className="w-full">
+        <span className="font-bold block mb-1">What changed as risk increased?</span>
+        <div className="flex flex-col gap-0.5 text-[10px] font-mono text-slate-600 mb-1">
+          {deltas}
+        </div>
+        <p className="text-[10px] italic mt-1 text-slate-500">These conditions were associated with higher calculated thermal stress.</p>
+      </div>
+    );
   };
 
   return (
@@ -170,8 +189,7 @@ export default function ForecastWidget() {
       {forecast.length > 0 && (
         <div className="mt-3 bg-blue-50 border border-blue-100 rounded-lg p-3 flex items-start gap-2">
           <AlertCircle className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-          <div className="text-[11px] text-blue-800">
-            <span className="font-bold block mb-0.5">Why did risk increase?</span>
+          <div className="text-[11px] text-blue-800 w-full flex flex-col">
             {generateExplanation(forecast)}
           </div>
         </div>

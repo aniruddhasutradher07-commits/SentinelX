@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import HeatGuardSidebar from './HeatGuardSidebar';
 import HeatGuardHeader from './HeatGuardHeader';
+import ExecutiveSummaryWidget from './widgets/ExecutiveSummaryWidget';
 import HeroRiskWidget from './widgets/HeroRiskWidget';
 import WeatherInputsWidget from './widgets/WeatherInputsWidget';
 import ThermalStressWidget from './widgets/ThermalStressWidget';
@@ -64,6 +65,14 @@ export default function HeatGuardDashboard({
         {/* SCROLLABLE GRID CONTAINER */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-6 custom-scrollbar">
           
+          <ExecutiveSummaryWidget 
+            districtName={khordha?.district || 'Khordha'}
+            riskTier={level}
+            temperature={temp}
+            humidity={humidity}
+            peakDay="Day 2"
+          />
+
           {/* ROW 1: Hero, Weather, Thermal, Explainability */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
             <div className="md:col-span-3">
