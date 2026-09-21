@@ -201,8 +201,8 @@ def generate_risk_map(
         min_zoom=5,
         max_bounds=True,
         max_bounds_viscosity=1.0,
-        tiles="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
-        attr="SentinelX / THERMO-SHIELD AI — Sovereign India GIS &copy; Esri",
+        tiles="https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png",
+        attr="SentinelX / THERMO-SHIELD AI — Sovereign India GIS &copy; OpenStreetMap &copy; CARTO",
     )
     m.fit_bounds(india_bounds)
 
@@ -351,8 +351,8 @@ def generate_national_map(
         zoom_start=zoom,
         min_zoom=5,
         max_bounds=True,
-        tiles="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
-        attr="SentinelX GIS &copy; Esri",
+        tiles="https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png",
+        attr="SentinelX GIS &copy; OpenStreetMap &copy; CARTO",
     )
 
     for state in states:

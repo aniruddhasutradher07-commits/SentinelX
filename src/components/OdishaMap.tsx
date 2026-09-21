@@ -578,10 +578,11 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
       baseTileLayerRef.current = satLayer;
     } else {
       const darkLayer = L.tileLayer(
-        'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+        'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png',
         {
-          maxZoom: 18,
-          attribution: '&copy; Esri, DeLorme, NAVTEQ &mdash; SentinelX Sovereign GIS'
+          subdomains: 'abcd',
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         }
       ).addTo(map);
       baseTileLayerRef.current = darkLayer;
