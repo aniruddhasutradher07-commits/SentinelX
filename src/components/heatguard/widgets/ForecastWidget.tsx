@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CalendarDays, TrendingUp } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { CalendarDays, AlertCircle, Info } from 'lucide-react';
 
 export default function ForecastWidget() {
   const [forecast, setForecast] = useState<any[]>([]);
@@ -13,7 +12,6 @@ export default function ForecastWidget() {
     const fetchForecast = async () => {
       try {
         setLoading(true);
-        // Defaulting to Khordha for the dashboard scope
         const res = await fetch('/api/v1/forecast-risk?district=Khordha&horizon=5');
         if (!res.ok) throw new Error('Failed to fetch forecast');
         const data = await res.json();
@@ -43,7 +41,7 @@ export default function ForecastWidget() {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 h-full flex flex-col items-center justify-center min-h-[250px]">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 h-full flex flex-col items-center justify-center min-h-[300px]">
         <div className="w-8 h-8 rounded-full border-2 border-sky-500 border-t-transparent animate-spin mb-3"></div>
         <p className="text-xs text-slate-500 font-mono">Synthesizing 5-day risk horizon...</p>
       </div>
@@ -52,7 +50,7 @@ export default function ForecastWidget() {
 
   if (error || forecast.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 h-full flex flex-col items-center justify-center min-h-[250px] relative">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 h-full flex flex-col items-center justify-center min-h-[300px] relative">
         <div className="flex items-center gap-1.5 mb-4 absolute top-4 left-4">
           <CalendarDays className="w-4 h-4 text-sky-600 shrink-0" />
           <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider truncate">5-Day Heat Risk Forecast</h3>
@@ -62,74 +60,122 @@ export default function ForecastWidget() {
     );
   }
 
-  const chartData = forecast.map((f, i) => {
-    const d = new Date(f.date);
-    const dayName = i === 0 ? 'Today' : d.toLocaleDateString('en-US', { weekday: 'short' });
-    const dateLabel = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+  const getTierColor = (tier: string) => {
+    const t = tier.toLowerCase();
+    if (t === 'red' || t === 'extreme') return 'bg-red-500 text-white border-red-600';
+    if (t === 'orange' || t === 'high') return 'bg-orange-500 text-white border-orange-600';
+    if (t === 'yellow' || t === 'moderate') return 'bg-yellow-400 text-slate-800 border-yellow-500';
+    return 'bg-emerald-500 text-white border-emerald-600';
+  };
+
+  const generateExplanation = (data: any[]) => {
+    if (data.length < 2) return "Conditions stable.";
     
-    return {
-      name: i === 0 ? 'Today' : `D${i}`,
-      dayLabel: dayName,
-      dateLabel: dateLabel,
-      score: f.risk.risk_score,
-      temp: f.weather.temperature_c,
-      level: f.risk.risk_tier || 'Unknown'
-    };
-  });
+    const day1 = data[0];
+    let peakDay = data[0];
+    for (let i = 1; i < data.length; i++) {
+      if (data[i].risk.risk_score > peakDay.risk.risk_score) {
+        peakDay = data[i];
+      }
+    }
+    
+    if (peakDay.risk.risk_score <= day1.risk.risk_score) {
+      return "Risk is expected to gradually decrease or stabilize over the horizon.";
+    }
+    
+    const reasons = [];
+    if (peakDay.weather.relative_humidity_pct > day1.weather.relative_humidity_pct + 5) {
+      reasons.push("high humidity");
+    }
+    if (peakDay.weather.temperature_c > day1.weather.temperature_c + 1) {
+      reasons.push("elevated temperature");
+    }
+    if (peakDay.weather.wind_speed_kmh < day1.weather.wind_speed_kmh - 2) {
+      reasons.push("reduced wind conditions");
+    }
+    if (peakDay.weather.solar_radiation_wm2 > day1.weather.solar_radiation_wm2 + 100) {
+      reasons.push("increased solar radiation");
+    }
+    
+    if (reasons.length === 0) return "Risk increase driven by compounding localized factors.";
+    return `Why did risk increase? ${reasons.map(r => r.charAt(0).toUpperCase() + r.slice(1)).join(' + ')}.`;
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 h-full flex flex-col relative">
-      <div className="flex items-center justify-between mb-4 pr-20">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-1.5">
           <CalendarDays className="w-4 h-4 text-sky-600 shrink-0" />
-          <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider truncate">5-Day Heat Risk Forecast</h3>
+          <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider truncate">5-Day Forecast Pipeline</h3>
         </div>
       </div>
 
-      <div className="flex justify-between mb-6 border-b border-slate-100 pb-4">
-        {chartData.map((f, i) => (
-          <div key={i} className="flex flex-col items-center gap-1">
-            <span className="text-xs font-bold text-slate-700">{f.dayLabel}</span>
-            <span className="text-[10px] text-slate-500">{f.dateLabel}</span>
-            <div className={`w-3 h-3 rounded-full mt-1 mb-1 ${
-              f.level.toLowerCase() === 'red' ? 'bg-red-600' : 
-              f.level.toLowerCase() === 'orange' ? 'bg-orange-500' : 
-              f.level.toLowerCase() === 'yellow' ? 'bg-yellow-400' : 'bg-emerald-500'
-            }`}></div>
-            <span className={`text-[10px] font-bold ${
-              f.level.toLowerCase() === 'red' ? 'text-red-600' : 
-              f.level.toLowerCase() === 'orange' ? 'text-orange-500' : 
-              f.level.toLowerCase() === 'yellow' ? 'text-yellow-600' : 'text-emerald-600'
-            }`}>{f.level}</span>
-            <span className="text-[10px] text-slate-600 mt-1">{f.temp}°C</span>
-          </div>
-        ))}
+      <div className="flex-1 flex flex-col md:flex-row gap-2 md:gap-4 overflow-x-auto custom-scrollbar pb-2">
+        {forecast.map((f, i) => {
+          const d = new Date(f.date);
+          const dayName = i === 0 ? 'Today' : d.toLocaleDateString('en-US', { weekday: 'short' });
+          const dateLabel = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+          
+          return (
+            <div key={i} className="flex-1 min-w-[140px] bg-slate-50 border border-slate-100 rounded-lg p-2 flex flex-col">
+              <div className="text-center border-b border-slate-200 pb-2 mb-2">
+                <div className="text-[11px] font-bold text-slate-800">{dayName}</div>
+                <div className="text-[9px] text-slate-500">{dateLabel}</div>
+              </div>
+              
+              {/* Weather */}
+              <div className="mb-3">
+                <div className="text-[9px] font-bold text-slate-400 uppercase mb-1">Weather</div>
+                <div className="grid grid-cols-2 gap-1 text-[10px]">
+                  <div className="text-slate-500">Temp</div><div className="text-slate-700 font-semibold text-right">{f.weather.temperature_c}°C</div>
+                  <div className="text-slate-500">Hum</div><div className="text-slate-700 font-semibold text-right">{f.weather.relative_humidity_pct}%</div>
+                  <div className="text-slate-500">Wind</div><div className="text-slate-700 font-semibold text-right">{f.weather.wind_speed_kmh}km/h</div>
+                </div>
+              </div>
+              
+              {/* Calculated */}
+              <div className="mb-3">
+                <div className="text-[9px] font-bold text-emerald-500 uppercase mb-1">Calculated</div>
+                <div className="grid grid-cols-2 gap-1 text-[10px]">
+                  <div className="text-slate-500">HI</div><div className="text-slate-700 font-semibold text-right">{f.thermal.hi_celsius}°C</div>
+                  <div className="text-slate-500">WBGT</div><div className="text-slate-700 font-semibold text-right">{f.thermal.wbgt_celsius}°C</div>
+                  <div className="text-slate-500">UTCI</div><div className="text-slate-700 font-semibold text-right">{f.thermal.utci_celsius}°C</div>
+                </div>
+              </div>
+              
+              {/* Model */}
+              <div className="mt-auto pt-2 border-t border-slate-200 relative group">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="text-[9px] font-bold text-amber-500 uppercase flex items-center gap-1">
+                    Model
+                    <Info className="w-3 h-3 text-slate-400 cursor-help" />
+                  </div>
+                </div>
+                
+                {/* Tooltip */}
+                <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block w-48 bg-slate-800 text-white text-[10px] p-2 rounded shadow-lg z-10">
+                  <span className="font-bold text-amber-400 block mb-1">Experimental / Unvalidated</span>
+                  Risk horizon is generated by the current model but has not yet been validated as a multi-day health-outcome prediction.
+                </div>
+                
+                <div className={`mt-2 py-1 px-2 rounded border text-center text-[10px] font-bold uppercase tracking-wider ${getTierColor(f.risk.risk_tier)}`}>
+                  {f.risk.risk_tier} ({(f.risk.risk_score).toFixed(0)})
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      <div className="flex-1 min-h-[140px] flex flex-col relative">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-2">
-          <div className="flex items-center gap-1">
-            <TrendingUp className="w-3.5 h-3.5 text-slate-500" />
-            <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wide">Model Risk Horizon (Unvalidated)</span>
-          </div>
-          <div className="flex items-center gap-3">
-             <div className="flex items-center gap-1 text-[9px] text-slate-500"><span className="w-2 h-0.5 bg-red-500"></span> Risk Prediction</div>
-             <div className="flex items-center gap-1 text-[9px] text-slate-500"><span className="w-2 h-0.5 bg-orange-400"></span> Weather Forecast (°C)</div>
+      {forecast.length > 0 && (
+        <div className="mt-3 bg-blue-50 border border-blue-100 rounded-lg p-3 flex items-start gap-2">
+          <AlertCircle className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+          <div className="text-[11px] text-blue-800">
+            <span className="font-bold block mb-0.5">Why did risk increase?</span>
+            {generateExplanation(forecast)}
           </div>
         </div>
-        <div className="flex-1 w-full relative mt-2">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#64748B' }} dy={5} />
-              <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#64748B' }} domain={[0, 100]} />
-              <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#64748B' }} domain={['dataMin - 5', 'dataMax + 5']} />
-              <Line yAxisId="left" type="monotone" dataKey="score" stroke="#EF4444" strokeWidth={2} dot={{ r: 3, fill: '#EF4444' }} />
-              <Line yAxisId="right" type="monotone" dataKey="temp" stroke="#F97316" strokeWidth={2} dot={{ r: 3, fill: '#F97316' }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

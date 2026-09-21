@@ -10,7 +10,7 @@ import RiskMapWidget from './widgets/RiskMapWidget';
 import RiskIntelligenceWidget from './widgets/RiskIntelligenceWidget';
 import VulnerabilityWidget from './widgets/VulnerabilityWidget';
 import ForecastWidget from './widgets/ForecastWidget';
-import AIInsightsWidget from './widgets/AIInsightsWidget';
+import WhatIfScenarioWidget from './widgets/WhatIfScenarioWidget';
 import ActionCenterWidget from './widgets/ActionCenterWidget';
 import ActiveAlertsBar from './widgets/ActiveAlertsBar';
 import { DistrictRiskRecord, WardRiskRecord, LiveTelemetry, SystemSummary } from '../../types';
@@ -98,10 +98,10 @@ export default function HeatGuardDashboard({
             </div>
             <div className="md:col-span-4 flex flex-col space-y-4">
               <HeatwaveStatusWidget />
-              <AIInsightsWidget />
+              <WhatIfScenarioWidget initialTemp={temp} initialHum={humidity} initialWindKm={wind} />
             </div>
             <div className="md:col-span-4 flex flex-col">
-              <ActionCenterWidget />
+              <ActionCenterWidget currentTier={level} />
             </div>
           </div>
 

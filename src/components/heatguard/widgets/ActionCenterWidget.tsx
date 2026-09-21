@@ -1,15 +1,93 @@
 import React, { useState } from 'react';
-import { ShieldAlert, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
-export default function ActionCenterWidget() {
+interface ActionCenterWidgetProps {
+  currentTier: string;
+}
+
+export default function ActionCenterWidget({ currentTier }: ActionCenterWidgetProps) {
   const [activeTab, setActiveTab] = useState('authorities');
-  const actions = [
-    "Activate heat action protocol",
-    "Open/extend cooling centers",
-    "Issue targeted alerts to high-risk zones",
-    "Consider outdoor work-hour adjustments",
-    "Prepare healthcare facilities"
-  ];
+  
+  const tier = currentTier.toUpperCase();
+  
+  const getActions = () => {
+    switch (tier) {
+      case 'EXTREME':
+      case 'RED':
+        return {
+          authorities: [
+            "Issue targeted RED heat alert via SMS/PA",
+            "Open all municipal cooling centers immediately",
+            "Prepare hospitals for mass heat-stroke admissions",
+            "Mandate halt on outdoor work from 11 AM - 4 PM"
+          ],
+          citizens: [
+            "Avoid peak afternoon exposure entirely",
+            "Hydrate continuously even if not thirsty",
+            "Locate nearest municipal cooling center",
+            "Check on elderly neighbors twice daily"
+          ],
+          healthcare: [
+            "Activate mass-casualty heat protocol",
+            "Monitor emergency admissions for heat exhaustion",
+            "Ensure backup power for cooling is online"
+          ]
+        };
+      case 'HIGH':
+      case 'ORANGE':
+        return {
+          authorities: [
+            "Issue ORANGE heat alert for vulnerable zones",
+            "Review cooling center readiness",
+            "Issue advisory for outdoor workers",
+            "Deploy mobile hydration units to high-risk wards"
+          ],
+          citizens: [
+            "Limit outdoor activities during afternoon",
+            "Drink plenty of water and ORS",
+            "Wear light, loose-fitting cotton clothing"
+          ],
+          healthcare: [
+            "Increase staff readiness for heat-related illness",
+            "Stock up on IV fluids and ORS",
+            "Monitor vulnerable patient wards closely"
+          ]
+        };
+      case 'MODERATE':
+      case 'YELLOW':
+        return {
+          authorities: [
+            "Monitor WBGT and UTCI trends closely",
+            "Issue general public awareness messages",
+            "Verify water supply to vulnerable zones"
+          ],
+          citizens: [
+            "Stay hydrated throughout the day",
+            "Avoid strenuous exercise at noon"
+          ],
+          healthcare: [
+            "Standard monitoring procedures",
+            "Advise outpatients on hydration"
+          ]
+        };
+      default:
+        return {
+          authorities: [
+            "Normal operations",
+            "Maintain baseline monitoring of weather patterns"
+          ],
+          citizens: [
+            "Normal activities",
+            "Stay hydrated as usual"
+          ],
+          healthcare: [
+            "Normal operations"
+          ]
+        };
+    }
+  };
+
+  const actions = getActions();
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex-1 flex flex-col relative">
@@ -19,7 +97,7 @@ export default function ActionCenterWidget() {
       <div className="flex items-center justify-between mb-4 pr-24">
         <div className="flex items-center gap-1.5">
           <AlertCircle className="w-4 h-4 text-sky-600" />
-          <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider truncate">Recommended Actions</h3>
+          <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider truncate">Targeted Action Plan</h3>
         </div>
       </div>
 
@@ -45,23 +123,20 @@ export default function ActionCenterWidget() {
       </div>
 
       <div className="flex-1 flex flex-col gap-2">
-        {actions.map((action, i) => (
-          <label key={i} className="flex items-start gap-2.5 cursor-pointer group">
-            <input 
-              type="checkbox" 
-              defaultChecked={i === 0 || i === 1 || i === 2 || i === 4}
-              className="mt-0.5 rounded text-sky-600 border-slate-300 focus:ring-sky-500 w-3.5 h-3.5 cursor-pointer" 
-            />
-            <span className="text-[11px] text-slate-700 leading-tight group-hover:text-slate-900">{action}</span>
-          </label>
+        {actions[activeTab as keyof typeof actions].map((action, i) => (
+          <div key={i} className="flex items-start gap-2 bg-slate-50 p-2.5 rounded border border-slate-100">
+            <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${
+              tier === 'EXTREME' || tier === 'RED' ? 'bg-red-500' :
+              tier === 'HIGH' || tier === 'ORANGE' ? 'bg-orange-500' :
+              tier === 'MODERATE' || tier === 'YELLOW' ? 'bg-yellow-400' : 'bg-emerald-500'
+            }`}></div>
+            <p className="text-[11px] text-slate-700 leading-snug">{action}</p>
+          </div>
         ))}
       </div>
-
-      <div className="mt-4 pt-4 border-t border-slate-100 flex justify-end">
-        <button className="bg-[#1A2639] hover:bg-slate-800 text-white text-[11px] font-bold py-2.5 px-4 rounded-lg flex items-center gap-1.5 transition-colors shadow-sm">
-          <ShieldAlert className="w-3.5 h-3.5" />
-          Generate Advisory
-        </button>
+      
+      <div className="mt-3 text-center border-t border-slate-100 pt-3">
+         <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Generated for {tier} risk level</span>
       </div>
     </div>
   );
