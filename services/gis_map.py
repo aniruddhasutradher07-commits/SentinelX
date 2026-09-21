@@ -200,10 +200,11 @@ def generate_risk_map(
         zoom_start=zoom,
         min_zoom=5,
         max_bounds=True,
-        max_bounds_viscosity=0.85,
-        tiles="CartoDB dark_matter",
-        attr="SentinelX / THERMO-SHIELD AI — Sovereign India GIS",
+        max_bounds_viscosity=1.0,
+        tiles="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+        attr="SentinelX / THERMO-SHIELD AI — Sovereign India GIS &copy; Esri",
     )
+    m.fit_bounds(india_bounds)
 
     # Add alternative tile layers
     folium.TileLayer("OpenStreetMap", name="Street Map").add_to(m)
@@ -348,7 +349,10 @@ def generate_national_map(
     m = folium.Map(
         location=[center_lat, center_lon],
         zoom_start=zoom,
-        tiles="CartoDB dark_matter",
+        min_zoom=5,
+        max_bounds=True,
+        tiles="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+        attr="SentinelX GIS &copy; Esri",
     )
 
     for state in states:

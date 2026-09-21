@@ -41,11 +41,29 @@ export default function OverviewTab({ telemetry, activeDistrict, weather }: Over
     }
   };
 
-  const liveTemp = weather?.current?.temperature_2m ?? activeDistrict.temperature_c ?? 39.5;
-  const liveHumidity = weather?.current?.relative_humidity_2m ?? activeDistrict.relative_humidity_pct ?? 68;
-  const liveWind = weather?.current?.wind_speed_10m ?? 2.8;
-  const liveSolar = Math.round(820 + (Math.sin(new Date().getHours() / 24 * Math.PI) * 180));
-  const liveApparent = weather?.current?.apparent_temperature ?? Math.round(Number(liveTemp) + 5.2);
+  const liveTemp = weather?.current?.temperature_2m ?? activeDistrict?.temperature_c ?? 39.5;
+  const liveHumidity = weather?.current?.relative_humidity_2m ?? activeDistrict?.relative_humidity_pct ?? 68;
+  const liveWind = weather?.current?.wind_speed_10m ?? activeDistrict?.wind_speed_ms ?? 2.8;
+  const liveWindDir = weather?.current?.wind_direction_10m ?? 168;
+  const liveSolar = Math.round(weather?.current?.surface_solar_radiation ?? activeDistrict?.solar_radiation_wm2 ?? (820 + Math.sin(new Date().getHours() / 24 * Math.PI) * 180));
+  const liveApparent = weather?.current?.apparent_temperature ?? activeDistrict?.apparent_temp_c ?? Math.round(Number(liveTemp) + 5.2);
+  const liveUv = weather?.current?.uv_index ?? 9.0;
+  const vaporLoadText = liveHumidity >= 70 ? "Extreme" : liveHumidity >= 55 ? "High" : "Moderate";
+  const strokeProbText = liveApparent >= 44 ? "Extreme" : liveApparent >= 38 ? "High" : "Elevated";
+
+  const getSolarNoonCountdown = () => {
+    const now = new Date();
+    const solarNoon = new Date();
+    solarNoon.setHours(12, 14, 0, 0);
+    let diff = solarNoon.getTime() - now.getTime();
+    if (diff < 0) {
+      solarNoon.setDate(solarNoon.getDate() + 1);
+      diff = solarNoon.getTime() - now.getTime();
+    }
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    return `${hours}h ${minutes.toString().padStart(2, '0')}m`;
+  };
 
   return (
     <div className="space-y-5">
@@ -74,7 +92,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather }: Over
           title="RELATIVE HUMIDITY"
           value={liveHumidity}
           unit="%"
-          subtitle="Vapor load: High"
+          subtitle={`Vapor load: ${vaporLoadText}`}
           icon={Droplets}
           trend={{ value: "Coastal moisture", direction: "neutral" }}
           tier="yellow"
@@ -88,7 +106,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather }: Over
           title="WIND SPEED"
           value={liveWind}
           unit="m/s"
-          subtitle="Direction: 168° SSE"
+          subtitle={`Direction: ${liveWindDir}° SSE`}
           icon={Wind}
           trend={{ value: "Convective boundary", direction: "neutral" }}
         >
@@ -115,7 +133,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather }: Over
           title="HEAT INDEX (FEELS LIKE)"
           value={liveApparent}
           unit="°C"
-          subtitle="Stroke Probability: Extreme"
+          subtitle={`Stroke Probability: ${strokeProbText}`}
           icon={AlertTriangle}
           trend={{ value: "Extreme Danger", direction: "up" }}
           tier="red"
@@ -138,13 +156,13 @@ export default function OverviewTab({ telemetry, activeDistrict, weather }: Over
             <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold">
               [REAL]
             </span>
-            <span className="font-mono text-purple-400 font-bold text-xs">UV 9.0 (Very High)</span>
+            <span className="font-mono text-purple-400 font-bold text-xs">UV {Number(liveUv).toFixed(1)} ({liveUv >= 11 ? 'Extreme' : liveUv >= 8 ? 'Very High' : 'High'})</span>
           </div>
         </StatCard>
 
         <StatCard
           title="SOLAR NOON PEAK"
-          value="11h 05m"
+          value={getSolarNoonCountdown()}
           unit="remaining"
           subtitle="Solar Noon: 12:14 PM IST"
           icon={Clock}
