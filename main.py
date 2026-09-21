@@ -44,7 +44,7 @@ if os.path.exists(".env"):
         pass
 
 from database import SessionLocal, engine, Base
-from routers import weather, wards, risk, thermal, alerts, dashboard, live, news, sentinelx, copilot, model_validation, worker_safety, school_safety, resource_allocation, historical_replay
+from routers import weather, wards, risk, thermal, alerts, dashboard, live, news, sentinelx, copilot, model_validation, worker_safety, school_safety, resource_allocation, historical_replay, forecast
 from services.live_weather import start_background_refresh
 
 # Initialize database tables
@@ -124,6 +124,7 @@ app.include_router(worker_safety.router)
 app.include_router(school_safety.router)
 app.include_router(resource_allocation.router)
 app.include_router(historical_replay.router)
+app.include_router(forecast.router)
 
 
 # ---------------------------------------------------------------------------
