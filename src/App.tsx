@@ -15,6 +15,7 @@ import SchoolSafetyTab from './components/tabs/SchoolSafetyTab';
 import ResourceAllocationTab from './components/tabs/ResourceAllocationTab';
 import HistoricalReplayTab from './components/tabs/HistoricalReplayTab';
 import { AlertDispatchModal } from './components/AlertDispatchModal';
+import HeatGuardDashboard from './components/heatguard/HeatGuardDashboard';
 // @ts-ignore
 import Dashboard from './pages/Dashboard';
 import { Zap, X } from 'lucide-react';
@@ -299,129 +300,134 @@ export function App() {
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-slate-950 text-slate-100 font-sans overflow-hidden">
-      {/* Top Application Header */}
-      <Header
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        telemetry={telemetry}
-        onOpenCopilot={() => setActiveTab('copilot')}
-        onOpenDispatcher={() => handleOpenDispatcher('Khordha')}
-        onExportSitRep={handleExportSitRep}
-        realtimeStatus={realtimeStatus}
-        onSimulateSensorPulse={handleSimulatePulse}
-        isSimulatingPulse={isSimulatingPulse}
-      />
+    <>
+      {/* If command tab is active, render the new HeatGuardDashboard in fullscreen */}
+      {activeTab === 'command' && !loading ? (
+        <div className="w-screen h-screen">
+          <HeatGuardDashboard
+            districts={districts}
+            wards={wards}
+            telemetry={telemetry}
+            summary={summary}
+            geoJson={geoJson}
+            wardGeoJson={wardGeoJson}
+            onNavigateTab={(tab) => setActiveTab(tab)}
+          />
+        </div>
+      ) : (
+        <div className="flex flex-col h-screen w-screen bg-slate-950 text-slate-100 font-sans overflow-hidden">
+          {/* Top Application Header */}
+          <Header
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            telemetry={telemetry}
+            onOpenCopilot={() => setActiveTab('copilot')}
+            onOpenDispatcher={() => handleOpenDispatcher('Khordha')}
+            onExportSitRep={handleExportSitRep}
+            realtimeStatus={realtimeStatus}
+            onSimulateSensorPulse={handleSimulatePulse}
+            isSimulatingPulse={isSimulatingPulse}
+          />
 
-      {/* Main View Container */}
-      <main className="flex-1 flex overflow-hidden relative">
-        {loading ? (
-          <div className="flex-1 flex flex-col items-center justify-center space-y-3 px-4 text-center">
-            <div className="w-8 h-8 rounded-full border-2 border-sky-500 border-t-transparent animate-spin" />
-            <p className="text-xs font-mono text-slate-400">Booting SentinelX Telemetry &amp; Spatial Models...</p>
-            {isCloudWakingUp && (
-              <div className="mt-2 px-3 py-1.5 rounded-lg bg-sky-950/80 border border-sky-500/30 text-[11px] font-mono text-sky-300 animate-pulse max-w-md">
-                ☁️ Connecting to live Render cloud backend (https://sentinelx-pi9j.onrender.com)... Initial spin-up may take ~30s on free instance.
+          {/* Main View Container */}
+          <main className="flex-1 flex overflow-hidden relative">
+            {loading ? (
+              <div className="flex-1 flex flex-col items-center justify-center space-y-3 px-4 text-center">
+                <div className="w-8 h-8 rounded-full border-2 border-sky-500 border-t-transparent animate-spin" />
+                <p className="text-xs font-mono text-slate-400">Booting SentinelX Telemetry &amp; Spatial Models...</p>
+                {isCloudWakingUp && (
+                  <div className="mt-2 px-3 py-1.5 rounded-lg bg-sky-950/80 border border-sky-500/30 text-[11px] font-mono text-sky-300 animate-pulse max-w-md">
+                    ☁️ Connecting to live Render cloud backend (https://sentinelx-pi9j.onrender.com)... Initial spin-up may take ~30s on free instance.
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        ) : (
-          <>
-            {activeTab === 'command' && (
-              <Dashboard
-                districts={districts}
-                wards={wards}
-                telemetry={telemetry}
-                summary={summary}
-                onOpenDispatcher={(region: string) => handleOpenDispatcher(region)}
-                onNavigateTab={(tab: string) => setActiveTab(tab)}
-                realtimeStatus={realtimeStatus}
-              />
-            )}
+            ) : (
+              <>
+                {activeTab === 'odisha' && (
+                  <OdishaMap
+                    districts={districts}
+                    geoJson={geoJson}
+                    wardData={wards}
+                    wardGeoJson={wardGeoJson}
+                    onSelectDistrict={(d) => {}}
+                    onDispatchAlert={(distName) => handleOpenDispatcher(distName)}
+                  />
+                )}
 
-            {activeTab === 'odisha' && (
-              <OdishaMap
-                districts={districts}
-                geoJson={geoJson}
-                wardData={wards}
-                wardGeoJson={wardGeoJson}
-                onSelectDistrict={(d) => {}}
-                onDispatchAlert={(distName) => handleOpenDispatcher(distName)}
-              />
-            )}
+                {activeTab === 'wards' && (
+                  <WardView
+                    wards={wards}
+                    onDispatchAlert={(wardNo) => handleOpenDispatcher(wardNo)}
+                  />
+                )}
 
-            {activeTab === 'wards' && (
-              <WardView
-                wards={wards}
-                onDispatchAlert={(wardNo) => handleOpenDispatcher(wardNo)}
-              />
-            )}
+                {activeTab === 'citizen' && (
+                  <CitizenAdvisoryView
+                    wards={wards}
+                    onBackToOperations={() => setActiveTab('wards')}
+                  />
+                )}
 
-            {activeTab === 'citizen' && (
-              <CitizenAdvisoryView
-                wards={wards}
-                onBackToOperations={() => setActiveTab('wards')}
-              />
-            )}
+                {activeTab === 'simulator' && (
+                  <WhatIfSimulator
+                    wards={wards}
+                  />
+                )}
 
-            {activeTab === 'simulator' && (
-              <WhatIfSimulator
-                wards={wards}
-              />
-            )}
+                {activeTab === 'worker_safety' && (
+                  <div className="flex-1 overflow-y-auto p-4 lg:p-6 bg-[#0B0D0E]">
+                    <WorkerSafetyTab wards={wards} />
+                  </div>
+                )}
 
-            {activeTab === 'worker_safety' && (
-              <div className="flex-1 overflow-y-auto p-4 lg:p-6 bg-[#0B0D0E]">
-                <WorkerSafetyTab wards={wards} />
-              </div>
-            )}
+                {activeTab === 'school_safety' && (
+                  <div className="flex-1 overflow-y-auto p-4 lg:p-6 bg-[#0B0D0E]">
+                    <SchoolSafetyTab wards={wards} />
+                  </div>
+                )}
 
-            {activeTab === 'school_safety' && (
-              <div className="flex-1 overflow-y-auto p-4 lg:p-6 bg-[#0B0D0E]">
-                <SchoolSafetyTab wards={wards} />
-              </div>
-            )}
+                {activeTab === 'resource_allocation' && (
+                  <div className="flex-1 overflow-y-auto p-4 lg:p-6 bg-[#0B0D0E]">
+                    <ResourceAllocationTab />
+                  </div>
+                )}
 
-            {activeTab === 'resource_allocation' && (
-              <div className="flex-1 overflow-y-auto p-4 lg:p-6 bg-[#0B0D0E]">
-                <ResourceAllocationTab />
-              </div>
-            )}
+                {activeTab === 'historical_replay' && (
+                  <div className="flex-1 overflow-y-auto p-4 lg:p-6 bg-[#0B0D0E]">
+                    <HistoricalReplayTab />
+                  </div>
+                )}
 
-            {activeTab === 'historical_replay' && (
-              <div className="flex-1 overflow-y-auto p-4 lg:p-6 bg-[#0B0D0E]">
-                <HistoricalReplayTab />
-              </div>
-            )}
+                {activeTab === 'hospital' && (
+                  <HospitalSurgeView summary={summary} />
+                )}
 
-            {activeTab === 'hospital' && (
-              <HospitalSurgeView summary={summary} />
-            )}
+                {activeTab === 'htherm' && (
+                  <HThermCalculator />
+                )}
 
-            {activeTab === 'htherm' && (
-              <HThermCalculator />
-            )}
+                {activeTab === 'copilot' && (
+                  <AICopilotModal
+                    onDispatchAlert={(text, region) => handleOpenDispatcher(region, text)}
+                  />
+                )}
 
-            {activeTab === 'copilot' && (
-              <AICopilotModal
-                onDispatchAlert={(text, region) => handleOpenDispatcher(region, text)}
-              />
-            )}
+                {activeTab === 'benchmarks' && (
+                  <BenchmarksView />
+                )}
 
-            {activeTab === 'benchmarks' && (
-              <BenchmarksView />
-            )}
+                {activeTab === 'validation' && (
+                  <ModelValidationView />
+                )}
 
-            {activeTab === 'validation' && (
-              <ModelValidationView />
+                {activeTab === 'api' && (
+                  <ApiExplorer />
+                )}
+              </>
             )}
-
-            {activeTab === 'api' && (
-              <ApiExplorer />
-            )}
-          </>
-        )}
-      </main>
+          </main>
+        </div>
+      )}
 
       {/* Emergency Dispatch Dialog */}
       <AlertDispatchModal
@@ -467,7 +473,7 @@ export function App() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
