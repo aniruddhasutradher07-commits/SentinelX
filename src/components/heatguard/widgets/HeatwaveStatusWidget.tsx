@@ -3,10 +3,13 @@ import { Activity } from 'lucide-react';
 
 export default function HeatwaveStatusWidget() {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-col mb-4">
-      <div className="flex items-center gap-1.5 mb-4">
-        <Activity className="w-4 h-4 text-sky-600" />
-        <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Heatwave Status</h3>
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-col mb-4 relative">
+      <div className="absolute top-3 right-3 text-[9px] font-bold text-sky-600 bg-sky-50 px-2 py-0.5 rounded border border-sky-100 uppercase tracking-wide">
+        Live
+      </div>
+      <div className="flex items-center gap-1.5 mb-4 pr-12">
+        <Activity className="w-4 h-4 text-sky-600 shrink-0" />
+        <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider truncate">System Heat Alert Level</h3>
       </div>
 
       <div className="flex items-center justify-between mb-4">

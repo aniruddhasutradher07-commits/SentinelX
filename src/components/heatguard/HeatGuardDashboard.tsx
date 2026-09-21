@@ -86,8 +86,8 @@ export default function HeatGuardDashboard({
               <RiskMapWidget geoJson={geoJson} wardGeoJson={wardGeoJson} />
             </div>
             <div className="md:col-span-4 flex flex-col space-y-4">
-              <RiskIntelligenceWidget />
-              <VulnerabilityWidget />
+              <RiskIntelligenceWidget wards={wards} district={khordha?.district || 'Khordha'} />
+              <VulnerabilityWidget districts={districts} districtName={khordha?.district || 'Khordha'} />
             </div>
           </div>
 

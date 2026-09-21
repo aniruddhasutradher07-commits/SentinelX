@@ -1,11 +1,17 @@
 import React from 'react';
-import { ArrowUp, ArrowDown } from 'lucide-react';
+import { ArrowUp, ArrowDown, AlertTriangle } from 'lucide-react';
 
 export default function ExplainabilityWidget() {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 h-full flex flex-col">
-      <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">Why is Risk High?</h3>
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 h-full flex flex-col relative">
+      <div className="absolute top-3 right-3 text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 uppercase tracking-wide">
+        Calculated
+      </div>
       
+      <div className="flex items-center gap-1.5 mb-4 pr-16">
+        <AlertTriangle className="w-4 h-4 text-sky-600 shrink-0" />
+        <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider truncate">Why Is Risk High?</h3>
+      </div>
       <div className="flex flex-col gap-3 flex-1 justify-center text-sm">
         
         <div className="flex items-start gap-2">

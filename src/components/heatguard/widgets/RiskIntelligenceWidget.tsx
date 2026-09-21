@@ -1,65 +1,63 @@
 import React from 'react';
-import { Target, AlertTriangle } from 'lucide-react';
+import { Target } from 'lucide-react';
+import { WardRiskRecord } from '../../../types';
 
-export default function RiskIntelligenceWidget() {
-  const hotspots = [
-    { name: 'Khordha (Municipal Area)', level: 'Extreme', color: 'bg-red-600' },
-    { name: 'Jatni', level: 'Extreme', color: 'bg-red-600' },
-    { name: 'Begunia', level: 'High', color: 'bg-orange-500' },
-    { name: 'Tangi', level: 'High', color: 'bg-orange-500' },
-    { name: 'Balianta', level: 'High', color: 'bg-orange-500' },
-  ];
+interface RiskIntelligenceWidgetProps {
+  wards: WardRiskRecord[];
+  district: string;
+}
+
+export default function RiskIntelligenceWidget({ wards, district }: RiskIntelligenceWidgetProps) {
+  const isKhordha = district.toLowerCase() === 'khordha';
+  
+  // Sort wards by risk score descending
+  const topWards = [...(wards || [])].sort((a, b) => (b.WardRiskScore || 0) - (a.WardRiskScore || 0)).slice(0, 5);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex-1 flex flex-col">
-      <div className="flex items-center gap-1.5 mb-4">
-        <Target className="w-4 h-4 text-sky-600" />
-        <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Risk Intelligence</h3>
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex-1 flex flex-col relative">
+      <div className="absolute top-3 right-3 text-[9px] font-bold text-sky-600 bg-sky-50 px-2 py-0.5 rounded border border-sky-100 uppercase tracking-wide">
+        Live
+      </div>
+      
+      <div className="flex items-center gap-1.5 mb-4 pr-12">
+        <Target className="w-4 h-4 text-sky-600 shrink-0" />
+        <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider truncate">Top High-Risk Zones</h3>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-5 border-b border-slate-100 pb-5">
-        <div>
-          <div className="text-[10px] text-slate-500 font-medium mb-1">Thermal Stress</div>
-          <div className="flex items-center gap-1.5 text-sm font-bold text-red-600">
-            <span className="w-2 h-2 rounded-full bg-red-600"></span> Extreme
-          </div>
+      {isKhordha ? (
+        <div className="flex-1 flex items-center justify-center text-center">
+          <p className="text-xs text-slate-500 font-mono p-4 border border-dashed border-slate-200 rounded bg-slate-50">
+            Ward-level data unavailable for full district. Please select Bhubaneswar Urban Core.
+          </p>
         </div>
-        <div>
-          <div className="text-[10px] text-slate-500 font-medium mb-1">Mortality Risk</div>
-          <div className="flex items-center gap-1.5 text-sm font-bold text-orange-500">
-            <span className="w-2 h-2 rounded-full bg-orange-500"></span> High
-          </div>
+      ) : topWards.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center text-center">
+          <p className="text-xs text-slate-500">Data unavailable</p>
         </div>
-        <div>
-          <div className="text-[10px] text-slate-500 font-medium mb-1">Vulnerability Level</div>
-          <div className="flex items-center gap-1.5 text-sm font-bold text-red-600">
-            <span className="w-2 h-2 rounded-full bg-red-600"></span> High
-          </div>
-        </div>
-        <div>
-          <div className="text-[10px] text-slate-500 font-medium mb-1">Risk Trend</div>
-          <div className="flex items-center gap-1.5 text-sm font-bold text-red-600">
-            <AlertTriangle className="w-3.5 h-3.5" /> Increasing
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between mb-3">
-        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide">Top 5 High-Risk Zones</h4>
-        <button className="text-[10px] text-sky-600 font-medium hover:underline">View All →</button>
-      </div>
-
-      <div className="flex flex-col gap-2 flex-1">
-        {hotspots.map((spot, idx) => (
-          <div key={idx} className="flex items-center justify-between text-xs">
-            <span className="text-slate-600 font-medium">{idx + 1}. {spot.name}</span>
-            <div className="flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full ${spot.color}`}></span>
-              <span className={`font-medium ${spot.level === 'Extreme' ? 'text-red-600' : 'text-orange-500'}`}>{spot.level}</span>
+      ) : (
+        <div className="flex-1 overflow-y-auto pr-1 space-y-2">
+          {topWards.map((ward, i) => (
+            <div key={ward.ward_no || i} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100">
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] font-bold text-slate-400 w-3">{i + 1}</span>
+                <span className="text-[11px] font-semibold text-slate-700">Ward {ward.ward_no}</span>
+              </div>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                ward.RiskTier === 'Red' ? 'bg-red-50 text-red-600 border border-red-100' :
+                ward.RiskTier === 'Orange' ? 'bg-orange-50 text-orange-600 border border-orange-100' :
+                ward.RiskTier === 'Yellow' ? 'bg-yellow-50 text-yellow-600 border border-yellow-100' :
+                'bg-emerald-50 text-emerald-600 border border-emerald-100'
+              }`}>
+                {ward.RiskTier?.toUpperCase() || 'UNKNOWN'}
+              </span>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
+
+      <button className="w-full mt-3 py-1.5 text-[10px] font-bold text-slate-500 hover:text-sky-600 hover:bg-sky-50 rounded transition-colors uppercase tracking-wide">
+        View All Zones
+      </button>
     </div>
   );
 }

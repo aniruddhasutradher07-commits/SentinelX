@@ -1,7 +1,8 @@
-import React from 'react';
-import { ShieldAlert } from 'lucide-react';
+import React, { useState } from 'react';
+import { ShieldAlert, AlertCircle } from 'lucide-react';
 
 export default function ActionCenterWidget() {
+  const [activeTab, setActiveTab] = useState('authorities');
   const actions = [
     "Activate heat action protocol",
     "Open/extend cooling centers",
@@ -11,16 +12,36 @@ export default function ActionCenterWidget() {
   ];
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 h-full flex flex-col">
-      <div className="flex items-center gap-1.5 mb-4">
-        <ShieldAlert className="w-4 h-4 text-sky-600" />
-        <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Recommended Actions</h3>
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex-1 flex flex-col relative">
+      <div className="absolute top-3 right-3 text-[9px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 uppercase tracking-wide">
+        Recommended
+      </div>
+      <div className="flex items-center justify-between mb-4 pr-24">
+        <div className="flex items-center gap-1.5">
+          <AlertCircle className="w-4 h-4 text-sky-600" />
+          <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider truncate">Recommended Actions</h3>
+        </div>
       </div>
 
       <div className="flex border-b border-slate-200 mb-3">
-        <button className="flex-1 py-1.5 text-[11px] font-bold text-sky-600 border-b-2 border-sky-600 text-center">For Authorities</button>
-        <button className="flex-1 py-1.5 text-[11px] font-medium text-slate-500 hover:text-slate-700 text-center">For Citizens</button>
-        <button className="flex-1 py-1.5 text-[11px] font-medium text-slate-500 hover:text-slate-700 text-center">For Healthcare</button>
+        <button 
+          onClick={() => setActiveTab('authorities')}
+          className={`flex-1 py-1.5 text-[11px] text-center ${activeTab === 'authorities' ? 'font-bold text-sky-600 border-b-2 border-sky-600' : 'font-medium text-slate-500 hover:text-slate-700'}`}
+        >
+          For Authorities
+        </button>
+        <button 
+          onClick={() => setActiveTab('citizens')}
+          className={`flex-1 py-1.5 text-[11px] text-center ${activeTab === 'citizens' ? 'font-bold text-sky-600 border-b-2 border-sky-600' : 'font-medium text-slate-500 hover:text-slate-700'}`}
+        >
+          For Citizens
+        </button>
+        <button 
+          onClick={() => setActiveTab('healthcare')}
+          className={`flex-1 py-1.5 text-[11px] text-center ${activeTab === 'healthcare' ? 'font-bold text-sky-600 border-b-2 border-sky-600' : 'font-medium text-slate-500 hover:text-slate-700'}`}
+        >
+          For Healthcare
+        </button>
       </div>
 
       <div className="flex-1 flex flex-col gap-2">
