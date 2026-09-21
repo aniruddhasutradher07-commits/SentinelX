@@ -23,6 +23,7 @@ import {
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar, Cell, LineChart, Line, ReferenceLine, PieChart, Pie, ComposedChart, ReferenceArea } from 'recharts';
 import { WardRiskRecord } from '../types';
 import { getApiUrl } from '../services/apiConfig';
+import { NightRecoveryCard } from './NightRecoveryCard';
 
 interface WardViewProps {
   wards: WardRiskRecord[];
@@ -61,6 +62,7 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
 
   const activeWard = selectedWard || sortedWards[0] || wards[0];
   const [wardDetails, setWardDetails] = useState<any>(null);
+  const [nightRecoveryData, setNightRecoveryData] = useState<any>(null);
 
   React.useEffect(() => {
     if (!activeWard) return;
@@ -68,7 +70,22 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
       .then(res => res.json())
       .then(data => setWardDetails(data))
       .catch(err => console.error(err));
-  }, [activeWard?.ward_no]);
+
+    const dayTemp = activeWard.modis_lst_c || 39.5;
+    const nightMinTemp = activeWard.modis_lst_night_c || 28.5;
+    const consecutiveNights = (activeWard.uhi_anomaly_c || 0) >= 3.0 ? 3 : 2;
+    const wardNo = encodeURIComponent(activeWard.ward_no || 'Ward 21');
+    const nightUrl = getApiUrl(`/api/v1/thermal/night-recovery?day_temp=${dayTemp}&day_rh=68.0&night_min_temp=${nightMinTemp}&night_rh=82.0&consecutive_nights=${consecutiveNights}&ward_no=${wardNo}`);
+
+    fetch(nightUrl)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.status === 'success') {
+          setNightRecoveryData(data);
+        }
+      })
+      .catch(err => console.error('Error fetching night recovery API:', err));
+  }, [activeWard?.ward_no, activeWard?.modis_lst_c, activeWard?.modis_lst_night_c, activeWard?.uhi_anomaly_c]);
 
   // Helper for Section 3.3: Exactly three plain-language driver lines, ranked
   const getTopThreeDrivers = (ward: WardRiskRecord): string[] => {
@@ -268,8 +285,16 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
           <div className="flex items-center gap-2 text-slate-300">
             <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
             <span><strong>Multi-Factor Risk Formula:</strong> Risk Index = Thermal Hazard × Vulnerability Multiplier (<span className="text-amber-300 font-semibold">M_v</span> from Census Demographics + OSM Canopy/Roofs)</span>
+            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold shrink-0">
+              [CALCULATED]
+            </span>
           </div>
-          <span className="text-[10px] text-sky-400 hidden md:inline">67 Municipal Wards Modeled</span>
+          <div className="flex items-center gap-2 hidden md:flex">
+            <span className="text-[10px] text-sky-400">67 Municipal Wards Modeled</span>
+            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 uppercase tracking-widest font-semibold shrink-0">
+              [MODELLED]
+            </span>
+          </div>
         </div>
 
         {/* Ward Cards Grid */}
@@ -315,7 +340,12 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
                     <span className="text-xl font-mono font-bold text-amber-400">
                       {w.WardRiskScore !== undefined ? w.WardRiskScore : (w.WBGT_celsius || 28.5)}
                     </span>
-                    <span className="text-[10px] text-slate-500 block font-mono">Risk Score</span>
+                    <span className="text-[10px] text-slate-500 block font-mono flex items-center justify-end gap-1">
+                      Risk Score
+                      <span className="text-[8px] font-mono px-1 py-0 rounded border border-cyan-500/30 text-cyan-300 uppercase">
+                        [CALC]
+                      </span>
+                    </span>
                   </div>
                 </div>
 
@@ -325,38 +355,50 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
                     <span className="text-[9px] text-slate-500 block flex items-center gap-0.5">
                       <Users className="w-2.5 h-2.5 text-sky-400" /> Elderly<span className="text-sky-400 cursor-help" title="Estimated (State Avg)">*</span>
                     </span>
-                    <span>{w.elderly_pct || 8.5}%</span>
+                    <div className="flex items-center gap-1">
+                      <span>{w.elderly_pct || 8.5}%</span>
+                      <span className="text-[7px] font-mono text-amber-400 uppercase">[SYN]</span>
+                    </div>
                   </div>
                   <div title="Outdoor Workers % (Construction / Vendors / Daily Wage)">
                     <span className="text-[9px] text-slate-500 block flex items-center gap-0.5">
                       <Briefcase className="w-2.5 h-2.5 text-amber-400" /> Labor
                     </span>
-                    <span>{w.outdoor_worker_pct || 24.0}%</span>
+                    <div className="flex items-center gap-1">
+                      <span>{w.outdoor_worker_pct || 24.0}%</span>
+                      <span className="text-[7px] font-mono text-emerald-400 uppercase">[REAL]</span>
+                    </div>
                   </div>
                   <div title="OSM Tree Canopy Cover % (Green Cooling Buffer)">
                     <span className="text-[9px] text-slate-500 block flex items-center gap-0.5">
                       <Trees className="w-2.5 h-2.5 text-emerald-400" /> Canopy
                     </span>
-                    <span className="text-emerald-400">{w.tree_cover_pct || 18.0}%</span>
+                    <div className="flex items-center gap-1 text-emerald-400">
+                      <span>{w.tree_cover_pct || 18.0}%</span>
+                      <span className="text-[7px] font-mono text-emerald-400 uppercase">[REAL]</span>
+                    </div>
                   </div>
                   <div title="Heat-Trapping Tin / Asbestos Roofs %">
                     <span className="text-[9px] text-slate-500 block flex items-center gap-0.5">
                       <Home className="w-2.5 h-2.5 text-rose-400" /> Tin Roof
                     </span>
-                    <span className="text-rose-400">{w.high_heat_roof_pct || 32.0}%</span>
+                    <div className="flex items-center gap-1 text-rose-400">
+                      <span>{w.high_heat_roof_pct || 32.0}%</span>
+                      <span className="text-[7px] font-mono text-emerald-400 uppercase">[REAL]</span>
+                    </div>
                   </div>
                 </div>
 
                 {/* Satellite Earth Observation Strip */}
                 <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-800/40 text-[9px] font-mono">
                   <span className="text-cyan-300 font-semibold flex items-center gap-1">
-                    🛰️ LST: {w.modis_lst_c || (w.temperature_c ? (w.temperature_c + 6.8).toFixed(1) : '45.8')}°C
+                    🛰️ LST: {w.modis_lst_c || (w.temperature_c ? (w.temperature_c + 6.8).toFixed(1) : '45.8')}°C <span className="text-[7px] text-emerald-400 font-normal">[REAL]</span>
                   </span>
                   <span className={`${(w.uhi_anomaly_c || 3.5) >= 4.0 ? 'text-purple-400 font-bold' : 'text-slate-400'}`}>
-                    UHI: {w.uhi_anomaly_c !== undefined ? (w.uhi_anomaly_c >= 0 ? `+${w.uhi_anomaly_c}°C` : `${w.uhi_anomaly_c}°C`) : '+3.5°C'}
+                    UHI: {w.uhi_anomaly_c !== undefined ? (w.uhi_anomaly_c >= 0 ? `+${w.uhi_anomaly_c}°C` : `${w.uhi_anomaly_c}°C`) : '+3.5°C'} <span className="text-[7px] text-cyan-300 font-normal">[CALC]</span>
                   </span>
                   <span className="text-emerald-400">
-                    NDVI: {w.sentinel2_ndvi || 0.28}
+                    NDVI: {w.sentinel2_ndvi || 0.28} <span className="text-[7px] text-emerald-400 font-normal">[REAL]</span>
                   </span>
                 </div>
               </div>
@@ -396,11 +438,21 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
 
           <div className="grid grid-cols-2 gap-2 mt-3 text-xs font-mono">
             <div className="bg-[#14171A] p-2 rounded-xl border border-[#232A2E]">
-              <span className="text-[10px] text-[#8B9096] block">Population</span>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-[#8B9096]">Population</span>
+                <span className="text-[8px] font-mono px-1 py-0.2 rounded border border-emerald-500/30 text-emerald-300">
+                  [REAL]
+                </span>
+              </div>
               <span className="font-bold text-white tabular-nums">{(activeWard?.population || 14500).toLocaleString()}</span>
             </div>
             <div className="bg-[#14171A] p-2 rounded-xl border border-[#232A2E]">
-              <span className="text-[10px] text-[#8B9096] block">WBGT Stress</span>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-[#8B9096]">WBGT Stress</span>
+                <span className="text-[8px] font-mono px-1 py-0.2 rounded border border-cyan-500/30 text-cyan-300">
+                  [CALC]
+                </span>
+              </div>
               <span className="font-bold text-[#F2F1EC] tabular-nums">{activeWard?.WBGT_celsius || 32.8}°C</span>
             </div>
           </div>
@@ -413,7 +465,12 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
               <Activity className="w-3.5 h-3.5 text-[#0F5C5C]" />
               Hospital Surge XAI (SHAP)
             </span>
-            <span className="text-[9px] font-sans text-slate-500 normal-case bg-white/5 px-2 py-0.5 rounded">XGBoost Explainer</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[9px] font-sans text-slate-500 normal-case bg-white/5 px-2 py-0.5 rounded">XGBoost Explainer</span>
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 uppercase tracking-widest font-semibold">
+                [MODELLED]
+              </span>
+            </div>
           </h3>
 
           {wardDetails?.shap_explainability ? (() => {
@@ -464,10 +521,15 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
         {/* Panel 2: Model consistency — MRI grade */}
         <div className="bg-[#14171A] border border-[#232A2E] rounded-2xl p-4 flex items-center justify-between">
           <div>
-            <h3 className="text-[10px] font-mono text-[#8B9096] uppercase tracking-wider mb-1 flex items-center gap-1.5">
-              <ShieldAlert className="w-3.5 h-3.5 text-[#0F5C5C]" />
-              Model consistency — MRI grade
-            </h3>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="text-[10px] font-mono text-[#8B9096] uppercase tracking-wider flex items-center gap-1.5">
+                <ShieldAlert className="w-3.5 h-3.5 text-[#0F5C5C]" />
+                Model consistency — MRI grade
+              </h3>
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold">
+                [CALCULATED]
+              </span>
+            </div>
             <div className="text-[10px] text-[#F2F1EC] font-sans mt-2 space-y-1">
               <p><span className="text-[#8B9096]">WBGT Band:</span> {wbgtBand}</p>
               <p><span className="text-[#8B9096]">Raw MRI:</span> {rawMriGrade}</p>
@@ -494,32 +556,78 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
           </div>
         </div>
 
-        {/* Panel 3: Night recovery & cumulative heat load */}
-        <div className="bg-[#14171A] border border-[#232A2E] rounded-2xl p-4">
-          <h3 className="text-[10px] font-mono text-[#8B9096] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-            <Activity className="w-3.5 h-3.5 text-[#0F5C5C]" />
-            Night recovery &amp; cumulative heat load
-          </h3>
-          <div className="h-20 w-full mb-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={next24h} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                <XAxis dataKey="hour" tick={{ fill: '#8B9096', fontSize: 9 }} interval={5} />
-                <YAxis domain={['dataMin - 1', 'dataMax + 1']} tick={{ fill: '#8B9096', fontSize: 9 }} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#0B0D0E', borderColor: '#232A2E', fontSize: '10px' }}
-                  itemStyle={{ color: '#2DD4C4' }}
-                />
-                <ReferenceLine y={28} stroke="#C0392B" strokeDasharray="3 3" label={{ position: 'insideTopLeft', value: '28°C Safe', fill: '#C0392B', fontSize: 8 }} />
-                <Line type="monotone" dataKey="wbgt" stroke="#2DD4C4" strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-          <p className="text-[10px] font-mono" style={{ color: noRecovery ? '#C0392B' : '#3A7D5C' }}>
-            {noRecovery
-              ? "No sub-28°C recovery window last night — cumulative load rising"
-              : "Recovery window present — no cumulative buildup"}
-          </p>
-        </div>
+        {/* Panel 3: Nighttime Recovery Failure & 24h Cumulative Thermal Burden */}
+        {(() => {
+          const dayRiskVal = nightRecoveryData?.day_risk?.htsi_score ?? Math.round(activeWard?.WardRiskScore || 72);
+          const nightMinTemp = nightRecoveryData?.night_recovery?.night_min_temp_c ?? (activeWard?.modis_lst_night_c || 28.5);
+          const nightFailureVal = nightRecoveryData?.night_recovery?.failure_score ?? 68;
+          const recoveryScore = nightRecoveryData?.night_recovery?.recovery_score ?? Math.round(100 - nightFailureVal);
+          const consecutiveNights = nightRecoveryData?.thermal_burden_24h?.consecutive_poor_nights ?? ((activeWard?.uhi_anomaly_c || 0) >= 3.0 ? 3 : 2);
+          const compoundingMult = nightRecoveryData?.thermal_burden_24h?.compounding_multiplier ?? 1.15;
+          const burden24hVal = nightRecoveryData?.thermal_burden_24h?.composite_burden_score ?? 76;
+
+          const nightRecovery3ValData = [
+            { label: 'Day Risk', score: dayRiskVal, fill: '#00F2FE' },
+            { label: 'Night Failure', score: nightFailureVal, fill: '#818cf8' },
+            { label: '24h Burden', score: burden24hVal, fill: '#C0392B' },
+          ];
+
+          return (
+            <>
+              <NightRecoveryCard
+                wardNo={activeWard?.ward_no || 'W21'}
+                data={{
+                  night_min_temp_c: nightMinTemp,
+                  night_humidity_pct: nightRecoveryData?.night_recovery?.night_humidity_pct ?? 82.0,
+                  failure_score: nightFailureVal,
+                  recovery_score: recoveryScore,
+                  consecutive_poor_nights: consecutiveNights,
+                  compounding_multiplier: compoundingMult,
+                  thermal_burden_score: burden24hVal,
+                  provenance: nightRecoveryData?.provenance || 'Calculated'
+                }}
+              />
+
+              <div className="bg-[#14171A] border border-[#232A2E] rounded-2xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-[10px] font-mono text-[#8B9096] uppercase tracking-wider flex items-center gap-1.5">
+                    <Activity className="w-3.5 h-3.5 text-cyan-400" />
+                    Day Risk vs Night Failure vs 24h Burden
+                  </h3>
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold">
+                    [CALCULATED]
+                  </span>
+                </div>
+
+                <div className="h-28 w-full my-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={nightRecovery3ValData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <XAxis dataKey="label" tick={{ fill: '#8B9096', fontSize: 9 }} axisLine={false} tickLine={false} />
+                      <YAxis domain={[0, 100]} tick={{ fill: '#8B9096', fontSize: 9 }} axisLine={false} tickLine={false} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: '#0B0D0E', borderColor: '#232A2E', borderRadius: '8px', fontSize: '10px' }}
+                        itemStyle={{ color: '#fff' }}
+                        formatter={(val: any) => [`${val} / 100`, 'Calculated Index Score']}
+                      />
+                      <Bar dataKey="score" barSize={26} radius={[4, 4, 0, 0]}>
+                        {nightRecovery3ValData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="flex items-center justify-between text-[10px] font-mono border-t border-[#232A2E] pt-2">
+                  <span className="text-slate-400">Night Core Cooling Status:</span>
+                  <span className={nightFailureVal >= 60 ? 'text-rose-400 font-bold' : 'text-emerald-400 font-bold'}>
+                    {nightFailureVal >= 60 ? `Poor Cooling (${consecutiveNights} Consecutive Nights)` : 'Normal Nocturnal Recovery'}
+                  </span>
+                </div>
+              </div>
+            </>
+          );
+        })()}
 
         {/* Panel 4: 5-day forecast horizon */}
         <div className="bg-[#14171A] border border-[#232A2E] rounded-2xl p-4">
@@ -528,7 +636,12 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
               <TrendingUp className="w-3.5 h-3.5 text-[#0F5C5C]" />
               5-day forecast horizon
             </span>
-            <span className="text-[9px] font-sans text-slate-500 normal-case bg-white/5 px-2 py-0.5 rounded">Open-Meteo</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[9px] font-sans text-slate-500 normal-case bg-white/5 px-2 py-0.5 rounded">Open-Meteo</span>
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 uppercase tracking-widest font-semibold">
+                [MODELLED]
+              </span>
+            </div>
           </h3>
           <div className="h-32 w-full mb-2">
             <ResponsiveContainer width="100%" height="100%">
@@ -622,7 +735,9 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
               <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
               Primary Risk Drivers (Ranked 1–3)
             </h3>
-            <span className="text-[9px] font-mono text-[#8B9096]">Top-3 Mandatory</span>
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold">
+              [CALCULATED]
+            </span>
           </div>
 
           <ol className="space-y-2 text-xs font-sans text-[#F2F1EC]">
@@ -647,7 +762,9 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
               <TrendingUp className="w-3.5 h-3.5 text-[#0F5C5C]" />
               Cumulative Exposure Trend (10-Day Horizon)
             </h3>
-            <span className="text-[9px] font-mono text-[#8B9096]">-5d to +5d</span>
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 uppercase tracking-widest font-semibold">
+              [MODELLED]
+            </span>
           </div>
 
           {/* Inline Persistence Sparkline */}

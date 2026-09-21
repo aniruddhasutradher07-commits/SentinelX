@@ -58,9 +58,14 @@ export default function CommandTab({ activeDistrict, liveTemp }: CommandTabProps
               <Sliders className="w-5 h-5 text-cyan-400" />
               What-If Policy Simulator
             </h4>
-            <span className="text-[9px] font-mono text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/30">
-              AI Physics
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[9px] font-mono text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/30">
+                AI Physics
+              </span>
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 uppercase tracking-widest font-semibold">
+                [MODELLED]
+              </span>
+            </div>
           </div>
           
           <p className="text-xs text-slate-400 font-mono mb-6">Simulate urban canopy shading, cool-roofs & misting effects</p>
@@ -118,6 +123,9 @@ export default function CommandTab({ activeDistrict, liveTemp }: CommandTabProps
                 <span className="text-rose-400 line-through">87</span>
                 <span className="text-slate-400">➔</span>
                 <span className="text-emerald-400">{newRisk} ({newRisk - baseRisk > 0 ? '+' : ''}{newRisk - baseRisk} pts)</span>
+                <span className="text-[8px] font-mono px-1 py-0.2 rounded border border-purple-500/30 text-purple-300 uppercase">
+                  [MOD]
+                </span>
               </div>
             </div>
           </div>
@@ -131,9 +139,14 @@ export default function CommandTab({ activeDistrict, liveTemp }: CommandTabProps
                 <Activity className="w-5 h-5 text-rose-400" />
                 Nearest Emergency Surge
               </h4>
-              <span className="text-[9px] font-mono text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/30">
-                Tier-1 Trauma
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[9px] font-mono text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/30">
+                  Tier-1 Trauma
+                </span>
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold">
+                  [REAL]
+                </span>
+              </div>
             </div>
             <div className="p-3 rounded-lg bg-black/40 border border-white/5 space-y-2 text-sm font-mono mb-4">
               <div className="flex justify-between items-center">

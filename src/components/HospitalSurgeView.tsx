@@ -44,6 +44,9 @@ export const HospitalSurgeView: React.FC<HospitalSurgeViewProps> = ({ summary })
               <span className="px-2 py-0.5 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-400 font-mono text-[10px] font-bold uppercase">
                 2-Stage AI/ML Epidemiological Model
               </span>
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 uppercase tracking-widest font-semibold">
+                [MODELLED]
+              </span>
               <span className="text-slate-500">·</span>
               <span className="text-xs font-mono text-slate-400">Gasparrini DLNM Baseline + XGBoost Correction</span>
             </div>
@@ -58,11 +61,21 @@ export const HospitalSurgeView: React.FC<HospitalSurgeViewProps> = ({ summary })
 
           <div className="flex items-center gap-3">
             <div className="bg-slate-950/70 border border-slate-800 p-3 rounded-xl text-right">
-              <span className="text-[10px] font-mono text-slate-400 block">Model R² Fit</span>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-mono text-slate-400 block">Model R² Fit</span>
+                <span className="text-[9px] font-mono px-1 py-0.2 rounded border border-purple-500/30 text-purple-300">
+                  [MODELLED]
+                </span>
+              </div>
               <span className="text-lg font-bold font-mono text-emerald-400">{summary?.confidence_score_r2 || '0.566'}</span>
             </div>
             <div className="bg-slate-950/70 border border-slate-800 p-3 rounded-xl text-right">
-              <span className="text-[10px] font-mono text-slate-400 block">Mean Abs Error (MAE)</span>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-mono text-slate-400 block">MAE Error</span>
+                <span className="text-[9px] font-mono px-1 py-0.2 rounded border border-purple-500/30 text-purple-300">
+                  [MODELLED]
+                </span>
+              </div>
               <span className="text-lg font-bold font-mono text-sky-400">0.90 adm/day</span>
             </div>
           </div>
@@ -83,6 +96,9 @@ export const HospitalSurgeView: React.FC<HospitalSurgeViewProps> = ({ summary })
                 Why hospital admissions peak 24–48 hours AFTER the heatwave peak
               </p>
             </div>
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 uppercase tracking-widest font-semibold shrink-0">
+              [MODELLED]
+            </span>
           </div>
 
           <div className="h-56 w-full">
@@ -120,10 +136,15 @@ export const HospitalSurgeView: React.FC<HospitalSurgeViewProps> = ({ summary })
         {/* 2-Stage Mathematical Formulation Card */}
         <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
           <div>
-            <h2 className="text-sm font-bold text-white flex items-center gap-2 mb-3">
-              <Sparkles className="w-4 h-4 text-purple-400" />
-              2-Stage Machine Learning Pipeline
-            </h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-purple-400" />
+                2-Stage Machine Learning Pipeline
+              </h2>
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 uppercase tracking-widest font-semibold shrink-0">
+                [MODELLED]
+              </span>
+            </div>
 
             <div className="space-y-3 text-xs">
               <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800/60">
@@ -152,19 +173,29 @@ export const HospitalSurgeView: React.FC<HospitalSurgeViewProps> = ({ summary })
             </div>
           </div>
 
-          <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-300 flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 shrink-0" />
-            <span>Calibrated against NDMA historical Odisha heatwaves (1998, 2015, 2024 records).</span>
+          <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-300 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 shrink-0" />
+              <span>Calibrated against NDMA historical Odisha heatwaves (1998, 2015, 2024 records).</span>
+            </div>
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold shrink-0">
+              [REAL]
+            </span>
           </div>
         </div>
       </div>
 
       {/* Hospital Resource & Surge Readiness Table */}
       <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5">
-        <h2 className="text-sm font-bold text-white flex items-center gap-2 mb-3">
-          <Stethoscope className="w-4 h-4 text-sky-400" />
-          Odisha Key Hospital Surge Readiness &amp; Emergency Bays
-        </h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-bold text-white flex items-center gap-2">
+            <Stethoscope className="w-4 h-4 text-sky-400" />
+            Odisha Key Hospital Surge Readiness &amp; Emergency Bays
+          </h2>
+          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold shrink-0">
+            [REAL]
+          </span>
+        </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-xs font-mono text-left">

@@ -168,8 +168,7 @@ function loadDatasets() {
 
     // Ward data initialization
     const geoCandidates = [
-      path.join(process.cwd(), 'wards_bhubaneswar.geojson'),
-      path.join(process.cwd(), 'teammate_backend/wards_bhubaneswar.geojson')
+      path.join(process.cwd(), 'wards_bhubaneswar.geojson')
     ];
     let wardFeatures: any[] = [];
     for (const gp of geoCandidates) {

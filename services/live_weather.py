@@ -26,7 +26,7 @@ from models import Ward
 from services.thermal_processor import process_thermal_reading
 from services import thermal_engine
 
-WEATHERAPI_KEY = os.environ.get("WEATHERAPI_KEY", "34b0083b19ed408b8ad65436263008")
+WEATHERAPI_KEY = os.environ.get("WEATHERAPI_KEY") or os.environ.get("WEATHER_API_KEY")
 BHUBANESWAR_LAT = 20.2961
 BHUBANESWAR_LON = 85.8245
 LIVE_REFRESH_INTERVAL_SECONDS = 600  # 10 minutes
@@ -35,7 +35,7 @@ last_refresh_status = {"last_updated": None, "ok": False, "detail": None}
 
 
 def _get_api_key():
-    return os.environ.get("WEATHERAPI_KEY", "34b0083b19ed408b8ad65436263008")
+    return os.environ.get("WEATHERAPI_KEY") or os.environ.get("WEATHER_API_KEY")
 
 
 def _fetch_current_weather():

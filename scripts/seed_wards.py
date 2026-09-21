@@ -27,8 +27,7 @@ from models import Ward
 from services.risk_engine import calculate_vulnerability_score
 
 GEOJSON_CANDIDATES = [
-    os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "wards_bhubaneswar.geojson"),
-    os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "teammate_backend", "wards_bhubaneswar.geojson")
+    os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "wards_bhubaneswar.geojson")
 ]
 
 

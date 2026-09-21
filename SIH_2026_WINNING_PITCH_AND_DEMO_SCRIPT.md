@@ -117,8 +117,13 @@
 
 ---
 
-### **Q4: "Can SentinelX scale beyond Odisha to all 28 states in India?"**
+### **Q5: "Can SentinelX scale beyond Odisha to all 28 states in India?"**
 - **Answer:** *"Yes! The entire architecture is 100% modular. The backend ingests standard Open-Meteo and NCMRWF grid points, and our Dockerized container is running live on cloud infrastructure ready for nationwide deployment."*
+
+---
+
+### **Q6: "What are the security boundaries and API auth mechanisms in this demo build?"**
+- **Answer:** *"For the SIH live jury demonstration, CORS origin policy is explicitly hardened to the production Vercel frontend domain (`FRONTEND_ORIGIN`) and local dev environments (`localhost`). To ensure seamless live jury evaluation without login friction, full Gov-SSO / OAuth2 API authentication is un-enforced in this demo layer; nationwide production deployment would layer Keycloak RBAC and TLS 1.3 mTLS."*
 
 ---
 

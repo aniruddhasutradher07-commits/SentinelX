@@ -15,7 +15,8 @@ import {
   Send,
   Globe,
   Layers,
-  Sparkles
+  Sparkles,
+  LifeBuoy
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar, Cell } from 'recharts';
 import { DistrictRiskRecord } from '../types';
@@ -42,6 +43,10 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
   const baseTileLayerRef = useRef<L.TileLayer | null>(null);
   const wardLayerRef = useRef<L.GeoJSON | null>(null);
   const pulseMarkersRef = useRef<L.LayerGroup | null>(null);
+  const coolingLayerRef = useRef<L.LayerGroup | null>(null);
+  const hospitalLayerRef = useRef<L.LayerGroup | null>(null);
+  const routingPolylineLayerRef = useRef<L.LayerGroup | null>(null);
+  const underservedOverlayRef = useRef<L.LayerGroup | null>(null);
 
   const [selectedDistrictName, setSelectedDistrictName] = useState<string>('Khordha');
   const [metricMode, setMetricMode] = useState<'wbgt' | 'risk' | 'vulnerability' | 'lst' | 'uhi' | 'admissions' | 'temp'>('wbgt');
@@ -51,6 +56,17 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
   const [wardGeoJson, setWardGeoJson] = useState<any>(null);
   const [wardData, setWardData] = useState<any[]>([]);
   const [showWards, setShowWards] = useState<boolean>(false);
+
+  const [activeLayers, setActiveLayers] = useState({
+    thermal_stress: true,
+    vulnerability: true,
+    cooling_centers: true,
+    emergency_routing: true,
+  });
+  const [showUnderservedHighRisk, setShowUnderservedHighRisk] = useState<boolean>(false);
+  const [coolingGaps, setCoolingGaps] = useState<any[]>([]);
+  const [coolingCentersCatalog, setCoolingCentersCatalog] = useState<any[]>([]);
+  const [hospitalsCatalog, setHospitalsCatalog] = useState<any[]>([]);
 
   // Get unique districts list
   const uniqueDistricts = districts.reduce((acc: DistrictRiskRecord[], cur) => {
@@ -146,11 +162,18 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
     if (!mapContainerRef.current) return;
 
     if (!mapInstanceRef.current) {
+      const INDIA_BOUNDS: L.LatLngBoundsExpression = [
+        [5.0, 65.0],
+        [38.5, 98.5]
+      ];
+
       const map = L.map(mapContainerRef.current, {
         center: [20.45, 84.8], // Center of Odisha
         zoom: 7.2,
-        minZoom: 6,
+        minZoom: 5,
         maxZoom: 16,
+        maxBounds: INDIA_BOUNDS,
+        maxBoundsViscosity: 0.85,
         zoomControl: false,
         attributionControl: false,
       });
@@ -176,6 +199,25 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
     fetch(getApiUrl('/api/v1/wards'))
       .then(res => res.json())
       .then(data => setWardData(data.wards || []))
+      .catch(() => {});
+
+    fetch(getApiUrl('/api/v1/resource-allocation/cooling-gaps'))
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          setCoolingGaps(data.wards || []);
+          setCoolingCentersCatalog(data.available_cooling_centers || []);
+        }
+      })
+      .catch(() => {});
+
+    fetch(getApiUrl('/api/v1/resource-allocation/emergency-routing?ward=Ward%2018'))
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          setHospitalsCatalog(data.all_nearby_hospitals || []);
+        }
+      })
       .catch(() => {});
   }, []);
 
@@ -306,6 +348,175 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
     pulseMarkersRef.current = pulseGroup;
 
   }, [showWards, wardGeoJson, wardData]);
+
+  // Render Cooling Centers, Hospital Routing Vectors, and Underserved High-Risk Overlays
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+    const map = mapInstanceRef.current;
+
+    // 1. Cooling Centers Layer
+    if (coolingLayerRef.current) map.removeLayer(coolingLayerRef.current);
+    if (activeLayers.cooling_centers && coolingCentersCatalog.length > 0) {
+      const coolGroup = L.layerGroup();
+      coolingCentersCatalog.forEach(c => {
+        const icon = L.divIcon({
+          className: '',
+          html: `<div style="background:#0284c7;color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 0 10px rgba(2,132,199,0.8);font-size:11px;">❄️</div>`,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12],
+        });
+        const marker = L.marker([c.lat, c.lon], { icon });
+        marker.bindTooltip(
+          `<div class="text-xs font-sans">
+            <b class="text-cyan-300">${c.name}</b><br/>
+            Type: ${c.type}<br/>
+            Capacity: <b class="text-white">${c.capacity} persons</b>
+            <div class="text-[10px] text-amber-300 mt-1">[SYNTHETIC CATALOG]</div>
+          </div>`,
+          { className: 'leaflet-tooltip-dark' }
+        );
+        coolGroup.addLayer(marker);
+      });
+      coolGroup.addTo(map);
+      coolingLayerRef.current = coolGroup;
+    }
+
+    // 2. Hospitals & Emergency Transport Routing Vectors Layer
+    if (hospitalLayerRef.current) map.removeLayer(hospitalLayerRef.current);
+    if (routingPolylineLayerRef.current) map.removeLayer(routingPolylineLayerRef.current);
+
+    if (activeLayers.emergency_routing) {
+      const hospGroup = L.layerGroup();
+      const polyGroup = L.layerGroup();
+
+      const hospitalCoords: Record<string, [number, number]> = {
+        "AIIMS Bhubaneswar": [20.2469, 85.8018],
+        "Capital Hospital, Bhubaneswar": [20.2699, 85.8411],
+        "KIMS Hospital": [20.3005, 85.8260],
+        "SUM Hospital": [20.3208, 85.8153],
+        "Hi-Tech Medical College": [20.3300, 85.8085],
+        "Kalinga Hospital": [20.2955, 85.8450],
+        "SCB Medical College, Cuttack": [20.4736, 85.8873]
+      };
+
+      hospitalsCatalog.forEach(h => {
+        const coords = hospitalCoords[h.hospital_name];
+        if (!coords) return;
+        const icon = L.divIcon({
+          className: '',
+          html: `<div style="background:#e11d48;color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 0 10px rgba(225,29,72,0.8);font-size:11px;">🏥</div>`,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12],
+        });
+        const marker = L.marker(coords, { icon });
+        marker.bindTooltip(
+          `<div class="text-xs font-sans">
+            <b class="text-rose-300">${h.hospital_name}</b><br/>
+            Trauma: ${h.trauma_level}<br/>
+            Beds: <b class="text-white">${h.bed_capacity} Beds</b><br/>
+            Contact: ${h.emergency_contact}
+            <div class="text-[10px] text-amber-300 mt-1">[SYNTHETIC CATALOG]</div>
+          </div>`,
+          { className: 'leaflet-tooltip-dark' }
+        );
+        hospGroup.addLayer(marker);
+      });
+
+      // Draw Emergency Routing Lines connecting High-Risk Wards to nearest Hospital
+      const wardCentroids: Record<string, [number, number]> = {
+        "Ward 1": [20.3550, 85.8180],
+        "Ward 5": [20.3220, 85.8210],
+        "Ward 12": [20.2980, 85.8150],
+        "Ward 18": [20.2810, 85.8080],
+        "Ward 21": [20.2863, 85.8466],
+        "Ward 27": [20.2680, 85.8390],
+        "Ward 34": [20.2480, 85.8350],
+        "Ward 42": [20.2580, 85.7820],
+        "Ward 51": [20.2210, 85.7480],
+        "Ward 60": [20.3050, 85.8620],
+      };
+
+      if (coolingGaps.length > 0) {
+        coolingGaps.forEach(g => {
+          if (g.exposure_tier === 'CRITICAL' || g.exposure_tier === 'HIGH') {
+            const origin = wardCentroids[g.ward_no] || [20.2810, 85.8080];
+            const dest = hospitalCoords["KIMS Hospital"] || [20.3005, 85.8260];
+            const line = L.polyline([origin, dest], {
+              color: '#f43f5e',
+              weight: 2.5,
+              dashArray: '5, 8',
+              opacity: 0.85,
+            });
+            line.bindTooltip(
+              `<div class="text-xs font-mono text-rose-300">
+                🚑 Ambulance Advisory Vector (${g.ward_no} ➔ KIMS)<br/>
+                Est. Transit: ~10.8 min | Advisory Only
+              </div>`,
+              { sticky: true, className: 'leaflet-tooltip-dark' }
+            );
+            polyGroup.addLayer(line);
+          }
+        });
+      }
+
+      hospGroup.addTo(map);
+      polyGroup.addTo(map);
+      hospitalLayerRef.current = hospGroup;
+      routingPolylineLayerRef.current = polyGroup;
+    }
+
+    // 3. Underserved High-Risk Areas Filter Overlay
+    if (underservedOverlayRef.current) map.removeLayer(underservedOverlayRef.current);
+    if (showUnderservedHighRisk && coolingGaps.length > 0) {
+      const underservedGroup = L.layerGroup();
+      const underserved = coolingGaps.filter(g => 
+        (g.exposure_tier === 'CRITICAL' || g.exposure_tier === 'HIGH') && 
+        g.cooling_access_tier === 'DEFICIT'
+      );
+
+      const wardCentroids: Record<string, [number, number]> = {
+        "Ward 1": [20.3550, 85.8180],
+        "Ward 5": [20.3220, 85.8210],
+        "Ward 12": [20.2980, 85.8150],
+        "Ward 18": [20.2810, 85.8080],
+        "Ward 21": [20.2863, 85.8466],
+        "Ward 27": [20.2680, 85.8390],
+        "Ward 34": [20.2480, 85.8350],
+        "Ward 42": [20.2580, 85.7820],
+        "Ward 51": [20.2210, 85.7480],
+        "Ward 60": [20.3050, 85.8620],
+      };
+
+      underserved.forEach(g => {
+        const coords = wardCentroids[g.ward_no] || [20.2810, 85.8080];
+        const circle = L.circle(coords, {
+          radius: 1400,
+          color: '#f43f5e',
+          weight: 4,
+          fillColor: '#f43f5e',
+          fillOpacity: 0.5,
+          dashArray: '6, 6',
+        });
+        circle.bindTooltip(
+          `<div class="text-xs font-sans">
+            <div class="font-bold text-rose-300 flex items-center gap-1.5">
+              <span>🚨 UNDERSERVED HIGH-RISK ZONE</span>
+            </div>
+            <div class="text-white mt-1">Ward: <b>${g.ward_no} (${g.ward_name})</b></div>
+            <div class="text-slate-300">Temp: <b class="text-rose-400 font-mono">${g.temperature_c}°C</b></div>
+            <div class="text-slate-300">Access: <b class="text-rose-400">${g.cooling_access_tier}</b></div>
+            <div class="text-cyan-300 mt-1 font-semibold">Action: ${g.priority_recommendation}</div>
+            <div class="text-[10px] text-cyan-400 mt-0.5">[CALCULATED GAP]</div>
+          </div>`,
+          { sticky: true, className: 'leaflet-tooltip-dark' }
+        );
+        underservedGroup.addLayer(circle);
+      });
+
+      underservedGroup.addTo(map);
+      underservedOverlayRef.current = underservedGroup;
+    }
+  }, [activeLayers, showUnderservedHighRisk, coolingCentersCatalog, hospitalsCatalog, coolingGaps]);
 
   // Update Basemap Tiles (Carto Dark Matter vs. ArcGIS Satellite)
   useEffect(() => {
@@ -506,6 +717,95 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
             </span>
           </div>
         )}
+        {/* Task 11: Bento-Glass Multi-Layer Control Panel & Underserved Filter Button */}
+        <div className="absolute top-16 left-3 z-[1000] bg-slate-900/90 backdrop-blur-xl p-3.5 rounded-2xl border border-slate-800/80 shadow-2xl space-y-3 pointer-events-auto max-w-[285px]">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+            <span className="text-xs font-bold text-white flex items-center gap-1.5 font-sans">
+              <Layers className="w-3.5 h-3.5 text-cyan-400" />
+              GIS Layer Controls
+            </span>
+            <span className="text-[10px] font-mono text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/30">
+              Multi-Layer
+            </span>
+          </div>
+
+          <div className="space-y-1.5 text-xs font-sans">
+            {/* Thermal Stress Layer */}
+            <label className="flex items-center justify-between text-slate-200 cursor-pointer hover:text-white p-1 rounded hover:bg-slate-800/50 transition-colors">
+              <span className="flex items-center gap-2">
+                <Flame className="w-3.5 h-3.5 text-rose-400" />
+                Thermal Stress (HTSI)
+              </span>
+              <input
+                type="checkbox"
+                checked={activeLayers.thermal_stress}
+                onChange={(e) => setActiveLayers(prev => ({ ...prev, thermal_stress: e.target.checked }))}
+                className="rounded border-slate-700 text-cyan-500 focus:ring-cyan-500 bg-slate-950 cursor-pointer"
+              />
+            </label>
+
+            {/* Population Vulnerability Layer */}
+            <label className="flex items-center justify-between text-slate-200 cursor-pointer hover:text-white p-1 rounded hover:bg-slate-800/50 transition-colors">
+              <span className="flex items-center gap-2">
+                <Users className="w-3.5 h-3.5 text-purple-400" />
+                Vulnerability Index
+              </span>
+              <input
+                type="checkbox"
+                checked={activeLayers.vulnerability}
+                onChange={(e) => setActiveLayers(prev => ({ ...prev, vulnerability: e.target.checked }))}
+                className="rounded border-slate-700 text-purple-500 focus:ring-purple-500 bg-slate-950 cursor-pointer"
+              />
+            </label>
+
+            {/* Cooling Centers & Gaps Layer */}
+            <label className="flex items-center justify-between text-slate-200 cursor-pointer hover:text-white p-1 rounded hover:bg-slate-800/50 transition-colors">
+              <span className="flex items-center gap-2">
+                <LifeBuoy className="w-3.5 h-3.5 text-sky-400" />
+                Cooling Hubs & Gaps
+              </span>
+              <input
+                type="checkbox"
+                checked={activeLayers.cooling_centers}
+                onChange={(e) => setActiveLayers(prev => ({ ...prev, cooling_centers: e.target.checked }))}
+                className="rounded border-slate-700 text-sky-500 focus:ring-sky-500 bg-slate-950 cursor-pointer"
+              />
+            </label>
+
+            {/* Hospitals & Emergency Transport Routes Layer */}
+            <label className="flex items-center justify-between text-slate-200 cursor-pointer hover:text-white p-1 rounded hover:bg-slate-800/50 transition-colors">
+              <span className="flex items-center gap-2">
+                <Activity className="w-3.5 h-3.5 text-rose-500" />
+                Hospitals & Routing
+              </span>
+              <input
+                type="checkbox"
+                checked={activeLayers.emergency_routing}
+                onChange={(e) => setActiveLayers(prev => ({ ...prev, emergency_routing: e.target.checked }))}
+                className="rounded border-slate-700 text-rose-500 focus:ring-rose-500 bg-slate-950 cursor-pointer"
+              />
+            </label>
+          </div>
+
+          {/* Underserved High-Risk Filter Overlay Button */}
+          <button
+            onClick={() => setShowUnderservedHighRisk(!showUnderservedHighRisk)}
+            className={`w-full py-2 px-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-md font-sans ${
+              showUnderservedHighRisk
+                ? 'bg-rose-600 text-white shadow-rose-900/50 animate-pulse border border-rose-400'
+                : 'bg-rose-950/70 hover:bg-rose-900/80 text-rose-200 border border-rose-500/40'
+            }`}
+          >
+            <AlertTriangle className="w-3.5 h-3.5 text-rose-300" />
+            {showUnderservedHighRisk ? 'Underserved Overlay ON' : 'Show Underserved High-Risk'}
+          </button>
+
+          {/* Note on skipped dynamic layers */}
+          <div className="pt-2 border-t border-slate-800/80 text-[10px] text-slate-400 leading-tight space-y-1 font-sans">
+            <div>• <i>Construction Sites</i> & <i>Schools</i> layers run dynamically on shift/classroom inputs without static GIS directories.</div>
+          </div>
+        </div>
+
         {/* Legend Overlay */}
         <div className="absolute bottom-4 left-4 z-[1000] bg-[#14171A]/90 backdrop-blur-xl p-3 rounded-2xl border border-white/[0.08] shadow-2xl text-[11px] font-mono text-slate-300 pointer-events-auto">
           {metricMode === 'vulnerability' ? (

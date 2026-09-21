@@ -239,16 +239,26 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({ wards }) => {
           <span className="text-[10px] font-mono text-[#8B9096] uppercase tracking-wider block mb-1">
             PROJECTED POLICY IMPACT EVALUATION · {baseWard.ward_no}
           </span>
-          <h3 className="text-2xl font-bold font-sans text-white">Before vs. After Intervention Outcome</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-2xl font-bold font-sans text-white">Before vs. After Intervention Outcome</h3>
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 uppercase tracking-widest font-semibold">
+              [MODELLED]
+            </span>
+          </div>
         </div>
 
         {/* Before / After Grade Comparison Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Before Card */}
           <div className="bg-[#14171A] border border-[#232A2E] rounded-3xl p-6 space-y-3 relative overflow-hidden">
-            <span className="text-[10px] font-mono text-[#8B9096] uppercase tracking-wider block">
-              Status Quo (No Intervention)
-            </span>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono text-[#8B9096] uppercase tracking-wider block">
+                Status Quo (No Intervention)
+              </span>
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold">
+                [CALCULATED]
+              </span>
+            </div>
             <div className="flex items-baseline gap-3">
               <span className="text-4xl font-extrabold font-mono tabular-nums" style={{ color: getTierColor(beforeTier) }}>
                 {baseScore}
@@ -271,9 +281,14 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({ wards }) => {
               <span className="text-[10px] font-mono text-teal-400 uppercase tracking-wider font-bold block">
                 Post-Intervention Projection
               </span>
-              <span className="text-[10px] font-mono bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded border border-teal-500/30 flex items-center gap-1 font-bold">
-                <TrendingDown className="w-3 h-3" /> -{totalReduction} pts
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-mono bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded border border-teal-500/30 flex items-center gap-1 font-bold">
+                  <TrendingDown className="w-3 h-3" /> -{totalReduction} pts
+                </span>
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 uppercase tracking-widest font-semibold">
+                  [MODELLED]
+                </span>
+              </div>
             </div>
             <div className="flex items-baseline gap-3">
               <span className="text-4xl font-extrabold font-mono tabular-nums" style={{ color: getTierColor(afterTier) }}>
@@ -294,10 +309,15 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({ wards }) => {
 
         {/* Avoided Loss Figure in Rupees (Section 3.5: Single large data figure in Plex Mono) */}
         <div className="bg-[#14171A] border border-[#232A2E] rounded-3xl p-6 sm:p-8 space-y-3">
-          <div className="flex items-center gap-2 text-[#8B9096]">
-            <IndianRupee className="w-5 h-5 text-teal-400" />
-            <span className="text-xs font-mono uppercase tracking-wider">
-              Avoided Socio-Economic &amp; Productivity Loss (Estimated INR)
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-[#8B9096]">
+              <IndianRupee className="w-5 h-5 text-teal-400" />
+              <span className="text-xs font-mono uppercase tracking-wider">
+                Avoided Socio-Economic &amp; Productivity Loss (Estimated INR)
+              </span>
+            </div>
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold">
+              [CALCULATED]
             </span>
           </div>
 

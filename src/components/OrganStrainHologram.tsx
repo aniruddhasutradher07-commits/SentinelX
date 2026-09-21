@@ -124,6 +124,9 @@ export const OrganStrainHologram: React.FC<OrganStrainHologramProps> = ({
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-300 border border-sky-500/30 font-bold">
                 ISO 7933 / PHS Model
               </span>
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold">
+                [CALCULATED]
+              </span>
             </div>
             <p className="text-xs text-slate-400">
               Multi-organ heat strain distribution modeled at {wbgt}°C WBGT &amp; {ambientTemp}°C dry-bulb
@@ -252,21 +255,31 @@ export const OrganStrainHologram: React.FC<OrganStrainHologramProps> = ({
                 </h4>
               </div>
 
-              <span
-                className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full border"
-                style={{
-                  backgroundColor: `${getStatusColor(activeOrgan.status)}20`,
-                  borderColor: `${getStatusColor(activeOrgan.status)}60`,
-                  color: getStatusColor(activeOrgan.status) === '#3A7D5C' ? '#a7f3d0' : '#ffffff',
-                }}
-              >
-                {activeOrgan.status}
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span
+                  className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full border"
+                  style={{
+                    backgroundColor: `${getStatusColor(activeOrgan.status)}20`,
+                    borderColor: `${getStatusColor(activeOrgan.status)}60`,
+                    color: getStatusColor(activeOrgan.status) === '#3A7D5C' ? '#a7f3d0' : '#ffffff',
+                  }}
+                >
+                  {activeOrgan.status}
+                </span>
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold">
+                  [CALCULATED]
+                </span>
+              </div>
             </div>
 
             <div className="mt-3 bg-white/[0.03] p-3 rounded-xl border border-white/[0.05]">
-              <div className="text-xl font-bold font-mono text-white tracking-tight">
-                {activeOrgan.value}
+              <div className="flex items-center justify-between">
+                <div className="text-xl font-bold font-mono text-white tracking-tight">
+                  {activeOrgan.value}
+                </div>
+                <span className="text-[8px] font-mono px-1 py-0.2 rounded border border-cyan-500/30 text-cyan-300 uppercase">
+                  [CALC]
+                </span>
               </div>
               <div className="text-xs text-slate-400 font-mono mt-0.5">
                 {activeOrgan.subtext}

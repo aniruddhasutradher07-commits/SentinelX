@@ -55,12 +55,17 @@ export const HThermCalculator: React.FC = () => {
     <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-6">
       {/* Header Banner */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-        <div className="flex items-center gap-2">
-          <span className="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 font-mono text-[10px] font-bold uppercase">
-            Biotechnology + Physiotherapy Core Innovation
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 font-mono text-[10px] font-bold uppercase">
+              Biotechnology + Physiotherapy Core Innovation
+            </span>
+            <span className="text-slate-500">·</span>
+            <span className="text-xs font-mono text-slate-400">Thermoregulatory Limit &amp; Metabolic Workload Simulator</span>
+          </div>
+          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold">
+            [CALCULATED]
           </span>
-          <span className="text-slate-500">·</span>
-          <span className="text-xs font-mono text-slate-400">Thermoregulatory Limit &amp; Metabolic Workload Simulator</span>
         </div>
         <h1 className="text-xl md:text-2xl font-bold font-display text-white mt-1">
           H-THERM Physiological Human Thermal Strain Calculator
@@ -206,15 +211,20 @@ export const HThermCalculator: React.FC = () => {
                 <HeartHandshake className="w-4 h-4 text-rose-400" />
                 Physiological Strain Output
               </h2>
-              <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
-                result?.physiological_metrics.human_thermal_strain_tier.includes('Extreme')
-                  ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                  : result?.physiological_metrics.human_thermal_strain_tier === 'High'
-                  ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                  : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
-              }`}>
-                {result?.physiological_metrics.human_thermal_strain_tier || 'High'} Tier
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
+                  result?.physiological_metrics.human_thermal_strain_tier.includes('Extreme')
+                    ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                    : result?.physiological_metrics.human_thermal_strain_tier === 'High'
+                    ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+                    : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                }`}>
+                  {result?.physiological_metrics.human_thermal_strain_tier || 'High'} Tier
+                </span>
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold">
+                  [CALCULATED]
+                </span>
+              </div>
             </div>
 
             {/* Big H-THERM Score Display */}
@@ -233,14 +243,24 @@ export const HThermCalculator: React.FC = () => {
             {/* Intermediate Physiological Metrics */}
             <div className="grid grid-cols-2 gap-2 mt-3">
               <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800/60 text-xs font-mono">
-                <span className="text-[10px] text-slate-400 block">Wet-Bulb Globe (WBGT)</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-slate-400 block">Wet-Bulb Globe (WBGT)</span>
+                  <span className="text-[8px] font-mono px-1 py-0.2 rounded border border-cyan-500/30 text-cyan-300 uppercase">
+                    [CALC]
+                  </span>
+                </div>
                 <span className="text-base font-bold text-amber-400">
                   {result?.physiological_metrics.wbgt_celsius || 33.2}°C
                 </span>
               </div>
 
               <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800/60 text-xs font-mono">
-                <span className="text-[10px] text-slate-400 block">Sweat Evaporation Deficit</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-slate-400 block">Sweat Evap Deficit</span>
+                  <span className="text-[8px] font-mono px-1 py-0.2 rounded border border-cyan-500/30 text-cyan-300 uppercase">
+                    [CALC]
+                  </span>
+                </div>
                 <span className="text-base font-bold text-sky-400">
                   {result?.physiological_metrics.sweat_evaporation_efficiency_pct || 42.0}% eff.
                 </span>

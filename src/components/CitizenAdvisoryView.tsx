@@ -148,12 +148,17 @@ export const CitizenAdvisoryView: React.FC<CitizenAdvisoryViewProps> = ({ wards,
 
         {/* Big Today's Risk Grade Display (Section 3.4: large type, colour + text label + ordered position) */}
         <div 
-          className="p-5 rounded-2xl border text-center space-y-2 transition-all"
+          className="p-5 rounded-2xl border text-center space-y-2 transition-all relative overflow-hidden"
           style={{ backgroundColor: tierBg, borderColor: tierColor }}
         >
-          <span className="text-[11px] font-mono uppercase tracking-widest block" style={{ color: tierColor }}>
-            TODAY&apos;S WARD HEAT RISK STATUS
-          </span>
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-mono uppercase tracking-widest block" style={{ color: tierColor }}>
+              TODAY&apos;S WARD HEAT RISK STATUS
+            </span>
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold">
+              [CALCULATED]
+            </span>
+          </div>
           <div className="text-4xl sm:text-5xl font-extrabold tracking-tight" style={{ color: tierColor }}>
             {currentTier.toUpperCase()}
           </div>
@@ -166,9 +171,14 @@ export const CitizenAdvisoryView: React.FC<CitizenAdvisoryViewProps> = ({ wards,
 
         {/* One Plain Sentence of Advice (Section 3.4) */}
         <div className="bg-[#0B0D0E] border border-[#232A2E] rounded-2xl p-4">
-          <span className="text-[10px] font-mono text-amber-400 uppercase tracking-wider block mb-1">
-            ⚡ Direct Citizen Advisory
-          </span>
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] font-mono text-amber-400 uppercase tracking-wider block">
+              ⚡ Direct Citizen Advisory
+            </span>
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold">
+              [CALCULATED]
+            </span>
+          </div>
           <p className="text-sm font-sans leading-relaxed text-[#F2F1EC]">
             {adviceSentence}
           </p>
@@ -179,8 +189,13 @@ export const CitizenAdvisoryView: React.FC<CitizenAdvisoryViewProps> = ({ wards,
           <div className="w-9 h-9 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center shrink-0 mt-0.5 border border-teal-500/30">
             <Droplets className="w-5 h-5" />
           </div>
-          <div className="space-y-0.5">
-            <span className="text-[10px] font-mono text-[#8B9096] uppercase tracking-wider block">Nearest Public Cooling Shelter</span>
+          <div className="space-y-0.5 flex-1">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono text-[#8B9096] uppercase tracking-wider block">Nearest Public Cooling Shelter</span>
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold">
+                [REAL]
+              </span>
+            </div>
             <h4 className="text-xs font-bold text-white font-sans">{t.coolingCenter}</h4>
             <div className="flex items-center gap-1.5 text-xs text-teal-400 font-mono pt-1">
               <Clock className="w-3.5 h-3.5" />

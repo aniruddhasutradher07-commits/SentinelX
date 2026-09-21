@@ -53,6 +53,19 @@ class ThermalStressResult:
     feels_like_c: Optional[float] = None
 
 
+def _sanitize_float(val: any, min_val: float, max_val: float, default: float) -> float:
+    """Validates and clamps numeric weather input to [min_val, max_val], replacing None, NaN, Inf, or invalid types with default."""
+    if val is None:
+        return default
+    try:
+        f_val = float(val)
+        if math.isnan(f_val) or math.isinf(f_val):
+            return default
+        return max(min_val, min(max_val, f_val))
+    except (ValueError, TypeError):
+        return default
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 # 1.  Steadman / NOAA Heat Index  (Celsius adaptation)
 # ═══════════════════════════════════════════════════════════════════════════
@@ -68,6 +81,9 @@ def heat_index_celsius(T_c: float, RH: float) -> float:
     If conditions are below the HI applicability threshold (T_f < 80 °F),
     we fall back to the simpler Steadman formula.
     """
+    T_c = _sanitize_float(T_c, -50.0, 70.0, 25.0)
+    RH = _sanitize_float(RH, 0.0, 100.0, 50.0)
+
     T_f = T_c * 9.0 / 5.0 + 32.0
 
     # ── Steadman simple formula (used when T_f < 80 °F) ──────────────
@@ -90,7 +106,8 @@ def heat_index_celsius(T_c: float, RH: float) -> float:
 
     # ── NWS adjustment for low humidity ──────────────────────────────
     if RH < 13.0 and 80.0 <= T_f <= 112.0:
-        HI -= ((13.0 - RH) / 4.0) * math.sqrt((17.0 - abs(T_f - 95.0)) / 17.0)
+        arg = max(0.0, (17.0 - abs(T_f - 95.0)) / 17.0)
+        HI -= ((13.0 - RH) / 4.0) * math.sqrt(arg)
 
     # ── NWS adjustment for high humidity ─────────────────────────────
     elif RH > 85.0 and 80.0 <= T_f <= 87.0:
@@ -110,6 +127,7 @@ def _normalise_heat_index(hi_c: float) -> float:
     Thresholds informed by NWS Heat Index danger bands:
       27 °C Caution  |  32 °C Extreme Caution  |  39 °C Danger  |  51 °C Extreme Danger
     """
+    hi_c = _sanitize_float(hi_c, -50.0, 100.0, 25.0)
     return max(0.0, min(1.0, (hi_c - 20.0) / (60.0 - 20.0)))
 
 
@@ -118,6 +136,7 @@ def _normalise_uv_index(uv: float) -> float:
     Map UV Index from [0 … 15] onto [0, 1].
     WHO UV-risk bands:  0-2 Low | 3-5 Moderate | 6-7 High | 8-10 Very High | 11+ Extreme
     """
+    uv = _sanitize_float(uv, 0.0, 25.0, 0.0)
     return max(0.0, min(1.0, uv / 15.0))
 
 
@@ -127,6 +146,7 @@ def _normalise_aqi(aqi: float) -> float:
     0-50 Good | 51-100 Moderate | 101-150 Sensitive | 151-200 Unhealthy
     201-300 Very Unhealthy | 301-500 Hazardous
     """
+    aqi = _sanitize_float(aqi, 0.0, 1000.0, 50.0)
     return max(0.0, min(1.0, aqi / 500.0))
 
 
@@ -151,6 +171,12 @@ def compute_htsi(
 
     Returns a ``ThermalStressResult`` with all sub-scores and risk tier.
     """
+    temperature_c = _sanitize_float(temperature_c, -50.0, 70.0, 25.0)
+    humidity_pct = _sanitize_float(humidity_pct, 0.0, 100.0, 50.0)
+    uv_index = _sanitize_float(uv_index, 0.0, 25.0, 0.0)
+    aqi = _sanitize_float(aqi, 0.0, 1000.0, 50.0)
+    wind_speed_ms = _sanitize_float(wind_speed_ms, 0.0, 100.0, 2.0)
+
     hi_c = heat_index_celsius(temperature_c, humidity_pct)
 
     hi_n = _normalise_heat_index(hi_c)
@@ -191,10 +217,82 @@ def compute_htsi(
 
 def classify_risk_tier(htsi_score: float) -> str:
     """Return the risk-tier label for a given HTSI score."""
+    htsi_score = _sanitize_float(htsi_score, 0.0, 100.0, 0.0)
     for band_name, (lo, hi) in HTSI_BANDS.items():
         if lo <= htsi_score < hi:
             return band_name
     return "Critical"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 4. Nighttime Recovery Failure Index & 24h Cumulative Thermal Burden
+# ═══════════════════════════════════════════════════════════════════════════
+
+def compute_night_recovery(
+    night_min_temp_c: float,
+    night_humidity_pct: float,
+    threshold_c: float = 26.0
+) -> dict:
+    """
+    Computes Nighttime Recovery Failure Index based on nighttime minimum temperature & humidity.
+    Epidemiological basis: Body requires nocturnal cooling (<26°C WBGT/HI) for cardiovascular recovery.
+    Returns calculated recovery metrics with explicit provenance label.
+    """
+    night_min_temp_c = _sanitize_float(night_min_temp_c, -50.0, 70.0, 25.0)
+    night_humidity_pct = _sanitize_float(night_humidity_pct, 0.0, 100.0, 80.0)
+
+    night_hi = heat_index_celsius(night_min_temp_c, night_humidity_pct)
+    
+    # 0-100 failure score: 22°C = 0% failure (full recovery), 36°C = 100% failure (complete recovery failure)
+    failure_score = round(max(0.0, min(100.0, (night_hi - 22.0) / (36.0 - 22.0) * 100.0)), 2)
+    recovery_score = round(100.0 - failure_score, 2)
+    
+    tier = classify_risk_tier(failure_score)
+    is_poor_recovery = night_min_temp_c >= threshold_c or failure_score >= 50.0
+
+    return {
+        "night_min_temp_c": round(night_min_temp_c, 2),
+        "night_humidity_pct": round(night_humidity_pct, 2),
+        "night_heat_index_c": round(night_hi, 2),
+        "recovery_score": recovery_score,            # 100 = full cooling, 0 = no cooling
+        "failure_score": failure_score,              # 0 = normal, 100 = severe failure
+        "risk_tier": tier,
+        "is_poor_recovery": is_poor_recovery,
+        "provenance": "Calculated"
+    }
+
+
+def compute_24h_thermal_burden(
+    daytime_htsi: float,
+    night_failure_score: float,
+    consecutive_poor_nights: int = 1
+) -> dict:
+    """
+    Combines daytime HTSI and night recovery failure score into a composite 24h Thermal Burden score.
+    Applies a 15% compounding penalty per consecutive night without core cooling (capped at 2.5x).
+    Returns calculated 24h burden with explicit provenance label.
+    """
+    daytime_htsi = _sanitize_float(daytime_htsi, 0.0, 100.0, 50.0)
+    night_failure_score = _sanitize_float(night_failure_score, 0.0, 100.0, 50.0)
+    consecutive_poor_nights = max(1, min(10, int(_sanitize_float(consecutive_poor_nights, 1, 10, 1))))
+
+    base_burden = 0.55 * daytime_htsi + 0.45 * night_failure_score
+    
+    # Compounding penalty multiplier for multi-day consecutive night heat load (capped at 2.5x max)
+    compounding_multiplier = round(min(2.5, 1.0 + max(0, consecutive_poor_nights - 1) * 0.15), 2)
+    
+    thermal_burden_score = round(max(0.0, min(100.0, base_burden * compounding_multiplier)), 2)
+    tier = classify_risk_tier(thermal_burden_score)
+
+    return {
+        "daytime_htsi": round(daytime_htsi, 2),
+        "night_failure_score": round(night_failure_score, 2),
+        "consecutive_poor_nights": consecutive_poor_nights,
+        "compounding_multiplier": compounding_multiplier,
+        "thermal_burden_score": thermal_burden_score,
+        "risk_tier": tier,
+        "provenance": "Calculated"
+    }
 
 
 # ── Convenience: quick-call that returns only the numeric score ───────────
@@ -208,3 +306,4 @@ def htsi_score(
 ) -> float:
     """Shorthand that returns just the HTSI float (0-100)."""
     return compute_htsi(temperature_c, humidity_pct, uv_index, aqi, wind_speed_ms).htsi_score
+

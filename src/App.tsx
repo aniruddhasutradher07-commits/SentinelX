@@ -6,9 +6,14 @@ import { HospitalSurgeView } from './components/HospitalSurgeView';
 import { HThermCalculator } from './components/HThermCalculator';
 import { AICopilotModal } from './components/AICopilotModal';
 import { BenchmarksView } from './components/BenchmarksView';
+import { ModelValidationView } from './components/ModelValidationView';
 import { ApiExplorer } from './components/ApiExplorer';
 import { CitizenAdvisoryView } from './components/CitizenAdvisoryView';
 import { WhatIfSimulator } from './components/WhatIfSimulator';
+import WorkerSafetyTab from './components/tabs/WorkerSafetyTab';
+import SchoolSafetyTab from './components/tabs/SchoolSafetyTab';
+import ResourceAllocationTab from './components/tabs/ResourceAllocationTab';
+import HistoricalReplayTab from './components/tabs/HistoricalReplayTab';
 import { AlertDispatchModal } from './components/AlertDispatchModal';
 // @ts-ignore
 import Dashboard from './pages/Dashboard';
@@ -280,6 +285,30 @@ export function App() {
               />
             )}
 
+            {activeTab === 'worker_safety' && (
+              <div className="flex-1 overflow-y-auto p-4 lg:p-6 bg-[#0B0D0E]">
+                <WorkerSafetyTab wards={wards} />
+              </div>
+            )}
+
+            {activeTab === 'school_safety' && (
+              <div className="flex-1 overflow-y-auto p-4 lg:p-6 bg-[#0B0D0E]">
+                <SchoolSafetyTab wards={wards} />
+              </div>
+            )}
+
+            {activeTab === 'resource_allocation' && (
+              <div className="flex-1 overflow-y-auto p-4 lg:p-6 bg-[#0B0D0E]">
+                <ResourceAllocationTab />
+              </div>
+            )}
+
+            {activeTab === 'historical_replay' && (
+              <div className="flex-1 overflow-y-auto p-4 lg:p-6 bg-[#0B0D0E]">
+                <HistoricalReplayTab />
+              </div>
+            )}
+
             {activeTab === 'hospital' && (
               <HospitalSurgeView summary={summary} />
             )}
@@ -296,6 +325,10 @@ export function App() {
 
             {activeTab === 'benchmarks' && (
               <BenchmarksView />
+            )}
+
+            {activeTab === 'validation' && (
+              <ModelValidationView />
             )}
 
             {activeTab === 'api' && (

@@ -380,8 +380,6 @@ def get_odisha_district_detail(name: str):
 @router.get("/wards", summary="All 67 Bhubaneswar Wards Live Telemetry")
 def get_bhubaneswar_wards():
     geojson_path = "wards_bhubaneswar.geojson"
-    if not os.path.exists(geojson_path):
-        geojson_path = "teammate_backend/wards_bhubaneswar.geojson"
     
     features = []
     if os.path.exists(geojson_path):
@@ -473,8 +471,6 @@ def get_odisha_geojson():
 def get_wards_geojson():
     """Serve raw ward-level GeoJSON for Leaflet overlay on zoom-in."""
     geojson_path = "wards_bhubaneswar.geojson"
-    if not os.path.exists(geojson_path):
-        geojson_path = "teammate_backend/wards_bhubaneswar.geojson"
     if os.path.exists(geojson_path):
         from fastapi.responses import FileResponse
         return FileResponse(geojson_path, media_type="application/json")

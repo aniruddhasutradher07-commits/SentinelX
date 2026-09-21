@@ -192,11 +192,17 @@ def generate_risk_map(
     if not FOLIUM_AVAILABLE:
         return _fallback_map_html(title)
 
+    # India-centric sovereign bounding box clamping
+    india_bounds = [[5.0, 65.0], [38.5, 98.5]]
+
     m = folium.Map(
         location=[center_lat, center_lon],
         zoom_start=zoom,
+        min_zoom=5,
+        max_bounds=True,
+        max_bounds_viscosity=0.85,
         tiles="CartoDB dark_matter",
-        attr="SentinelX / THERMO-SHIELD AI",
+        attr="SentinelX / THERMO-SHIELD AI — Sovereign India GIS",
     )
 
     # Add alternative tile layers

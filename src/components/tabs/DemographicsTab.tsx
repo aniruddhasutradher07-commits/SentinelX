@@ -20,6 +20,12 @@ export default function DemographicsTab({ activeDistrict }: DemographicsTabProps
       />
 
       <div className="glass-panel rounded-xl p-4 border border-white/10 flex flex-col justify-between">
+        <div className="flex items-center justify-between mb-3 px-1">
+          <span className="text-[10px] font-mono text-slate-400">Demographic Surveillance Grid</span>
+          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold">
+            [REAL]
+          </span>
+        </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             title="TOTAL POPULATION"
@@ -27,7 +33,11 @@ export default function DemographicsTab({ activeDistrict }: DemographicsTabProps
             subtitle="Under active grid surveillance"
             icon={Users}
             trend={{ value: "Census 2024 Proj", direction: "neutral" }}
-          />
+          >
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold">
+              [REAL]
+            </span>
+          </StatCard>
 
           <StatCard
             title="ELDERLY (AGE 60+)"
@@ -36,7 +46,11 @@ export default function DemographicsTab({ activeDistrict }: DemographicsTabProps
             icon={AlertTriangle}
             tier="orange"
             trend={{ value: "High Priority", direction: "up" }}
-          />
+          >
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold">
+              [REAL]
+            </span>
+          </StatCard>
 
           <StatCard
             title="OUTDOOR LABOR"
@@ -45,7 +59,11 @@ export default function DemographicsTab({ activeDistrict }: DemographicsTabProps
             icon={ShieldCheck}
             tier="yellow"
             trend={{ value: "Work-rest required", direction: "up" }}
-          />
+          >
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold">
+              [REAL]
+            </span>
+          </StatCard>
 
           <StatCard
             title="ASBESTOS / TIN ROOF"
@@ -54,13 +72,22 @@ export default function DemographicsTab({ activeDistrict }: DemographicsTabProps
             icon={Home}
             tier="red"
             trend={{ value: "Slum Cluster Vulnerable", direction: "up" }}
-          />
+          >
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold">
+              [REAL]
+            </span>
+          </StatCard>
         </div>
 
-        <div className="mt-6 p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-xs font-mono text-rose-300 flex items-center gap-2" role="alert">
-          <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
-          <span>
-            <strong>High Risk Zone:</strong> Slum clusters in Ward 24, 38 & 51 show &gt;42°C roof indoor retention at 22:00 IST.
+        <div className="mt-6 p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-xs font-mono text-rose-300 flex items-center justify-between gap-2" role="alert">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+            <span>
+              <strong>High Risk Zone:</strong> Slum clusters in Ward 24, 38 & 51 show &gt;42°C roof indoor retention at 22:00 IST.
+            </span>
+          </div>
+          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold shrink-0">
+            [CALCULATED]
           </span>
         </div>
       </div>

@@ -44,7 +44,7 @@ if os.path.exists(".env"):
         pass
 
 from database import SessionLocal, engine, Base
-from routers import weather, wards, risk, thermal, alerts, dashboard, live, news, sentinelx, copilot
+from routers import weather, wards, risk, thermal, alerts, dashboard, live, news, sentinelx, copilot, model_validation, worker_safety, school_safety, resource_allocation, historical_replay
 from services.live_weather import start_background_refresh
 
 # Initialize database tables
@@ -66,10 +66,31 @@ interactive GIS risk visualization, multi-channel emergency alerts,
     redoc_url="/redoc"
 )
 
-# Enable CORS for all frontend clients
+# ---------------------------------------------------------------------------
+# Security & CORS Hardening Configuration
+# ---------------------------------------------------------------------------
+# Note for SIH 2026 Demo: CORS origin policy is explicitly hardened to the
+# production Vercel frontend domains and local dev environments.
+# Full OAuth2/JWT authentication middleware is un-enforced in this demo layer;
+# production enterprise deployment would layer Gov-SSO / OAuth2 RBAC.
+
+raw_frontend_origin = os.environ.get(
+    "FRONTEND_ORIGIN",
+    "https://sentinelx.vercel.app,https://sentinel-4b8v5lb81-aniruddha-fittrack.vercel.app"
+)
+default_allowed_origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+]
+
+env_origins = [o.strip() for o in raw_frontend_origin.split(",") if o.strip()]
+allowed_origins = list(set(default_allowed_origins + env_origins))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -98,6 +119,11 @@ app.include_router(mock_api.router)
 app.include_router(sentinelx.router)
 app.include_router(news.router)
 app.include_router(copilot.router)
+app.include_router(model_validation.router)
+app.include_router(worker_safety.router)
+app.include_router(school_safety.router)
+app.include_router(resource_allocation.router)
+app.include_router(historical_replay.router)
 
 
 # ---------------------------------------------------------------------------
@@ -405,27 +431,6 @@ def get_live_status(
     }
 
 
-# ---------------------------------------------------------------------------
-# React Frontend Serving
-# ---------------------------------------------------------------------------
-react_dist = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dist")
-if os.path.exists(react_dist):
-    # Mount Vite static assets
-    app.mount("/assets", StaticFiles(directory=os.path.join(react_dist, "assets")), name="react-assets")
-
-    @app.get("/{catchall:path}", response_class=FileResponse, tags=["React Command Center"])
-    def serve_react_app(catchall: str):
-        """Serves the React Vite SPA. Any unmatched route falls back to index.html"""
-        file_path = os.path.join(react_dist, catchall)
-        if os.path.exists(file_path) and os.path.isfile(file_path):
-            return FileResponse(file_path)
-        return FileResponse(os.path.join(react_dist, "index.html"))
-else:
-    @app.get("/", response_class=HTMLResponse, tags=["Fallback Dashboard"])
-    def serve_ai_dashboard(request: Request):
-        return HTMLResponse("<h1>React Build Not Found. Please run `npm run build`</h1>")
-
-
 @app.get("/api/v1/alert-history", tags=["Emergency Alerts"],
          summary="Recent emergency alert dispatch history")
 def get_alert_history(limit: int = Query(20, description="Max records")):
@@ -479,6 +484,28 @@ def health_check():
             "national_situation_room": "/national",
         }
     }
+
+
+# ---------------------------------------------------------------------------
+# React Frontend Serving (MUST BE LAST CATCHALL ROUTE)
+# ---------------------------------------------------------------------------
+react_dist = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dist")
+if os.path.exists(react_dist):
+    # Mount Vite static assets
+    app.mount("/assets", StaticFiles(directory=os.path.join(react_dist, "assets")), name="react-assets")
+
+    @app.get("/{catchall:path}", response_class=FileResponse, tags=["React Command Center"])
+    def serve_react_app(catchall: str):
+        """Serves the React Vite SPA. Any unmatched route falls back to index.html"""
+        file_path = os.path.join(react_dist, catchall)
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            return FileResponse(file_path)
+        return FileResponse(os.path.join(react_dist, "index.html"))
+else:
+    @app.get("/", response_class=HTMLResponse, tags=["Fallback Dashboard"])
+    def serve_ai_dashboard(request: Request):
+        return HTMLResponse("<h1>React Build Not Found. Please run `npm run build`</h1>")
+
 
 
 if __name__ == "__main__":

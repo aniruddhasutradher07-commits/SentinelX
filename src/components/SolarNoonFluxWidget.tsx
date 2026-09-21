@@ -160,9 +160,14 @@ export const SolarNoonFluxWidget: React.FC<SolarNoonFluxWidgetProps> = ({
               </div>
             </div>
 
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30 font-bold">
-              {solarStatus}
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30 font-bold">
+                {solarStatus}
+              </span>
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold">
+                [CALCULATED]
+              </span>
+            </div>
           </div>
 
           {/* Countdown Clock Display */}
@@ -180,9 +185,14 @@ export const SolarNoonFluxWidget: React.FC<SolarNoonFluxWidgetProps> = ({
             </div>
 
             <div className="text-right">
-              <span className="text-base font-mono font-bold text-white block">
-                {solarRadiation} W/m²
-              </span>
+              <div className="flex items-center justify-end gap-1">
+                <span className="text-base font-mono font-bold text-white block">
+                  {solarRadiation} W/m²
+                </span>
+                <span className="text-[8px] font-mono px-1 py-0.2 rounded border border-emerald-500/30 text-emerald-300">
+                  [REAL]
+                </span>
+              </div>
               <span className="text-[9px] font-mono text-slate-400 uppercase">
                 Peak Irradiance
               </span>
@@ -191,15 +201,15 @@ export const SolarNoonFluxWidget: React.FC<SolarNoonFluxWidgetProps> = ({
 
           <div className="grid grid-cols-3 gap-2 text-[10px] font-mono text-slate-400">
             <div className="bg-[#0B0D0E]/50 p-2 rounded-lg border border-white/[0.04] text-center">
-              <span className="block text-slate-500 text-[9px]">UV Index Peak</span>
+              <span className="block text-slate-500 text-[9px]">UV Index Peak <span className="text-emerald-300 text-[8px]">[REAL]</span></span>
               <span className="text-rose-400 font-bold text-xs">11.4 Extreme</span>
             </div>
             <div className="bg-[#0B0D0E]/50 p-2 rounded-lg border border-white/[0.04] text-center">
-              <span className="block text-slate-500 text-[9px]">Solar Azimuth</span>
+              <span className="block text-slate-500 text-[9px]">Solar Azimuth <span className="text-cyan-300 text-[8px]">[CALC]</span></span>
               <span className="text-sky-300 font-bold text-xs">168° SSE</span>
             </div>
             <div className="bg-[#0B0D0E]/50 p-2 rounded-lg border border-white/[0.04] text-center">
-              <span className="block text-slate-500 text-[9px]">Solar Elevation</span>
+              <span className="block text-slate-500 text-[9px]">Solar Elevation <span className="text-cyan-300 text-[8px]">[CALC]</span></span>
               <span className="text-amber-300 font-bold text-xs">68.4° Zenith</span>
             </div>
           </div>
@@ -211,6 +221,9 @@ export const SolarNoonFluxWidget: React.FC<SolarNoonFluxWidgetProps> = ({
             <div className="flex items-center gap-1.5 text-xs font-mono text-slate-300">
               <Wind className="w-4 h-4 text-sky-400" />
               <span className="font-bold">Coastal Convective Thermal Flux Particles</span>
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold ml-1">
+                [REAL]
+              </span>
             </div>
 
             <button

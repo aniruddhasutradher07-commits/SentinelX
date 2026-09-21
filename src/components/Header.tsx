@@ -13,7 +13,12 @@ import {
   Database, 
   Code,
   Zap,
-  Users
+  Users,
+  Cpu,
+  HardHat,
+  GraduationCap,
+  LifeBuoy,
+  History
 } from 'lucide-react';
 import { LiveTelemetry } from '../types';
 import { TabNav } from './ui/TabNav';
@@ -51,10 +56,15 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'wards', label: 'Bhubaneswar Core', icon: Building2, badge: 'Operations 3.2' },
     { id: 'citizen', label: 'Citizen Advisory', icon: Users, badge: 'Public 3.4' },
     { id: 'simulator', label: 'What-If Simulator', icon: Calculator, badge: 'Planning 3.5' },
+    { id: 'worker_safety', label: 'Worker Safety', icon: HardHat, badge: 'Occupational' },
+    { id: 'school_safety', label: 'School Safety', icon: GraduationCap, badge: 'Pediatric' },
+    { id: 'resource_allocation', label: 'Resource Allocation', icon: LifeBuoy, badge: 'Spatial AI' },
+    { id: 'historical_replay', label: 'Historical Replay', icon: History, badge: '1998-2019' },
     { id: 'hospital', label: 'Hospital Surge ML', icon: Activity, badge: 'DLNM + XGB' },
     { id: 'htherm', label: 'H-THERM Calc', icon: Sparkles, badge: 'Physiology' },
     { id: 'copilot', label: 'AI Copilot', icon: Bot, badge: 'Gemini' },
     { id: 'benchmarks', label: 'NDMA Validation', icon: Database, badge: '1998-2024' },
+    { id: 'validation', label: 'Model Validation', icon: Cpu, badge: 'Audit ML' },
     { id: 'api', label: 'API Explorer', icon: Code, badge: 'REST' },
   ];
 

@@ -64,7 +64,11 @@ export default function OverviewTab({ telemetry, activeDistrict, weather }: Over
           icon={Thermometer}
           trend={{ value: "+1.2°C vs 24h", direction: "up" }}
           tier="orange"
-        />
+        >
+          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold">
+            [REAL]
+          </span>
+        </StatCard>
 
         <StatCard
           title="RELATIVE HUMIDITY"
@@ -74,7 +78,11 @@ export default function OverviewTab({ telemetry, activeDistrict, weather }: Over
           icon={Droplets}
           trend={{ value: "Coastal moisture", direction: "neutral" }}
           tier="yellow"
-        />
+        >
+          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold">
+            [REAL]
+          </span>
+        </StatCard>
 
         <StatCard
           title="WIND SPEED"
@@ -83,7 +91,11 @@ export default function OverviewTab({ telemetry, activeDistrict, weather }: Over
           subtitle="Direction: 168° SSE"
           icon={Wind}
           trend={{ value: "Convective boundary", direction: "neutral" }}
-        />
+        >
+          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold">
+            [REAL]
+          </span>
+        </StatCard>
 
         <StatCard
           title="SOLAR RADIATION"
@@ -93,7 +105,11 @@ export default function OverviewTab({ telemetry, activeDistrict, weather }: Over
           icon={Sun}
           trend={{ value: "Peak window", direction: "up" }}
           tier="yellow"
-        />
+        >
+          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold">
+            [REAL]
+          </span>
+        </StatCard>
 
         <StatCard
           title="HEAT INDEX (FEELS LIKE)"
@@ -104,7 +120,11 @@ export default function OverviewTab({ telemetry, activeDistrict, weather }: Over
           trend={{ value: "Extreme Danger", direction: "up" }}
           tier="red"
           valueClassName="text-rose-400 font-bold"
-        />
+        >
+          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold">
+            [CALCULATED]
+          </span>
+        </StatCard>
 
         <StatCard
           title="AQI & UV INDEX"
@@ -114,7 +134,10 @@ export default function OverviewTab({ telemetry, activeDistrict, weather }: Over
           icon={Activity}
           tier="yellow"
         >
-          <div className="text-right">
+          <div className="flex items-center justify-between w-full">
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold">
+              [REAL]
+            </span>
             <span className="font-mono text-purple-400 font-bold text-xs">UV 9.0 (Very High)</span>
           </div>
         </StatCard>
@@ -127,7 +150,12 @@ export default function OverviewTab({ telemetry, activeDistrict, weather }: Over
           icon={Clock}
           tier="orange"
         >
-          <span className="text-[10px] font-mono text-slate-400">Angle: 68.4°</span>
+          <div className="flex items-center justify-between w-full">
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold">
+              [CALCULATED]
+            </span>
+            <span className="text-[10px] font-mono text-slate-400">Angle: 68.4°</span>
+          </div>
         </StatCard>
       </section>
 
@@ -161,6 +189,9 @@ export default function OverviewTab({ telemetry, activeDistrict, weather }: Over
               THERMAL PLUME: ACTIVE
             </span>
           </div>
+          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 uppercase tracking-widest font-semibold">
+            [MODELLED]
+          </span>
         </div>
         
         {/* Procedural Map SVG */}
