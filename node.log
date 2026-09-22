@@ -1,0 +1,163 @@
+[Data] Initialized 30 Odisha districts with Census/OSM Vulnerability Layers
+[Data] Initialized 67 Bhubaneswar wards with Census/OSM Vulnerability Layers & Satellite Earth Observation
+[Data] Loaded real Odisha 30-District GeoJSON boundaries (30 districts) from /Users/aniruddhasutradhar/Desktop/SIH/odisha_districts.geojson
+🛡️ SentinelX Server running on http://0.0.0.0:3000
+[vite:css][postcss] @import must precede all other statements (besides @charset or empty @layer)
+5742|    }
+5743|  }
+5744|  @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+5745|  @layer base {
+5746|    body {
+12:00:45 PM [vite] (client) hmr update /src/components/heatguard/widgets/ExplainabilityWidget.tsx, /src/index.css
+12:01:06 PM [vite] (client) hmr update /src/components/heatguard/widgets/WeatherInputsWidget.tsx, /src/index.css
+12:01:23 PM [vite] (client) hmr update /src/components/heatguard/widgets/ThermalStressWidget.tsx, /src/index.css
+12:01:43 PM [vite] (client) hmr update /src/components/heatguard/widgets/HeroRiskWidget.tsx, /src/index.css
+[vite:css][postcss] @import must precede all other statements (besides @charset or empty @layer)
+5838|    }
+5839|  }
+5840|  @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+5841|  @layer base {
+5842|    body {
+12:02:24 PM [vite] (client) hmr update /src/pages/Dashboard/Home.tsx, /src/index.css
+[vite:css][postcss] @import must precede all other statements (besides @charset or empty @layer)
+5850|    }
+5851|  }
+5852|  @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+5853|  @layer base {
+5854|    body {
+12:02:31 PM [vite] (client) hmr update /src/pages/Dashboard/Home.tsx, /src/index.css
+[vite:css][postcss] @import must precede all other statements (besides @charset or empty @layer)
+5850|    }
+5851|  }
+5852|  @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+5853|  @layer base {
+5854|    body {
+12:08:42 PM [vite] (client) hmr update /src/components/heatguard/widgets/ForecastWidget.tsx, /src/index.css
+12:09:22 PM [vite] (client) hmr update /src/components/heatguard/widgets/WhatIfScenarioWidget.tsx, /src/index.css
+12:09:45 PM [vite] (client) hmr update /src/pages/Dashboard/Home.tsx, /src/index.css
+[vite:css][postcss] @import must precede all other statements (besides @charset or empty @layer)
+5935|    }
+5936|  }
+5937|  @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+5938|  @layer base {
+5939|    body {
+12:15:58 PM [vite] (client) hmr update /src/components/heatguard/widgets/ForecastWidget.tsx, /src/index.css
+12:17:03 PM [vite] (client) page reload src/components/heatguard/widgets/RiskMapWidget.tsx
+12:17:23 PM [vite] (client) hmr update /src/components/heatguard/widgets/VulnerabilityWidget.tsx, /src/index.css
+12:17:45 PM [vite] (client) page reload src/components/heatguard/widgets/RiskMapWidget.tsx
+12:18:14 PM [vite] (client) hmr update /src/pages/Dashboard/Home.tsx, /src/index.css
+12:18:49 PM [vite] (client) page reload src/components/heatguard/HeatGuardDashboard.tsx
+[vite:css][postcss] @import must precede all other statements (besides @charset or empty @layer)
+5971|    }
+5972|  }
+5973|  @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+5974|  @layer base {
+5975|    body {
+12:19:37 PM [vite] (client) ✨ new dependencies optimized: leaflet
+12:19:37 PM [vite] (client) ✨ optimized dependencies changed. reloading
+12:21:47 PM [vite] (client) hmr update /src/components/heatguard/widgets/ActionCenterWidget.tsx, /src/index.css
+12:21:58 PM [vite] (client) hmr update /src/pages/Dashboard/Home.tsx, /src/index.css
+12:22:09 PM [vite] (client) page reload src/components/heatguard/HeatGuardDashboard.tsx
+[vite:css][postcss] @import must precede all other statements (besides @charset or empty @layer)
+6010|    }
+6011|  }
+6012|  @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+6013|  @layer base {
+6014|    body {
+[vite:css][postcss] @import must precede all other statements (besides @charset or empty @layer)
+6010|    }
+6011|  }
+6012|  @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+6013|  @layer base {
+6014|    body {
+12:24:18 PM [vite] (client) hmr update /src/components/heatguard/widgets/WhatIfScenarioWidget.tsx, /src/index.css
+12:24:41 PM [vite] (client) hmr update /src/components/heatguard/widgets/RiskBreakdownWidget.tsx, /src/index.css
+12:24:51 PM [vite] (client) hmr update /src/components/heatguard/widgets/HeatwaveStatusWidget.tsx, /src/index.css
+12:25:11 PM [vite] (client) hmr update /src/components/heatguard/widgets/ExecutiveSummaryWidget.tsx, /src/index.css
+[vite:css][postcss] @import must precede all other statements (besides @charset or empty @layer)
+6050|    }
+6051|  }
+6052|  @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+6053|  @layer base {
+6054|    body {
+12:45:26 PM [vite] (client) page reload index.html
+12:45:57 PM [vite] (client) hmr update /src/index.css
+12:46:27 PM [vite] (client) hmr update /src/pages/Dashboard/Home.tsx, /src/index.css
+12:46:52 PM [vite] (client) hmr update /src/components/heatguard/widgets/HeroRiskWidget.tsx, /src/index.css
+12:47:22 PM [vite] (client) hmr update /src/components/heatguard/widgets/HeatRiskPipelineWidget.tsx, /src/index.css
+12:47:53 PM [vite] (client) hmr update /src/components/heatguard/widgets/ForecastWidget.tsx, /src/index.css
+12:48:30 PM [vite] (client) hmr update /src/components/heatguard/widgets/WhatIfScenarioWidget.tsx, /src/index.css
+12:49:03 PM [vite] (client) hmr update /src/components/heatguard/widgets/RiskMapWidget.tsx, /src/index.css
+12:49:31 PM [vite] (client) hmr update /src/components/heatguard/widgets/VulnerabilityWidget.tsx, /src/index.css
+12:50:07 PM [vite] (client) hmr update /src/components/heatguard/widgets/ActionCenterWidget.tsx, /src/index.css
+12:50:52 PM [vite] (client) page reload src/components/heatguard/HeatGuardDashboard.tsx
+12:51:20 PM [vite] (client) page reload src/vite-env.d.ts
+12:51:44 PM [vite] (client) page reload src/vite-env.d.ts
+12:55:58 PM [vite] (client) hmr update /src/components/auth/SignInForm.tsx, /src/index.css
+12:55:58 PM [vite] (client) hmr update /src/components/auth/SignUpForm.tsx, /src/index.css
+12:55:58 PM [vite] (client) page reload src/components/ecommerce/DemographicCard.tsx
+12:55:58 PM [vite] (client) page reload src/components/ecommerce/EcommerceMetrics.tsx
+12:55:58 PM [vite] (client) page reload src/components/ecommerce/MonthlySalesChart.tsx
+12:55:58 PM [vite] (client) page reload src/components/ecommerce/MonthlyTarget.tsx
+12:55:58 PM [vite] (client) page reload src/components/form/form-elements/DefaultInputs.tsx
+12:55:58 PM [vite] (client) hmr update /src/components/form/form-elements/InputGroup.tsx, /src/index.css
+12:55:58 PM [vite] (client) hmr update /src/layout/AppSidebar.tsx, /src/index.css
+12:55:58 PM [vite] (client) hmr update /src/pages/UiElements/Buttons.tsx, /src/index.css
+1:00:40 PM [vite] (client) hmr update /src/App.tsx, /src/index.css
+1:01:07 PM [vite] (client) page reload memory.md
+[vite:css][postcss] @import must precede all other statements (besides @charset or empty @layer)
+6564|    }
+6565|  }
+6566|  @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+6567|  @layer base {
+6568|    body {
+2:33:32 PM [vite] (client) hmr update /src/pages/Landing.tsx, /src/index.css
+[vite:css][postcss] @import must precede all other statements (besides @charset or empty @layer)
+6564|    }
+6565|  }
+6566|  @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+6567|  @layer base {
+6568|    body {
+2:37:12 PM [vite] (client) page reload services/gis_map.py
+[vite:css][postcss] @import must precede all other statements (besides @charset or empty @layer)
+6564|    }
+6565|  }
+6566|  @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+6567|  @layer base {
+6568|    body {
+2:37:24 PM [vite] (client) page reload data/heatwave_rf_model.joblib
+[vite:css][postcss] @import must precede all other statements (besides @charset or empty @layer)
+6564|    }
+6565|  }
+6566|  @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+6567|  @layer base {
+6568|    body {
+2:37:33 PM [vite] (client) page reload src/components/OdishaMap.tsx
+[vite:css][postcss] @import must precede all other statements (besides @charset or empty @layer)
+6564|    }
+6565|  }
+6566|  @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+6567|  @layer base {
+6568|    body {
+2:38:02 PM [vite] (client) page reload memory.md
+[vite:css][postcss] @import must precede all other statements (besides @charset or empty @layer)
+6564|    }
+6565|  }
+6566|  @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+6567|  @layer base {
+6568|    body {

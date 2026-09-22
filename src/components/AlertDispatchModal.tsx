@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { AlertDispatchResponse } from '../types';
 import { getApiUrl } from '../services/apiConfig';
-import { Modal } from './ui/Modal';
+import { SentinelModal as Modal } from './ui/SentinelModal';
 
 interface AlertDispatchModalProps {
   isOpen: boolean;

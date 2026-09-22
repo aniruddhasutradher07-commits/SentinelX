@@ -1,6 +1,6 @@
 import React from 'react';
 import { Printer, ShieldCheck } from 'lucide-react';
-import { Modal } from './ui/Modal';
+import { SentinelModal as Modal } from './ui/SentinelModal';
 
 interface DirectivePDFModalProps {
   isOpen: boolean;

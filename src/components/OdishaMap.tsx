@@ -558,36 +558,22 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
     }
   }, [activeLayers, showUnderservedHighRisk, coolingCentersCatalog, hospitalsCatalog, coolingGaps]);
 
-  // Update Basemap Tiles (Carto Dark Matter vs. ArcGIS Satellite)
+  // Set Solid Dark Background (No Tile Providers)
   useEffect(() => {
     if (!mapInstanceRef.current) return;
     const map = mapInstanceRef.current;
 
     if (baseTileLayerRef.current) {
       map.removeLayer(baseTileLayerRef.current);
+      baseTileLayerRef.current = null;
     }
 
-    if (baseMapStyle === 'satellite') {
-      const satLayer = L.tileLayer(
-        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        {
-          maxZoom: 18,
-          attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-        }
-      ).addTo(map);
-      baseTileLayerRef.current = satLayer;
-    } else {
-      const darkLayer = L.tileLayer(
-        'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png',
-        {
-          subdomains: 'abcd',
-          maxZoom: 19,
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        }
-      ).addTo(map);
-      baseTileLayerRef.current = darkLayer;
+    // Apply plain solid dark background matching design.md
+    const container = map.getContainer();
+    if (container) {
+      container.style.backgroundColor = '#0a0e12';
     }
-  }, [baseMapStyle]);
+  }, []);
 
   // Update GeoJSON Layer with district boundaries
   useEffect(() => {
@@ -716,33 +702,7 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
             ))}
           </div>
 
-          {/* Basemap Switcher (Dark vs Satellite) */}
-          <div className="flex items-center gap-1 bg-[#14171A]/90 backdrop-blur-xl p-1 rounded-2xl border border-white/[0.08] shadow-2xl pointer-events-auto">
-            <button
-              id="btn-basemap-dark"
-              onClick={() => setBaseMapStyle('dark')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-mono font-medium transition ${
-                baseMapStyle === 'dark'
-                  ? 'bg-white/[0.12] text-white font-bold shadow-inner'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-              }`}
-            >
-              <Globe className="w-3.5 h-3.5 text-sky-400" />
-              <span>Dark Canvas</span>
-            </button>
-            <button
-              id="btn-basemap-satellite"
-              onClick={() => setBaseMapStyle('satellite')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-mono font-medium transition ${
-                baseMapStyle === 'satellite'
-                  ? 'bg-gradient-to-r from-emerald-500/30 to-sky-500/30 text-emerald-300 border border-emerald-500/40 font-bold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-              }`}
-            >
-              <Layers className="w-3.5 h-3.5 text-emerald-400" />
-              <span>🛰️ Satellite</span>
-            </button>
-          </div>
+          {/* Basemap Switcher (Dark vs Satellite) - Removed per instructions */}
         </div>
 
         {/* Ward Mode Active Indicator */}

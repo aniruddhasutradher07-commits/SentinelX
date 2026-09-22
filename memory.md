@@ -106,3 +106,14 @@ Append new entries here as the project progresses. Newest at the bottom. Any AI 
   - *Defensive Component Guard (`WardView.tsx`)*: Added `fallbackWard` object and optional chaining in `getTopThreeDrivers(ward?: WardRiskRecord | null)`. `WardView` now renders safely even with empty or delayed state.
   - *Keyless Open Tile Source (`services/gis_map.py` & `OdishaMap.tsx`)*: Switched tile layer URL to CartoDB's keyless rastertiles dark_all endpoint (`https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png`). Tested via HTTP request: status 200, zero watermarks, 100% key-free, works across localhost and Vercel production.
 - **Verification**: Verified zero TypeScript errors (`npx tsc --noEmit`), clean Vite build (`npm run build`), clean Python execution (`py_compile main.py`), committed & pushed (`ad19bc0`).
+
+## Public Landing Page (Added 2026-09-22)
+- Created a standalone showcase/marketing landing page at `/landing`.
+- Uses true glassmorphism CSS and a lightweight glowing molecule SVG animation.
+- Does not depend on backend data or operational metrics.
+- Housed in `src/pages/Landing.tsx` and registered in `src/App.tsx` as the `/landing` route.
+
+## 2026-09-22 — GIS Map Tile Independence
+- **What changed**: Removed CartoDB and Esri raster tile layers from `services/gis_map.py` (backend Folium map) and `src/components/OdishaMap.tsx` (frontend Leaflet map). Replaced the tile basemaps with a solid `#0a0e12` dark background. Removed the basemap switcher control.
+- **Why**: Both CartoDB and Esri required API keys/tokens for reliable usage (especially on Vercel production), causing "API KEY REQUIRED" watermarks and egress failures. Transitioning to a pure-GeoJSON + solid background approach removes third-party dependencies, ensures zero watermarks, and guarantees consistent rendering across localhost and Vercel.
+- **Notes**: Layer toggle functionality (Thermal Stress, Vulnerability, Cooling Centers, Emergency Routing) and India bounds clamping remain fully intact on top of the plain dark background.

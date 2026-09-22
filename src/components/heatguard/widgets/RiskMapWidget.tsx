@@ -1,114 +1,155 @@
-import React, { useState } from 'react';
-import { Map as MapIcon, Plus, Minus, Crosshair } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import L from 'leaflet';
+import { WardRiskRecord } from '../../../types';
+import { getApiUrl } from '../../../services/apiConfig';
 
 interface RiskMapWidgetProps {
-  geoJson?: any;
-  wardGeoJson?: any;
+  wards: WardRiskRecord[];
+  activeWard: WardRiskRecord;
+  onWardSelect: (wardNo: number) => void;
 }
 
-export default function RiskMapWidget({ geoJson, wardGeoJson }: RiskMapWidgetProps) {
-  const [activeDay, setActiveDay] = useState('Today');
-  
-  const layers = [
-    { id: 'risk', label: 'Heat Risk', default: true },
-    { id: 'temp', label: 'Temperature', default: false },
-    { id: 'hum', label: 'Humidity', default: false },
-    { id: 'wbgt', label: 'WBGT', default: false },
-    { id: 'utci', label: 'UTCI', default: false },
-    { id: 'vul', label: 'Vulnerability', default: true },
-    { id: 'pop', label: 'Population Density', default: false },
-    { id: 'hosp', label: 'Hospitals', default: true },
-    { id: 'cool', label: 'Cooling Centers', default: true },
-    { id: 'block', label: 'Blocks / Wards', default: false },
-  ];
+export default function RiskMapWidget({ wards, activeWard, onWardSelect }: RiskMapWidgetProps) {
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const geoJsonLayerRef = useRef<L.GeoJSON | null>(null);
+  const [wardGeoJson, setWardGeoJson] = useState<any>(null);
 
-  const days = ['Today', '+1 Day', '+2 Days', '+3 Days', '+4 Days', '+5 Days'];
+  useEffect(() => {
+    fetch(getApiUrl('/api/v1/wards-geojson'))
+      .then(res => res.json())
+      .then(data => setWardGeoJson(data))
+      .catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+
+    if (!mapInstanceRef.current) {
+      const map = L.map(mapContainerRef.current, {
+        center: [20.296, 85.824], // Bhubaneswar
+        zoom: 11,
+        zoomControl: false,
+        attributionControl: false,
+      });
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', {
+        subdomains: 'abcd',
+        maxZoom: 19,
+      }).addTo(map);
+
+      L.control.zoom({ position: 'topright' }).addTo(map);
+      mapInstanceRef.current = map;
+
+      setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+        }
+      }, 150);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!mapInstanceRef.current || !wardGeoJson || !wardGeoJson.features) return;
+    const map = mapInstanceRef.current;
+
+    if (geoJsonLayerRef.current) {
+      map.removeLayer(geoJsonLayerRef.current);
+    }
+
+    const layer = L.geoJSON(wardGeoJson, {
+      style: (feature) => {
+        const wardNo = feature?.properties?.wardno || '';
+        const wardStr = String(wardNo).replace('Ward ', '');
+        const ward = wards.find(w => String(w.ward_no).replace('Ward ', '') === wardStr);
+        
+        const tier = (ward?.RiskTier || 'MODERATE').toUpperCase();
+        const isActive = activeWard && String(activeWard.ward_no).replace('Ward ', '') === wardStr;
+
+        const fillColor = (tier === 'RED' || tier === 'EXTREME') ? '#ef4444'
+          : (tier === 'ORANGE' || tier === 'HIGH' || tier === 'SEVERE') ? '#f97316'
+          : (tier === 'YELLOW' || tier === 'MODERATE') ? '#eab308'
+          : '#22c55e';
+
+        return {
+          fillColor,
+          weight: isActive ? 2 : 1,
+          opacity: 1,
+          color: isActive ? '#00F2FE' : 'rgba(255,255,255,0.2)',
+          fillOpacity: isActive ? 0.8 : 0.4,
+        };
+      },
+      onEachFeature: (feature, layer) => {
+        const wardNo = feature?.properties?.wardno || '';
+        const wardStr = String(wardNo).replace('Ward ', '');
+        const ward = wards.find(w => String(w.ward_no).replace('Ward ', '') === wardStr);
+        
+        if (ward) {
+          layer.bindTooltip(
+            `<div class="text-xs font-sans">
+              <div class="font-bold text-slate-100 flex items-center justify-between gap-3">
+                <span>Ward ${wardStr}</span>
+              </div>
+              <div class="text-slate-300 mt-0.5">Risk Score: <b class="text-cyan-400 font-mono">${Math.round(ward.WardRiskScore || 0)}</b></div>
+            </div>`,
+            { sticky: true, className: 'leaflet-tooltip-dark' }
+          );
+        }
+
+        layer.on({
+          mouseover: (e: any) => {
+            const l = e.target;
+            l.setStyle({ weight: 2, color: '#00F2FE', fillOpacity: 0.8 });
+          },
+          mouseout: (e: any) => {
+            if (geoJsonLayerRef.current) geoJsonLayerRef.current.resetStyle(e.target);
+          },
+          click: () => {
+            const parsed = parseInt(wardStr, 10);
+            if (!isNaN(parsed)) {
+              onWardSelect(parsed);
+            }
+          },
+        });
+      },
+    });
+
+    layer.addTo(map);
+    geoJsonLayerRef.current = layer;
+  }, [wardGeoJson, wards, activeWard, onWardSelect]);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 h-full flex flex-col min-h-[400px]">
+    <div className="w-full h-full relative min-h-[400px] xl:min-h-[500px]">
       
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <h3 className="text-[13px] font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
-            <MapIcon className="w-4 h-4 text-slate-500" />
-            Khordha Heat Risk Map
-          </h3>
-          <p className="text-[11px] text-slate-500">Ward / Zone Level Assessment</p>
-        </div>
-        <div className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100">
-          ● LIVE
-        </div>
+      {/* MAP LAYER */}
+      <div ref={mapContainerRef} className="absolute inset-0 z-0 bg-[#07090c]"></div>
+      
+      {/* OVERLAY: Map Header */}
+      <div className="absolute top-4 left-4 z-[1000] pointer-events-none">
+        <h3 className="text-xl font-bold text-white drop-shadow-md">Bhubaneswar Urban Core</h3>
+        <p className="text-sm font-medium text-gray-300 drop-shadow-md">Select a ward to view vulnerability profile</p>
       </div>
 
-      <div className="flex-1 relative bg-[#E5E9EC] rounded-lg border border-slate-200 overflow-hidden">
-        
-        {/* Placeholder Map Background - a stylized representation for the UI */}
-        <div className="absolute inset-0 bg-[url('https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/7/92/56.png')] bg-cover bg-center opacity-50"></div>
-        
-        {/* Mock Khordha Shape (Centered) */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-[60%] h-[60%] bg-gradient-to-br from-red-500 via-orange-500 to-yellow-500 opacity-80 mix-blend-multiply rounded-3xl blur-[2px] transform rotate-12 scale-x-125"></div>
-          
-          <div className="absolute text-white font-bold text-shadow-sm text-sm" style={{ top: '45%', left: '42%' }}>Khordha</div>
-          <div className="absolute text-white/90 font-bold text-shadow-sm text-xs" style={{ top: '35%', left: '55%' }}>Jatni</div>
-          <div className="absolute text-white/90 font-bold text-shadow-sm text-xs" style={{ top: '55%', left: '30%' }}>Begunia</div>
-        </div>
-
-        {/* Map Controls Top Left */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1">
-          <button className="w-8 h-8 bg-white border border-slate-200 rounded-md shadow-sm flex items-center justify-center text-slate-600 hover:bg-slate-50">
-            <Plus className="w-4 h-4" />
-          </button>
-          <button className="w-8 h-8 bg-white border border-slate-200 rounded-md shadow-sm flex items-center justify-center text-slate-600 hover:bg-slate-50">
-            <Minus className="w-4 h-4" />
-          </button>
-          <button className="w-8 h-8 bg-white border border-slate-200 rounded-md shadow-sm flex items-center justify-center text-slate-600 hover:bg-slate-50 mt-1">
-            <Crosshair className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Legend Bottom Left */}
-        <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur border border-slate-200 rounded-lg p-2.5 shadow-sm">
-          <div className="flex flex-col gap-1.5 text-[10px] font-medium text-slate-600">
-            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Low</div>
-            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-yellow-400"></span> Moderate</div>
-            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-orange-500"></span> High</div>
-            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-600"></span> Extreme</div>
-          </div>
-        </div>
-
-        {/* Map Layers Right */}
-        <div className="absolute top-3 right-3 bg-white/95 backdrop-blur border border-slate-200 rounded-lg p-3 shadow-sm w-[160px]">
-          <h4 className="text-[11px] font-bold text-slate-700 mb-2">Map Layers</h4>
-          <div className="flex flex-col gap-1.5 text-[11px] text-slate-600">
-            {layers.map(layer => (
-              <label key={layer.id} className="flex items-center gap-2 cursor-pointer hover:text-slate-900">
-                <input type="checkbox" defaultChecked={layer.default} className="rounded text-sky-500 border-slate-300 focus:ring-sky-500 w-3 h-3" />
-                {layer.label}
-              </label>
-            ))}
-          </div>
-        </div>
-
-        {/* Days Toggle Bottom */}
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur border border-slate-200 rounded-lg shadow-sm p-1 flex">
-          {days.map(day => (
-            <button
-              key={day}
-              onClick={() => setActiveDay(day)}
-              className={`px-3 py-1.5 text-[11px] font-medium rounded-md transition-colors ${
-                activeDay === day 
-                  ? 'bg-slate-800 text-white shadow-sm' 
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              {day}
-            </button>
-          ))}
-        </div>
-
+      <div className="absolute top-4 right-14 z-[1000] flex flex-col items-end gap-2 pointer-events-none">
+        <span className="text-[10px] font-bold text-gray-800 bg-gray-100 px-2 py-1 rounded border border-gray-300 uppercase tracking-widest shadow-sm">
+          [OBSERVED / GIS] Ward Boundaries
+        </span>
+        <span className="text-[10px] font-bold text-cyan-800 bg-cyan-100 px-2 py-1 rounded border border-cyan-300 uppercase tracking-widest shadow-sm">
+          [LIVE] Telemetry
+        </span>
       </div>
 
+      {/* OVERLAY: Legend */}
+      <div className="absolute bottom-4 left-4 bg-[#0f1115]/90 backdrop-blur-md border border-white/10 rounded-lg p-4 shadow-xl z-[1000]">
+        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Risk Tier</div>
+        <div className="flex flex-col gap-3 text-xs font-semibold text-white">
+          <div className="flex items-center gap-3"><span className="w-3 h-3 rounded bg-emerald-500"></span> Low</div>
+          <div className="flex items-center gap-3"><span className="w-3 h-3 rounded bg-yellow-500"></span> Moderate</div>
+          <div className="flex items-center gap-3"><span className="w-3 h-3 rounded bg-orange-500"></span> High</div>
+          <div className="flex items-center gap-3"><span className="w-3 h-3 rounded bg-red-500"></span> Extreme</div>
+        </div>
+      </div>
+      
     </div>
   );
 }

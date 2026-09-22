@@ -8,18 +8,18 @@ export interface ModalProps {
   title?: string;
   icon?: React.ComponentType<{ className?: string }>;
   children: React.ReactNode;
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '4xl' | 'full';
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '4xl' | 'full' | string;
   className?: string;
 }
 
-export function Modal({
+export function SentinelModal({
   isOpen,
   onClose,
   title,
   icon: Icon,
   children,
-  maxWidth = 'lg',
-  className,
+  maxWidth = 'max-w-2xl',
+  className
 }: ModalProps) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -62,7 +62,7 @@ export function Modal({
       <div
         className={cn(
           'w-full glass-panel border border-white/15 rounded-2xl shadow-2xl overflow-hidden text-slate-100 flex flex-col my-auto',
-          maxWidthClasses[maxWidth],
+          maxWidthClasses[maxWidth as keyof typeof maxWidthClasses],
           className
         )}
       >

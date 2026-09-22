@@ -201,17 +201,20 @@ def generate_risk_map(
         min_zoom=5,
         max_bounds=True,
         max_bounds_viscosity=1.0,
-        tiles="https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png",
-        attr="SentinelX / THERMO-SHIELD AI — Sovereign India GIS &copy; OpenStreetMap &copy; CARTO",
+        tiles=None,
+        attr="SentinelX / THERMO-SHIELD AI — Sovereign India GIS",
     )
     m.fit_bounds(india_bounds)
 
-    # Add alternative tile layers
-    folium.TileLayer("OpenStreetMap", name="Street Map").add_to(m)
-    folium.TileLayer(
-        tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-        attr="Esri", name="Satellite"
-    ).add_to(m)
+    # Set solid dark background
+    dark_bg_html = """
+    <style>
+        .leaflet-container {
+            background-color: #0a0e12 !important;
+        }
+    </style>
+    """
+    m.get_root().html.add_child(folium.Element(dark_bg_html))
 
     # ── Risk zone circles ────────────────────────────────────────────
     risk_layer = folium.FeatureGroup(name="🔥 Heat Risk Zones")
@@ -351,9 +354,19 @@ def generate_national_map(
         zoom_start=zoom,
         min_zoom=5,
         max_bounds=True,
-        tiles="https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png",
-        attr="SentinelX GIS &copy; OpenStreetMap &copy; CARTO",
+        tiles=None,
+        attr="SentinelX GIS",
     )
+    
+    # Set solid dark background
+    dark_bg_html = """
+    <style>
+        .leaflet-container {
+            background-color: #0a0e12 !important;
+        }
+    </style>
+    """
+    m.get_root().html.add_child(folium.Element(dark_bg_html))
 
     for state in states:
         lat = state.get("lat", 22.0)

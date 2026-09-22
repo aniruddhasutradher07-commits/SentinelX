@@ -20,6 +20,7 @@ from pydantic import BaseModel
 from services.alerts import _mock_send_sms
 from typing import Optional
 from routers.news import fetch_live_news
+from services.thermal_engine import heat_index_celsius, wbgt_outdoor_celsius, utci_celsius
 
 router = APIRouter(prefix="/api/v1", tags=["SentinelX ML & Intelligence"])
 
@@ -407,7 +408,26 @@ def get_bhubaneswar_wards():
         vuln = compute_vulnerability(eld, work, tree, roof)
         
         temp = round(38.0 + uhi, 1)
-        wbgt = round(30.8 + uhi * 0.6, 1)
+        rh = 69.0
+        wind = 2.1
+        solar = 907.5
+        
+        # --- SIH "KILLER DEMO" OVERRIDES ---
+        if w_no == "W1":
+            temp = 38.0
+            rh = 40.0         # Dry
+            wind = 5.0        # High wind
+            solar = 700.0     # Moderate solar
+        elif w_no == "W2":
+            temp = 38.0
+            rh = 85.0         # Extremely humid
+            wind = 0.5        # Stagnant air
+            solar = 950.0     # High solar
+            
+        wbgt = round(wbgt_outdoor_celsius(temp, rh, solar, wind), 1)
+        hi = round(heat_index_celsius(temp, rh), 1)
+        utci = round(utci_celsius(temp, rh, solar, wind), 1)
+        
         hazard = round((wbgt / 33.0) * 75.0)
         risk_score = min(100.0, round(hazard * vuln["vulnerability_multiplier"], 1))
         tier = "Red" if risk_score >= 85 else ("Orange" if risk_score >= 70 else ("Yellow" if risk_score >= 45 else "Green"))
@@ -426,15 +446,15 @@ def get_bhubaneswar_wards():
             "centroid_lon": p.get("longitudei") or (85.82 + idx * 0.001),
             "timestamp": now_ts,
             "temperature_c": temp,
-            "relative_humidity_pct": 69.0,
-            "wind_speed_ms": 2.1,
-            "solar_radiation_wm2": 907.5,
+            "relative_humidity_pct": rh,
+            "wind_speed_ms": wind,
+            "solar_radiation_wm2": solar,
             "apparent_temp_c": round(temp + 3.8, 1),
             "uhi_offset_c": uhi,
             "adjusted_temp_c": temp,
-            "HI_celsius": round(temp + 4.8, 1),
+            "HI_celsius": hi,
             "WBGT_celsius": wbgt,
-            "UTCI_celsius": round(temp + 3.2, 1),
+            "UTCI_celsius": utci,
             "thermal_hazard_score": hazard,
             "WardRiskScore": risk_score,
             "RiskTier": tier,

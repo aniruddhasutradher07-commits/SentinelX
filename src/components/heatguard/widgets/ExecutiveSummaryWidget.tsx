@@ -32,9 +32,19 @@ export default function ExecutiveSummaryWidget({ districtName, riskTier, tempera
         <Activity className="w-32 h-32 -mt-4 -mr-4" />
       </div>
       
-      <div className="flex items-center gap-2 mb-2">
-        <ShieldAlert className="w-4 h-4 text-amber-400" />
-        <h3 className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Executive Summary</h3>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <ShieldAlert className="w-4 h-4 text-amber-400" />
+          <h3 className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Executive Summary</h3>
+        </div>
+        <div className="flex gap-2">
+          <div className="text-[9px] font-bold text-emerald-400 bg-emerald-900/40 px-2 py-0.5 rounded border border-emerald-800/50 uppercase tracking-wide">
+            [LIVE]
+          </div>
+          <div className="text-[9px] font-bold text-sky-400 bg-sky-900/40 px-2 py-0.5 rounded border border-sky-800/50 uppercase tracking-wide">
+            [CALCULATED]
+          </div>
+        </div>
       </div>
       
       <p className="text-[13px] md:text-sm font-medium leading-relaxed mb-4 text-slate-100 max-w-4xl relative z-10">

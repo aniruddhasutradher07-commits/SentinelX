@@ -469,6 +469,22 @@ async function queryGemini(prompt: string, context?: any, language = 'en') {
 
 // ------------------- API ROUTES -------------------
 
+// Proxy for FastAPI forecast engine
+app.get('/api/v1/forecast-risk', async (req, res) => {
+  try {
+    const qs = new URLSearchParams(req.query as any).toString();
+    const response = await fetch(`http://localhost:8000/api/v1/forecast-risk?${qs}`);
+    if (!response.ok) {
+      return res.status(response.status).json({ error: 'Upstream forecast failed' });
+    }
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Forecast proxy error:', error);
+    res.status(502).json({ error: 'Failed to connect to Python backend on port 8000' });
+  }
+});
+
 // 1. Health Status
 app.get('/api/v1/status', (req, res) => {
   res.json({

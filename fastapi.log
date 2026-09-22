@@ -1,0 +1,30 @@
+/opt/anaconda3/lib/python3.13/site-packages/supabase/_sync/client.py:309: DeprecationWarning: The 'timeout' parameter is deprecated. Please configure it in the http client instead.
+  return SyncPostgrestClient(
+/opt/anaconda3/lib/python3.13/site-packages/supabase/_sync/client.py:309: DeprecationWarning: The 'verify' parameter is deprecated. Please configure it in the http client instead.
+  return SyncPostgrestClient(
+/Users/aniruddhasutradhar/Desktop/SIH/main.py:448: DeprecationWarning: 
+        on_event is deprecated, use lifespan event handlers instead.
+
+        Read more about it in the
+        [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+        
+  @app.on_event("startup")
+/opt/anaconda3/lib/python3.13/site-packages/fastapi/applications.py:4681: DeprecationWarning: 
+        on_event is deprecated, use lifespan event handlers instead.
+
+        Read more about it in the
+        [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+        
+  return self.router.on_event(event_type)  # ty: ignore[deprecated]
+INFO:     Started server process [72702]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    [Errno 48] error while attempting to bind on address ('0.0.0.0', 8000): address already in use
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+⚡ [mock_api] Supabase Client Initialized
+🧠 [mock_api] DLNM + XGBoost Hospital Surge Models Loaded
+[heatwave_classifier] Loading real ERA5 dataset from /Users/aniruddhasutradhar/Desktop/SIH/historical_weather_era5.csv...
+[heatwave_classifier] Training Random Forest (n=5241 train, 1311 test)...
+[heatwave_classifier] Model saved to /Users/aniruddhasutradhar/Desktop/SIH/data/heatwave_rf_model.joblib
+[heatwave_classifier] ✅ Training complete — accuracy: 100.0%
