@@ -135,3 +135,11 @@ Append new entries here as the project progresses. Newest at the bottom. Any AI 
   3. All analytics tabs (`WorkerSafetyTab`, `SchoolSafetyTab`, `ResourceAllocationTab`, `HistoricalReplayTab`, `ModelValidationView`, etc.).
 - **Why**: To align the entire dashboard visually with the `stitch_command_center.html` reference and `design.md` specifications, ensuring a cohesive "situation-room" aesthetic.
 - **Notes**: All functional features, components, and provenance badges (`[REAL]`, `[CALCULATED]`, etc.) were perfectly preserved. The changes were purely stylistic CSS class swaps.
+
+## 2026-09-22 — State Resilience: Added Cold-Start Fallback Warning
+- **What changed**: Modified `App.tsx` to explicitly track when the UI is relying on local fallback reference data (`isUsingFallbackData`). Added a prominent amber banner at the top of the Command Center alerting the user ("Reconnecting to live backend — showing cached reference data") with a `[SYNTHETIC]` provenance tag. Added background recovery logic to the 15-second telemetry polling loop to attempt to fetch live `/api/v1/districts` and `/api/v1/wards` data and clear the banner once successful.
+- **Why**: To ensure transparency for judges/users during cold-starts on the free Render instance. Previously, the fallback data looked indistinguishable from live data, violating the system's strict data provenance UI rules.
+
+## 2026-09-22 — Bugfix: Restored /landing Route
+- **What changed**: Re-registered the `<BrowserRouter>` and `<Routes>` setup in `src/App.tsx`, pointing `/` to the `CommandCenter` component and `/landing` to `Landing.tsx`.
+- **Why**: During the earlier `App.tsx` revert (to strip the TailAdmin template), the routing configuration that made `/landing` accessible was accidentally reverted because the `ad19bc0` commit predated the Landing page's existence. The route has now been restored without reintroducing any template contamination.

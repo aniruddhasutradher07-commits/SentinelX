@@ -17,7 +17,9 @@ import HistoricalReplayTab from './components/tabs/HistoricalReplayTab';
 import { AlertDispatchModal } from './components/AlertDispatchModal';
 // @ts-ignore
 import Dashboard from './pages/Dashboard';
-import { Zap, X } from 'lucide-react';
+import { Zap, X, AlertCircle } from 'lucide-react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Landing from './pages/Landing';
 import { subscribeToWardRiskUpdates } from './services/supabaseClient';
 import { 
   SystemSummary, 
@@ -104,7 +106,7 @@ function getFallbackWards(): WardRiskRecord[] {
   });
 }
 
-export function App() {
+function CommandCenter() {
   const [activeTab, setActiveTab] = useState<string>('command');
   const [summary, setSummary] = useState<SystemSummary | null>(null);
   const [telemetry, setTelemetry] = useState<LiveTelemetry | null>(null);
@@ -114,6 +116,8 @@ export function App() {
   const [wardGeoJson, setWardGeoJson] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [isCloudWakingUp, setIsCloudWakingUp] = useState<boolean>(false);
+  const [isUsingFallbackData, setIsUsingFallbackData] = useState<boolean>(false);
+  const isFallbackRef = React.useRef(false);
 
   // Realtime CDC State
   const [realtimeStatus, setRealtimeStatus] = useState<{
@@ -160,9 +164,16 @@ export function App() {
         const wardGeoRes = results[4].status === 'fulfilled' ? results[4].value : null;
         const teleRes = results[5].status === 'fulfilled' ? results[5].value : null;
 
+        const hasLiveDistricts = distRes?.districts && distRes.districts.length > 0;
+        const hasLiveWards = wardRes?.wards && wardRes.wards.length > 0;
+        
+        const useFallback = !hasLiveDistricts || !hasLiveWards;
+        setIsUsingFallbackData(useFallback);
+        isFallbackRef.current = useFallback;
+
         if (sumRes) setSummary(sumRes);
-        setDistricts(distRes?.districts && distRes.districts.length > 0 ? distRes.districts : getFallbackDistricts());
-        setWards(wardRes?.wards && wardRes.wards.length > 0 ? wardRes.wards : getFallbackWards());
+        setDistricts(hasLiveDistricts ? distRes.districts : getFallbackDistricts());
+        setWards(hasLiveWards ? wardRes.wards : getFallbackWards());
         if (geoRes) setGeoJson(geoRes);
         if (wardGeoRes) setWardGeoJson(wardGeoRes);
         if (teleRes) setTelemetry(teleRes);
@@ -170,6 +181,8 @@ export function App() {
         console.error('Failed to load initial application state:', err);
         setDistricts(getFallbackDistricts());
         setWards(getFallbackWards());
+        setIsUsingFallbackData(true);
+        isFallbackRef.current = true;
       } finally {
         setLoading(false);
         setIsCloudWakingUp(false);
@@ -184,6 +197,24 @@ export function App() {
         const res = await fetch(getApiUrl('/api/v1/live-feed'));
         const data = await res.json();
         setTelemetry(data);
+
+        // Attempt recovery if we were stuck on fallback data
+        if (isFallbackRef.current) {
+          try {
+            const [dRes, wRes] = await Promise.all([
+              fetch(getApiUrl('/api/v1/districts')).then(r => r.json()),
+              fetch(getApiUrl('/api/v1/wards')).then(r => r.json())
+            ]);
+            if (dRes?.districts?.length > 0 && wRes?.wards?.length > 0) {
+              setDistricts(dRes.districts);
+              setWards(wRes.wards);
+              setIsUsingFallbackData(false);
+              isFallbackRef.current = false;
+            }
+          } catch(e) {
+            // still failing
+          }
+        }
       } catch (e) {
         // silent fallback
       }
@@ -312,6 +343,19 @@ export function App() {
         onSimulateSensorPulse={handleSimulatePulse}
         isSimulatingPulse={isSimulatingPulse}
       />
+
+      {/* Fallback Data Warning Banner */}
+      {isUsingFallbackData && (
+        <div className="bg-amber-950/80 border-b border-amber-500/50 px-4 py-2 flex justify-center items-center gap-3 z-40 relative shadow-[0_0_15px_rgba(245,158,11,0.15)]">
+          <AlertCircle className="w-4 h-4 text-amber-400 animate-pulse" />
+          <span className="text-amber-200 text-xs font-mono">
+            Reconnecting to live backend — showing cached reference data
+          </span>
+          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded border border-amber-500/40 bg-amber-900/60 text-amber-300 uppercase tracking-widest font-semibold shadow-sm">
+            [SYNTHETIC]
+          </span>
+        </div>
+      )}
 
       {/* Main View Container */}
       <main className="flex-1 flex overflow-hidden relative">
@@ -471,4 +515,13 @@ export function App() {
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<CommandCenter />} />
+        <Route path="/landing" element={<Landing />} />
+      </Routes>
+    </Router>
+  );
+}
