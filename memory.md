@@ -151,3 +151,7 @@ Append new entries here as the project progresses. Newest at the bottom. Any AI 
 ## 2026-09-22 — UI/UX: Implemented Collapsible Sidebar
 - **What changed**: Modified `Sidebar.tsx` and `TabNav.tsx` to support a collapsible sidebar state. Added an `isOpen` state with a toggle button (ChevronLeft/Menu icons) next to the Command Center brand. Updated `TabNav` to accept a `showLabels` prop to hide text when collapsed, ensuring the layout neatly fits into the `w-16` footprint.
 - **Why**: To polish the UI and provide users the option to collapse the sidebar for more screen real estate, while matching the dark theme of the attached reference design.
+
+## 2026-09-22 — UI Polish: Removed Sidebar Bottom Menu Icons
+- **What changed**: Removed the "Documentation" and "Settings" buttons from the bottom of the sidebar in `src/components/Sidebar.tsx`.
+- **Why**: To clear up the lower-left area and allow the dark background to smoothly extend to the corners without any visual clutter, exactly as requested for the UI composition.

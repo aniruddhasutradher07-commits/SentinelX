@@ -67,25 +67,6 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
         />
       </div>
 
-      {/* Bottom Menu */}
-      <div className="p-2 border-t border-white/5 space-y-1.5">
-        <button
-          type="button"
-          aria-label="Open Documentation"
-          className={`w-full flex items-center gap-3 py-2.5 rounded-lg text-slate-400 hover:bg-white/5 hover:text-slate-200 transition font-mono text-xs outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${isOpen ? 'px-3' : 'justify-center px-0'}`}
-        >
-          <HelpCircle className="w-4 h-4 shrink-0 text-slate-500" />
-          {isOpen && <span className="whitespace-nowrap">Documentation</span>}
-        </button>
-        <button
-          type="button"
-          aria-label="Open Settings"
-          className={`w-full flex items-center gap-3 py-2.5 rounded-lg text-slate-400 hover:bg-white/5 hover:text-slate-200 transition font-mono text-xs outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${isOpen ? 'px-3' : 'justify-center px-0'}`}
-        >
-          <Settings className="w-4 h-4 shrink-0 text-slate-500" />
-          {isOpen && <span className="whitespace-nowrap">Settings</span>}
-        </button>
-      </div>
     </aside>
   );
 }
