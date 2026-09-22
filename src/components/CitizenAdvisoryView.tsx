@@ -106,21 +106,21 @@ export const CitizenAdvisoryView: React.FC<CitizenAdvisoryViewProps> = ({ wards,
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center p-4 sm:p-6 bg-[#0B0D0E] text-[#F2F1EC] overflow-y-auto">
+    <div className="flex-1 flex items-center justify-center p-4 sm:p-6 bg-tactical-900 text-slate-200 overflow-y-auto">
       {/* Citizen Advisory Single Card (UI/UX Spec Section 3.4) */}
-      <div className="max-w-md w-full bg-[#14171A] border border-[#232A2E] rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 relative">
+      <div className="max-w-md w-full bg-tactical-800 border border-tactical-border rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 relative">
         
         {/* Top Bar: Ward Selector & Language Toggle */}
-        <div className="flex items-center justify-between border-b border-[#232A2E] pb-4">
+        <div className="flex items-center justify-between border-b border-tactical-border pb-4">
           <div>
-            <label className="text-[10px] font-mono text-[#8B9096] uppercase tracking-wider block">Your Ward / ଅଞ୍ଚଳ</label>
+            <label className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">Your Ward / ଅଞ୍ଚଳ</label>
             <select
               value={selectedWardNo}
               onChange={(e) => setSelectedWardNo(e.target.value)}
-              className="bg-[#0B0D0E] border border-[#232A2E] text-white font-bold text-sm rounded-xl px-2.5 py-1 mt-0.5 focus:outline-none focus:border-[#0F5C5C] font-sans"
+              className="bg-tactical-900 border border-tactical-border text-white font-bold text-sm rounded-xl px-2.5 py-1 mt-0.5 focus:outline-none focus:border-[#0F5C5C] font-sans"
             >
               {wards.slice(0, 30).map((w) => (
-                <option key={w.ward_no} value={w.ward_no} className="bg-[#14171A]">
+                <option key={w.ward_no} value={w.ward_no} className="bg-tactical-800">
                   {w.ward_no} ({w.zone})
                 </option>
               ))}
@@ -128,7 +128,7 @@ export const CitizenAdvisoryView: React.FC<CitizenAdvisoryViewProps> = ({ wards,
           </div>
 
           {/* Language Switcher */}
-          <div className="flex gap-1 bg-[#0B0D0E] p-1 rounded-xl border border-[#232A2E]">
+          <div className="flex gap-1 bg-tactical-900 p-1 rounded-xl border border-tactical-border">
             {(['or', 'en', 'hi'] as const).map((lang) => (
               <button
                 key={lang}
@@ -136,8 +136,8 @@ export const CitizenAdvisoryView: React.FC<CitizenAdvisoryViewProps> = ({ wards,
                 onClick={() => setSelectedLang(lang)}
                 className={`px-2 py-1 rounded-lg text-xs font-bold transition ${
                   selectedLang === lang
-                    ? 'bg-[#0F5C5C] text-white'
-                    : 'text-[#8B9096] hover:text-white'
+                    ? 'bg-cyan-950 text-white'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
                 {lang === 'or' ? 'ଓଡ଼ିଆ' : lang === 'en' ? 'EN' : 'हिन्दी'}
@@ -162,7 +162,7 @@ export const CitizenAdvisoryView: React.FC<CitizenAdvisoryViewProps> = ({ wards,
           <div className="text-4xl sm:text-5xl font-extrabold tracking-tight" style={{ color: tierColor }}>
             {currentTier.toUpperCase()}
           </div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#0B0D0E]/60 text-xs font-mono font-bold text-[#F2F1EC] border border-white/10">
+          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-tactical-900/60 text-xs font-mono font-bold text-slate-200 border border-white/10">
             <span>Score: {activeWard.WardRiskScore || 97}/100</span>
             <span>·</span>
             <span>WBGT {activeWard.WBGT_celsius || 32.8}°C</span>
@@ -170,7 +170,7 @@ export const CitizenAdvisoryView: React.FC<CitizenAdvisoryViewProps> = ({ wards,
         </div>
 
         {/* One Plain Sentence of Advice (Section 3.4) */}
-        <div className="bg-[#0B0D0E] border border-[#232A2E] rounded-2xl p-4">
+        <div className="bg-tactical-900 border border-tactical-border rounded-2xl p-4">
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] font-mono text-amber-400 uppercase tracking-wider block">
               ⚡ Direct Citizen Advisory
@@ -179,19 +179,19 @@ export const CitizenAdvisoryView: React.FC<CitizenAdvisoryViewProps> = ({ wards,
               [CALCULATED]
             </span>
           </div>
-          <p className="text-sm font-sans leading-relaxed text-[#F2F1EC]">
+          <p className="text-sm font-sans leading-relaxed text-slate-200">
             {adviceSentence}
           </p>
         </div>
 
         {/* Nearest Cooling Point with Walking Time (Section 3.4) */}
-        <div className="bg-[#0B0D0E] border border-[#232A2E] rounded-2xl p-4 flex items-start gap-3">
+        <div className="bg-tactical-900 border border-tactical-border rounded-2xl p-4 flex items-start gap-3">
           <div className="w-9 h-9 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center shrink-0 mt-0.5 border border-teal-500/30">
             <Droplets className="w-5 h-5" />
           </div>
           <div className="space-y-0.5 flex-1">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mono text-[#8B9096] uppercase tracking-wider block">Nearest Public Cooling Shelter</span>
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">Nearest Public Cooling Shelter</span>
               <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold">
                 [REAL]
               </span>
@@ -211,7 +211,7 @@ export const CitizenAdvisoryView: React.FC<CitizenAdvisoryViewProps> = ({ wards,
           className={`w-full py-3 px-4 rounded-2xl flex items-center justify-center gap-2.5 text-xs font-bold font-sans transition border shadow-lg ${
             isPlayingVoice
               ? 'bg-rose-600 border-rose-500 text-white animate-pulse'
-              : 'bg-[#0F5C5C] hover:bg-teal-700 border-[#0F5C5C] text-white shadow-teal-900/30'
+              : 'bg-cyan-950 hover:bg-teal-700 border-[#0F5C5C] text-white shadow-teal-900/30'
           }`}
         >
           {isPlayingVoice ? (
@@ -228,7 +228,7 @@ export const CitizenAdvisoryView: React.FC<CitizenAdvisoryViewProps> = ({ wards,
         </button>
 
         <div className="text-center">
-          <span className="text-[11px] font-mono text-[#8B9096] block">
+          <span className="text-[11px] font-mono text-slate-400 block">
             {t.dialIvr}
           </span>
           {onBackToOperations && (

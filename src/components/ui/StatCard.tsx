@@ -35,84 +35,68 @@ export function StatCard({
   const tierStyle = tier ? getTierColor(tier) : null;
 
   return (
-    <div
+    <article
       role="region"
       aria-label={title}
       className={cn(
-        'glass-panel p-4 rounded-xl border transition-all duration-300 relative overflow-hidden flex flex-col justify-between',
-        tierStyle ? tierStyle.border : 'border-white/10 hover:border-white/20',
+        'p-3.5 rounded-lg bg-tactical-800/90 border border-tactical-border relative overflow-hidden flex flex-col justify-between',
         className
       )}
     >
-      {/* Risk Tier subtle background highlight */}
-      {tierStyle && (
-        <div
-          className="absolute top-0 right-0 w-32 h-32 rounded-full pointer-events-none blur-2xl opacity-10 -mr-10 -mt-10"
-          style={{ backgroundColor: tierStyle.hex }}
-        />
-      )}
-
-      <div>
-        <div className="flex items-center justify-between gap-2 mb-2">
-          <span className="text-xs font-semibold text-slate-400 tracking-wider uppercase font-tech">
-            {title}
-          </span>
-          {Icon && (
-            <div
-              className={cn(
-                'p-1.5 rounded-lg border bg-white/5',
-                tierStyle ? tierStyle.border : 'border-white/10'
-              )}
-            >
-              <Icon
-                className={cn(
-                  'w-4 h-4',
-                  tierStyle ? tierStyle.text : 'text-cyan-400'
-                )}
-              />
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-baseline gap-1.5 my-1">
-          <span
+      <div className="flex items-center justify-between text-xs font-mono text-slate-400">
+        <span className="tracking-wide uppercase font-semibold">
+          {title}
+        </span>
+        {Icon && (
+          <div
             className={cn(
-              'text-2xl font-bold font-mono text-white tracking-tight',
-              valueClassName
+              'w-7 h-7 rounded flex items-center justify-center',
+              tierStyle ? `${tierStyle.border} ${tierStyle.bg} ${tierStyle.text}` : 'bg-tactical-950/40 border border-cyan-700/50 text-cyan-400'
             )}
           >
-            {value}
-          </span>
-          {unit && (
-            <span className="text-xs font-medium text-slate-400 font-mono">
-              {unit}
-            </span>
+            <Icon className="w-4 h-4" />
+          </div>
+        )}
+      </div>
+
+      <div className="my-2 flex items-baseline space-x-2">
+        <span
+          className={cn(
+            'text-3xl lg:text-4xl font-mono font-bold text-white tracking-tight',
+            valueClassName
           )}
-        </div>
+        >
+          {value}
+        </span>
+        {unit && (
+          <span className="text-lg font-mono text-slate-400">
+            {unit}
+          </span>
+        )}
       </div>
 
       {(subtitle || trend || children) && (
-        <div className="mt-3 pt-2 border-t border-white/5 flex items-center justify-between text-xs">
-          {subtitle && <span className="text-slate-400 text-[11px]">{subtitle}</span>}
+        <div className="pt-2 border-t border-tactical-border/60 flex items-center justify-between text-[11px] font-mono text-slate-400">
+          {subtitle && <span>{subtitle}</span>}
           
           {trend && (
             <span
               className={cn(
-                'inline-flex items-center gap-1 font-mono font-medium text-[11px]',
-                trend.direction === 'up' && 'text-emerald-400',
-                trend.direction === 'down' && 'text-rose-400',
-                trend.direction === 'neutral' && 'text-slate-400'
+                'px-1.5 py-0.5 rounded font-semibold border',
+                trend.direction === 'up' && 'bg-red-950/50 text-red-300 border-red-800/40',
+                trend.direction === 'down' && 'bg-emerald-950/50 text-emerald-300 border-emerald-800/40',
+                trend.direction === 'neutral' && 'bg-tactical-700/80 text-cyan-300 border-cyan-800/40'
               )}
             >
-              {trend.direction === 'up' && '↑'}
-              {trend.direction === 'down' && '↓'}
-              {trend.value} {trend.label}
+              {trend.direction === 'up' && '↑ '}
+              {trend.direction === 'down' && '↓ '}
+              {trend.value} {trend.label && trend.label}
             </span>
           )}
 
           {children}
         </div>
       )}
-    </div>
+    </article>
   );
 }

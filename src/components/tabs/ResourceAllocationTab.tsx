@@ -136,7 +136,7 @@ export default function ResourceAllocationTab() {
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-slate-900/80 border border-slate-800 p-5 rounded-2xl backdrop-blur-md">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-tactical-800/80 border border-tactical-border p-5 rounded-2xl backdrop-blur-md">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold text-white tracking-wide">Cooling-Center Optimization & Emergency Routing</h1>
@@ -190,8 +190,8 @@ export default function ResourceAllocationTab() {
       </div>
 
       {/* Section 1: Cooling-Center Gap Matrix */}
-      <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 backdrop-blur-md space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-800">
+      <div className="bg-tactical-800/70 border border-tactical-border rounded-2xl p-6 backdrop-blur-md space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-tactical-border">
           <div>
             <div className="flex items-center gap-2">
               <SectionHeader title="Cooling-Center Gap Optimization Matrix" icon={MapPin} />
@@ -205,7 +205,7 @@ export default function ResourceAllocationTab() {
           </div>
 
           {/* Filter buttons */}
-          <div className="flex items-center gap-2 bg-slate-950/60 p-1.5 rounded-xl border border-slate-800">
+          <div className="flex items-center gap-2 bg-tactical-850/60 p-1.5 rounded-xl border border-tactical-border">
             <SlidersHorizontal className="w-4 h-4 text-slate-400 ml-1.5" />
             {['ALL', 'DEFICIT', 'MARGINAL', 'ADEQUATE'].map((tier) => (
               <button
@@ -232,7 +232,7 @@ export default function ResourceAllocationTab() {
         {/* Wards Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-300">
-            <thead className="text-xs uppercase bg-slate-950/80 text-slate-400 border-b border-slate-800">
+            <thead className="text-xs uppercase bg-tactical-850/80 text-slate-400 border-b border-tactical-border">
               <tr>
                 <th className="py-3 px-4">Ward / Area</th>
                 <th className="py-3 px-4">Peak Temp</th>
@@ -290,8 +290,8 @@ export default function ResourceAllocationTab() {
       </div>
 
       {/* Section 2: Emergency Hospital Advisory Routing */}
-      <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 backdrop-blur-md space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="bg-tactical-800/70 border border-tactical-border rounded-2xl p-6 backdrop-blur-md space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-tactical-border">
           <div>
             <div className="flex items-center gap-2">
               <SectionHeader title="Emergency Medical Hospital Advisory Routing" icon={Navigation} />
@@ -310,7 +310,7 @@ export default function ResourceAllocationTab() {
             <select
               value={selectedWard}
               onChange={(e) => handleWardChange(e.target.value)}
-              className="bg-slate-950 border border-slate-700 text-white text-xs font-medium rounded-xl px-3 py-2 focus:ring-2 focus:ring-cyan-500 outline-none cursor-pointer"
+              className="bg-tactical-850 border border-slate-700 text-white text-xs font-medium rounded-xl px-3 py-2 focus:ring-2 focus:ring-cyan-500 outline-none cursor-pointer"
             >
               {gapsData?.wards.map((w) => (
                 <option key={w.ward_no} value={w.ward_no}>
@@ -356,13 +356,13 @@ export default function ResourceAllocationTab() {
               </div>
 
               <div className="grid grid-cols-2 gap-3 pt-2">
-                <div className="bg-slate-950/60 border border-slate-800 p-3 rounded-xl">
+                <div className="bg-tactical-850/60 border border-tactical-border p-3 rounded-xl">
                   <span className="text-slate-400 text-xs block">Straight-Line Dist</span>
                   <span className="text-lg font-bold text-cyan-300 font-mono">
                     {routingData.primary_recommended_hospital.straight_line_distance_km} km
                   </span>
                 </div>
-                <div className="bg-slate-950/60 border border-slate-800 p-3 rounded-xl">
+                <div className="bg-tactical-850/60 border border-tactical-border p-3 rounded-xl">
                   <span className="text-slate-400 text-xs block">Est. Transit Time</span>
                   <span className="text-lg font-bold text-amber-300 font-mono flex items-center gap-1">
                     <Clock className="w-4 h-4 text-amber-400 inline" />
@@ -371,7 +371,7 @@ export default function ResourceAllocationTab() {
                 </div>
               </div>
 
-              <div className="space-y-2 pt-2 border-t border-slate-800 text-xs">
+              <div className="space-y-2 pt-2 border-t border-tactical-border text-xs">
                 <div className="flex justify-between text-slate-300">
                   <span className="text-slate-400">Total Bed Capacity:</span>
                   <span className="font-semibold text-white">{routingData.primary_recommended_hospital.bed_capacity} Beds</span>
@@ -387,21 +387,21 @@ export default function ResourceAllocationTab() {
             </div>
 
             {/* Alternative Tertiary Hospitals List */}
-            <div className="lg:col-span-2 bg-slate-950/50 border border-slate-800 rounded-2xl p-5 space-y-4">
-              <h4 className="text-sm font-semibold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
+            <div className="lg:col-span-2 bg-tactical-850/50 border border-tactical-border rounded-2xl p-5 space-y-4">
+              <h4 className="text-sm font-semibold text-white flex items-center gap-2 border-b border-tactical-border pb-3">
                 <Hospital className="w-4 h-4 text-cyan-400" />
                 Alternative Nearby Medical Centers ({routingData.all_nearby_hospitals.length - 1} Backup Centers)
               </h4>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[260px] overflow-y-auto pr-1">
                 {routingData.all_nearby_hospitals.slice(1).map((h) => (
-                  <div key={h.hospital_name} className="bg-slate-900/80 border border-slate-800 hover:border-slate-700 p-3.5 rounded-xl space-y-2 transition-all">
+                  <div key={h.hospital_name} className="bg-tactical-800/80 border border-tactical-border hover:border-slate-700 p-3.5 rounded-xl space-y-2 transition-all">
                     <div className="flex justify-between items-start">
                       <h5 className="font-semibold text-sm text-slate-200">{h.hospital_name}</h5>
                       <span className="text-xs font-mono text-cyan-400 font-semibold">{h.straight_line_distance_km} km</span>
                     </div>
                     <p className="text-xs text-slate-400">{h.trauma_level} • {h.bed_capacity} Beds</p>
-                    <div className="flex justify-between items-center text-xs pt-1 border-t border-slate-800/60">
+                    <div className="flex justify-between items-center text-xs pt-1 border-t border-tactical-border/60">
                       <span className="text-amber-400 font-medium">~{h.estimated_transit_minutes} min transit</span>
                       <span className="text-slate-400 flex items-center gap-1">
                         <PhoneCall className="w-3 h-3 text-slate-400" /> {h.emergency_contact}

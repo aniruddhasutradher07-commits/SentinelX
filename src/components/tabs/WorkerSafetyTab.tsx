@@ -118,7 +118,7 @@ export default function WorkerSafetyTab({ wards }: WorkerSafetyTabProps) {
       />
 
       {/* Inputs Form Bento Card */}
-      <div className="bg-[#14171A] border border-[#232A2E] rounded-2xl p-5 space-y-4">
+      <div className="bg-tactical-800 border border-tactical-border rounded-2xl p-5 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-mono text-slate-300 font-semibold uppercase tracking-wider flex items-center gap-2">
             <Users className="w-4 h-4 text-sky-400" />
@@ -136,7 +136,7 @@ export default function WorkerSafetyTab({ wards }: WorkerSafetyTabProps) {
             <select
               value={wardNo}
               onChange={(e) => setWardNo(e.target.value)}
-              className="w-full bg-[#0B0D0E] border border-[#232A2E] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"
+              className="w-full bg-tactical-900 border border-tactical-border rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"
             >
               <option value="Ward 21">Ward 21 (Old Town Core)</option>
               <option value="Ward 04">Ward 04 (Patia IT Hub)</option>
@@ -155,7 +155,7 @@ export default function WorkerSafetyTab({ wards }: WorkerSafetyTabProps) {
               max="5000"
               value={workerCount}
               onChange={(e) => setWorkerCount(Math.max(1, parseInt(e.target.value) || 1))}
-              className="w-full bg-[#0B0D0E] border border-[#232A2E] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"
+              className="w-full bg-tactical-900 border border-tactical-border rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"
             />
           </div>
 
@@ -165,7 +165,7 @@ export default function WorkerSafetyTab({ wards }: WorkerSafetyTabProps) {
             <select
               value={workType}
               onChange={(e) => setWorkType(e.target.value)}
-              className="w-full bg-[#0B0D0E] border border-[#232A2E] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"
+              className="w-full bg-tactical-900 border border-tactical-border rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"
             >
               <option value="Heavy Masonry">Heavy Masonry</option>
               <option value="Roofing / Sheet Laying">Roofing / Sheet Laying</option>
@@ -182,7 +182,7 @@ export default function WorkerSafetyTab({ wards }: WorkerSafetyTabProps) {
             <select
               value={workIntensity}
               onChange={(e) => setWorkIntensity(e.target.value)}
-              className="w-full bg-[#0B0D0E] border border-[#232A2E] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"
+              className="w-full bg-tactical-900 border border-tactical-border rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"
             >
               <option value="Light">Light (Inspection/Supervision)</option>
               <option value="Moderate">Moderate (Carpentry/Plumbing)</option>
@@ -197,7 +197,7 @@ export default function WorkerSafetyTab({ wards }: WorkerSafetyTabProps) {
             <select
               value={shiftStart}
               onChange={(e) => setShiftStart(parseInt(e.target.value))}
-              className="w-full bg-[#0B0D0E] border border-[#232A2E] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"
+              className="w-full bg-tactical-900 border border-tactical-border rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"
             >
               {Array.from({ length: 16 }, (_, i) => i + 5).map((h) => (
                 <option key={h} value={h}>{`${String(h).padStart(2, '0')}:00`}</option>
@@ -210,7 +210,7 @@ export default function WorkerSafetyTab({ wards }: WorkerSafetyTabProps) {
             <select
               value={shiftEnd}
               onChange={(e) => setShiftEnd(parseInt(e.target.value))}
-              className="w-full bg-[#0B0D0E] border border-[#232A2E] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"
+              className="w-full bg-tactical-900 border border-tactical-border rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"
             >
               {Array.from({ length: 16 }, (_, i) => i + 9).map((h) => (
                 <option key={h} value={h}>{`${String(h).padStart(2, '0')}:00`}</option>
@@ -225,7 +225,7 @@ export default function WorkerSafetyTab({ wards }: WorkerSafetyTabProps) {
                 type="checkbox"
                 checked={hasShade}
                 onChange={(e) => setHasShade(e.target.checked)}
-                className="rounded border-slate-700 bg-slate-900 text-sky-500 focus:ring-0"
+                className="rounded border-slate-700 bg-tactical-800 text-sky-500 focus:ring-0"
               />
               <Umbrella className="w-3.5 h-3.5 text-amber-400" />
               Shaded Rest Shed Available
@@ -236,7 +236,7 @@ export default function WorkerSafetyTab({ wards }: WorkerSafetyTabProps) {
                 type="checkbox"
                 checked={hasWater}
                 onChange={(e) => setHasWater(e.target.checked)}
-                className="rounded border-slate-700 bg-slate-900 text-sky-500 focus:ring-0"
+                className="rounded border-slate-700 bg-tactical-800 text-sky-500 focus:ring-0"
               />
               <Droplets className="w-3.5 h-3.5 text-cyan-400" />
               Chilled Water &amp; ORS Provided
@@ -320,7 +320,7 @@ export default function WorkerSafetyTab({ wards }: WorkerSafetyTabProps) {
 
       {/* Time-Sliced Exposure Bar Chart */}
       {data && data.time_blocks && (
-        <div className="bg-[#14171A] border border-[#232A2E] rounded-2xl p-5 space-y-3">
+        <div className="bg-tactical-800 border border-tactical-border rounded-2xl p-5 space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-mono text-slate-300 font-semibold uppercase tracking-wider flex items-center gap-2">
               <Sun className="w-4 h-4 text-amber-400" />
@@ -353,7 +353,7 @@ export default function WorkerSafetyTab({ wards }: WorkerSafetyTabProps) {
 
       {/* Detailed Shift Directives & Recovery Break Table */}
       {data && data.time_blocks && (
-        <div className="bg-[#14171A] border border-[#232A2E] rounded-2xl p-5 space-y-4">
+        <div className="bg-tactical-800 border border-tactical-border rounded-2xl p-5 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-mono text-slate-300 font-semibold uppercase tracking-wider flex items-center gap-2">
               <Award className="w-4 h-4 text-emerald-400" />
@@ -375,7 +375,7 @@ export default function WorkerSafetyTab({ wards }: WorkerSafetyTabProps) {
                 <div key={idx} className={`border rounded-xl p-3.5 transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-3 ${borderStyle}`}>
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono font-bold text-white bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                      <span className="text-xs font-mono font-bold text-white bg-tactical-800 px-2 py-0.5 rounded border border-tactical-border">
                         {block.block_label}
                       </span>
                       <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border uppercase ${

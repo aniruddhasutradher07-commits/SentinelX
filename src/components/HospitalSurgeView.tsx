@@ -37,7 +37,7 @@ export const HospitalSurgeView: React.FC<HospitalSurgeViewProps> = ({ summary })
   return (
     <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-6">
       {/* Top Header & Model Performance Metrics */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/50 border border-slate-800 rounded-2xl p-5">
+      <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/50 border border-tactical-border rounded-2xl p-5">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
@@ -60,7 +60,7 @@ export const HospitalSurgeView: React.FC<HospitalSurgeViewProps> = ({ summary })
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="bg-slate-950/70 border border-slate-800 p-3 rounded-xl text-right">
+            <div className="bg-tactical-850/70 border border-tactical-border p-3 rounded-xl text-right">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[10px] font-mono text-slate-400 block">Model R² Fit</span>
                 <span className="text-[9px] font-mono px-1 py-0.2 rounded border border-purple-500/30 text-purple-300">
@@ -69,7 +69,7 @@ export const HospitalSurgeView: React.FC<HospitalSurgeViewProps> = ({ summary })
               </div>
               <span className="text-lg font-bold font-mono text-emerald-400">{summary?.confidence_score_r2 || '0.566'}</span>
             </div>
-            <div className="bg-slate-950/70 border border-slate-800 p-3 rounded-xl text-right">
+            <div className="bg-tactical-850/70 border border-tactical-border p-3 rounded-xl text-right">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[10px] font-mono text-slate-400 block">MAE Error</span>
                 <span className="text-[9px] font-mono px-1 py-0.2 rounded border border-purple-500/30 text-purple-300">
@@ -85,7 +85,7 @@ export const HospitalSurgeView: React.FC<HospitalSurgeViewProps> = ({ summary })
       {/* Grid: 2-Stage Formulation & Distributed Lag Effect */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Lag Weight Distribution Chart */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5">
+        <div className="bg-tactical-800/80 border border-tactical-border rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-sm font-bold text-white flex items-center gap-2">
@@ -125,7 +125,7 @@ export const HospitalSurgeView: React.FC<HospitalSurgeViewProps> = ({ summary })
 
           <div className="mt-2 space-y-1 text-[11px] font-sans text-slate-400">
             {lagWeights.slice(0, 3).map((l, i) => (
-              <div key={i} className="flex items-center justify-between py-1 border-t border-slate-800/60">
+              <div key={i} className="flex items-center justify-between py-1 border-t border-tactical-border/60">
                 <span className="font-mono text-slate-300 font-semibold">{l.day}:</span>
                 <span className="text-slate-400">{l.desc}</span>
               </div>
@@ -134,7 +134,7 @@ export const HospitalSurgeView: React.FC<HospitalSurgeViewProps> = ({ summary })
         </div>
 
         {/* 2-Stage Mathematical Formulation Card */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+        <div className="bg-tactical-800/80 border border-tactical-border rounded-2xl p-5 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-bold text-white flex items-center gap-2">
@@ -147,26 +147,26 @@ export const HospitalSurgeView: React.FC<HospitalSurgeViewProps> = ({ summary })
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800/60">
+              <div className="bg-tactical-850/60 p-3 rounded-xl border border-tactical-border/60">
                 <div className="flex items-center gap-2 font-mono text-sky-400 font-bold text-[11px]">
                   STAGE 1: DLNM Lagged Baseline
                 </div>
                 <p className="text-slate-300 mt-1">
                   Computes log-linear Poisson expectation over a 6-day rolling thermal exposure window:
                 </p>
-                <div className="font-mono bg-slate-900 px-2 py-1 rounded text-[11px] text-amber-300 mt-1.5 border border-slate-800">
+                <div className="font-mono bg-tactical-800 px-2 py-1 rounded text-[11px] text-amber-300 mt-1.5 border border-tactical-border">
                   ln(ŷ + 1) = β₀ + ∑ [wₖ · RiskScore(t-k)]
                 </div>
               </div>
 
-              <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800/60">
+              <div className="bg-tactical-850/60 p-3 rounded-xl border border-tactical-border/60">
                 <div className="flex items-center gap-2 font-mono text-purple-400 font-bold text-[11px]">
                   STAGE 2: XGBoost Residual Machine Learning
                 </div>
                 <p className="text-slate-300 mt-1">
                   Corrects non-linear spatial variance using ward population density, age demographics, and Urban Heat Island (UHI) intensity.
                 </p>
-                <div className="font-mono bg-slate-900 px-2 py-1 rounded text-[11px] text-emerald-300 mt-1.5 border border-slate-800">
+                <div className="font-mono bg-tactical-800 px-2 py-1 rounded text-[11px] text-emerald-300 mt-1.5 border border-tactical-border">
                   ŷ_final = exp(ŷ_Stage1 + XGBoost_Residuals) - 1
                 </div>
               </div>
@@ -186,7 +186,7 @@ export const HospitalSurgeView: React.FC<HospitalSurgeViewProps> = ({ summary })
       </div>
 
       {/* Hospital Resource & Surge Readiness Table */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5">
+      <div className="bg-tactical-800/80 border border-tactical-border rounded-2xl p-5">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-bold text-white flex items-center gap-2">
             <Stethoscope className="w-4 h-4 text-sky-400" />
@@ -200,7 +200,7 @@ export const HospitalSurgeView: React.FC<HospitalSurgeViewProps> = ({ summary })
         <div className="overflow-x-auto">
           <table className="w-full text-xs font-mono text-left">
             <thead>
-              <tr className="border-b border-slate-800 text-slate-400 text-[11px]">
+              <tr className="border-b border-tactical-border text-slate-400 text-[11px]">
                 <th className="py-2.5 px-3">HOSPITAL FACILITY</th>
                 <th className="py-2.5 px-3">SURGE CAPACITY</th>
                 <th className="py-2.5 px-3">COOLING BAYS</th>

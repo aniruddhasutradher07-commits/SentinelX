@@ -248,11 +248,11 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
   const maxForecast = [...forecast5d].sort((a, b) => b.admissions - a.admissions)[0];
 
   return (
-    <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden bg-[#0B0D0E] text-[#F2F1EC]">
+    <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden bg-tactical-900 text-slate-200">
       {/* Ward Grid & Controls List */}
-      <div className="flex-1 flex flex-col h-[55vh] lg:h-full border-b lg:border-b-0 lg:border-r border-slate-800/80 overflow-hidden">
+      <div className="flex-1 flex flex-col h-[55vh] lg:h-full border-b lg:border-b-0 lg:border-r border-tactical-border/80 overflow-hidden">
         {/* Controls Toolbar */}
-        <div className="p-4 bg-slate-950/80 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <div className="p-4 bg-tactical-850/80 border-b border-tactical-border/80 flex flex-wrap items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-2 flex-1 min-w-[200px]">
             <div className="relative w-full max-w-xs">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -262,7 +262,7 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search Ward (e.g., W21)..."
-                className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 font-sans"
+                className="w-full bg-tactical-800 border border-tactical-border rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 font-sans"
               />
             </div>
 
@@ -275,7 +275,7 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
                   onClick={() => setSelectedZone(z)}
                   className={`px-2.5 py-1 rounded-lg text-xs font-mono transition whitespace-nowrap ${selectedZone === z
                       ? 'bg-sky-500/20 text-sky-400 border border-sky-500/40 font-semibold'
-                      : 'text-slate-400 hover:bg-slate-900 border border-transparent'
+                      : 'text-slate-400 hover:bg-tactical-800 border border-transparent'
                     }`}
                 >
                   {z}
@@ -292,7 +292,7 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
               id="select-ward-sort"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-slate-200 text-xs focus:outline-none focus:border-sky-500"
+              className="bg-tactical-800 border border-tactical-border rounded-lg px-2 py-1 text-slate-200 text-xs focus:outline-none focus:border-sky-500"
             >
               <option value="risk">Highest Final Risk Index</option>
               <option value="multiplier">Vulnerability Multiplier (M_v)</option>
@@ -310,7 +310,7 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
         </div>
 
         {/* Notice Banner: Decoupled Multi-Factor Risk */}
-        <div className="px-4 py-2 bg-gradient-to-r from-amber-500/10 via-sky-500/10 to-indigo-500/10 border-b border-slate-800/80 flex items-center justify-between text-[11px] font-mono">
+        <div className="px-4 py-2 bg-gradient-to-r from-amber-500/10 via-sky-500/10 to-indigo-500/10 border-b border-tactical-border/80 flex items-center justify-between text-[11px] font-mono">
           <div className="flex items-center gap-2 text-slate-300">
             <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
             <span><strong>Multi-Factor Risk Formula:</strong> Risk Index = Thermal Hazard × Vulnerability Multiplier (<span className="text-amber-300 font-semibold">M_v</span> from Census Demographics + OSM Canopy/Roofs)</span>
@@ -338,7 +338,7 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
                 onClick={() => setSelectedWard(w)}
                 className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${isSelected
                     ? 'bg-sky-500/10 border-sky-500/50 shadow-md shadow-sky-500/10'
-                    : 'bg-slate-900/60 border-slate-800/80 hover:bg-slate-900/90 hover:border-slate-700'
+                    : 'bg-tactical-800/60 border-tactical-border/80 hover:bg-tactical-800/90 hover:border-slate-700'
                   }`}
               >
                 <div className="flex items-start justify-between">
@@ -379,7 +379,7 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
                 </div>
 
                 {/* Census / OSM Vulnerability Strip */}
-                <div className="grid grid-cols-4 gap-1.5 mt-3 pt-2.5 border-t border-slate-800/60 text-[10px] font-mono text-slate-300">
+                <div className="grid grid-cols-4 gap-1.5 mt-3 pt-2.5 border-t border-tactical-border/60 text-[10px] font-mono text-slate-300">
                   <div title="Elderly Demographic (Age 60+ %) - Estimated using state-average Census age-ratio (8.5%)">
                     <span className="text-[9px] text-slate-500 block flex items-center gap-0.5">
                       <Users className="w-2.5 h-2.5 text-sky-400" /> Elderly<span className="text-sky-400 cursor-help" title="Estimated (State Avg)">*</span>
@@ -419,7 +419,7 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
                 </div>
 
                 {/* Satellite Earth Observation Strip */}
-                <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-800/40 text-[9px] font-mono">
+                <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-tactical-border/40 text-[9px] font-mono">
                   <span className="text-cyan-300 font-semibold flex items-center gap-1">
                     🛰️ LST: {w.modis_lst_c || (w.temperature_c ? (w.temperature_c + 6.8).toFixed(1) : '45.8')}°C <span className="text-[7px] text-emerald-400 font-normal">[REAL]</span>
                   </span>
@@ -437,15 +437,15 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
       </div>
 
       {/* Selected Ward Detail / Explainability Panel (UI/UX Spec Section 3.3) */}
-      <div className="w-full lg:w-[410px] bg-[#14171A] border-l border-[#232A2E] p-4 flex flex-col h-[45vh] lg:h-full overflow-y-auto gap-3.5 shrink-0">
+      <div className="w-full lg:w-[410px] bg-tactical-800 border-l border-tactical-border p-4 flex flex-col h-[45vh] lg:h-full overflow-y-auto gap-3.5 shrink-0">
 
         {/* Header Zone: Ward name, MRI grade chip, horizon */}
-        <div className="bg-[#0B0D0E] border border-[#232A2E] rounded-2xl p-4">
+        <div className="bg-tactical-900 border border-tactical-border rounded-2xl p-4">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-mono text-[#8B9096] uppercase tracking-wider">
+            <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">
               {activeWard?.zone || 'North Zone'} · Bhubaneswar
             </span>
-            <span className="text-[10px] font-mono bg-[#14171A] text-[#8B9096] px-2 py-0.5 rounded border border-[#232A2E]">
+            <span className="text-[10px] font-mono bg-tactical-800 text-slate-400 px-2 py-0.5 rounded border border-tactical-border">
               Horizon: Today (Day 0)
             </span>
           </div>
@@ -466,32 +466,32 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
           </div>
 
           <div className="grid grid-cols-2 gap-2 mt-3 text-xs font-mono">
-            <div className="bg-[#14171A] p-2 rounded-xl border border-[#232A2E]">
+            <div className="bg-tactical-800 p-2 rounded-xl border border-tactical-border">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] text-[#8B9096]">Population</span>
+                <span className="text-[10px] text-slate-400">Population</span>
                 <span className="text-[8px] font-mono px-1 py-0.2 rounded border border-emerald-500/30 text-emerald-300">
                   [REAL]
                 </span>
               </div>
               <span className="font-bold text-white tabular-nums">{(activeWard?.population || 14500).toLocaleString()}</span>
             </div>
-            <div className="bg-[#14171A] p-2 rounded-xl border border-[#232A2E]">
+            <div className="bg-tactical-800 p-2 rounded-xl border border-tactical-border">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] text-[#8B9096]">WBGT Stress</span>
+                <span className="text-[10px] text-slate-400">WBGT Stress</span>
                 <span className="text-[8px] font-mono px-1 py-0.2 rounded border border-cyan-500/30 text-cyan-300">
                   [CALC]
                 </span>
               </div>
-              <span className="font-bold text-[#F2F1EC] tabular-nums">{activeWard?.WBGT_celsius || 32.8}°C</span>
+              <span className="font-bold text-slate-200 tabular-nums">{activeWard?.WBGT_celsius || 32.8}°C</span>
             </div>
           </div>
         </div>
 
         {/* Panel 1: Hospital Surge XAI (SHAP) */}
-        <div className="bg-[#14171A] border border-[#232A2E] rounded-2xl p-4">
-          <h3 className="text-[10px] font-mono text-[#8B9096] uppercase tracking-wider mb-3 flex items-center justify-between">
+        <div className="bg-tactical-800 border border-tactical-border rounded-2xl p-4">
+          <h3 className="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between">
             <span className="flex items-center gap-1.5">
-              <Activity className="w-3.5 h-3.5 text-[#0F5C5C]" />
+              <Activity className="w-3.5 h-3.5 text-cyan-500" />
               Hospital Surge XAI (SHAP)
             </span>
             <div className="flex items-center gap-1.5">
@@ -535,7 +535,7 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
             </div>
           )}
           
-          <div className="mt-3 flex items-center gap-4 text-[9px] font-mono text-[#8B9096] border-t border-[#232A2E] pt-3">
+          <div className="mt-3 flex items-center gap-4 text-[9px] font-mono text-slate-400 border-t border-tactical-border pt-3">
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 rounded bg-[#C0392B]"></div>
               <span>Increases Surge</span>
@@ -548,20 +548,20 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
         </div>
 
         {/* Panel 2: Model consistency — MRI grade */}
-        <div className="bg-[#14171A] border border-[#232A2E] rounded-2xl p-4 flex items-center justify-between">
+        <div className="bg-tactical-800 border border-tactical-border rounded-2xl p-4 flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <h3 className="text-[10px] font-mono text-[#8B9096] uppercase tracking-wider flex items-center gap-1.5">
-                <ShieldAlert className="w-3.5 h-3.5 text-[#0F5C5C]" />
+              <h3 className="text-[10px] font-mono text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <ShieldAlert className="w-3.5 h-3.5 text-cyan-500" />
                 Model consistency — MRI grade
               </h3>
               <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold">
                 [CALCULATED]
               </span>
             </div>
-            <div className="text-[10px] text-[#F2F1EC] font-sans mt-2 space-y-1">
-              <p><span className="text-[#8B9096]">WBGT Band:</span> {wbgtBand}</p>
-              <p><span className="text-[#8B9096]">Raw MRI:</span> {rawMriGrade}</p>
+            <div className="text-[10px] text-slate-200 font-sans mt-2 space-y-1">
+              <p><span className="text-slate-400">WBGT Band:</span> {wbgtBand}</p>
+              <p><span className="text-slate-400">Raw MRI:</span> {rawMriGrade}</p>
               {mriAdjusted && (
                 <p className="text-[#C0392B] font-bold mt-1 bg-red-900/20 px-1.5 py-0.5 rounded border border-red-500/20 inline-block">
                   Adjusted upwards due to {wbgtBand} WBGT!
@@ -617,9 +617,9 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
                 }}
               />
 
-              <div className="bg-[#14171A] border border-[#232A2E] rounded-2xl p-4">
+              <div className="bg-tactical-800 border border-tactical-border rounded-2xl p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-[10px] font-mono text-[#8B9096] uppercase tracking-wider flex items-center gap-1.5">
+                  <h3 className="text-[10px] font-mono text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                     <Activity className="w-3.5 h-3.5 text-cyan-400" />
                     Day Risk vs Night Failure vs 24h Burden
                   </h3>
@@ -647,7 +647,7 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
                   </ResponsiveContainer>
                 </div>
 
-                <div className="flex items-center justify-between text-[10px] font-mono border-t border-[#232A2E] pt-2">
+                <div className="flex items-center justify-between text-[10px] font-mono border-t border-tactical-border pt-2">
                   <span className="text-slate-400">Night Core Cooling Status:</span>
                   <span className={nightFailureVal >= 60 ? 'text-rose-400 font-bold' : 'text-emerald-400 font-bold'}>
                     {nightFailureVal >= 60 ? `Poor Cooling (${consecutiveNights} Consecutive Nights)` : 'Normal Nocturnal Recovery'}
@@ -659,10 +659,10 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
         })()}
 
         {/* Panel 4: 5-day forecast horizon */}
-        <div className="bg-[#14171A] border border-[#232A2E] rounded-2xl p-4">
-          <h3 className="text-[10px] font-mono text-[#8B9096] uppercase tracking-wider mb-2 flex items-center justify-between">
+        <div className="bg-tactical-800 border border-tactical-border rounded-2xl p-4">
+          <h3 className="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-2 flex items-center justify-between">
             <span className="flex items-center gap-1.5">
-              <TrendingUp className="w-3.5 h-3.5 text-[#0F5C5C]" />
+              <TrendingUp className="w-3.5 h-3.5 text-cyan-500" />
               5-day forecast horizon
             </span>
             <div className="flex items-center gap-1.5">
@@ -718,7 +718,7 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
                     if (active && payload && payload.length) {
                       const data = payload[0].payload;
                       return (
-                        <div className="bg-[#0B0D0E] border border-[#232A2E] rounded-lg p-2 text-[10px] text-white">
+                        <div className="bg-tactical-900 border border-tactical-border rounded-lg p-2 text-[10px] text-white">
                           <p className="font-bold mb-1">{label}</p>
                           <p>Max WBGT: {data.wbgt}°C</p>
                           <p>Night Min: {data.tMin}°C</p>
@@ -747,10 +747,10 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
             </ResponsiveContainer>
           </div>
           <div className="flex justify-between items-end mt-3">
-            <p className="text-[10px] text-[#F2F1EC] font-sans">
+            <p className="text-[10px] text-slate-200 font-sans">
               Peak expected on <span className="font-bold">{maxForecast?.date}</span> ({maxForecast?.admissions} admissions).
             </p>
-            <div className="flex gap-3 text-[9px] font-mono text-[#8B9096]">
+            <div className="flex gap-3 text-[9px] font-mono text-slate-400">
                <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-white"></div> WBGT</span>
                <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded bg-[#C0392B]"></div> Surge</span>
             </div>
@@ -758,7 +758,7 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
         </div>
 
         {/* Drivers Zone (Section 3.3): Exactly three plain-language driver lines, ranked */}
-        <div className="bg-[#0B0D0E] border border-[#232A2E] rounded-2xl p-4">
+        <div className="bg-tactical-900 border border-tactical-border rounded-2xl p-4">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-xs font-semibold text-white flex items-center gap-1.5">
               <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
@@ -769,13 +769,13 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
             </span>
           </div>
 
-          <ol className="space-y-2 text-xs font-sans text-[#F2F1EC]">
+          <ol className="space-y-2 text-xs font-sans text-slate-200">
             {top3Drivers.map((driverText, idx) => (
               <li
                 key={idx}
-                className="flex items-start gap-2 bg-[#14171A] p-2 rounded-xl border border-[#232A2E]"
+                className="flex items-start gap-2 bg-tactical-800 p-2 rounded-xl border border-tactical-border"
               >
-                <span className="w-4 h-4 rounded-full bg-[#0F5C5C]/30 text-teal-300 font-mono text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                <span className="w-4 h-4 rounded-full bg-cyan-950/30 text-teal-300 font-mono text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
                   {idx + 1}
                 </span>
                 <span className="text-xs leading-snug">{driverText}</span>
@@ -785,10 +785,10 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
         </div>
 
         {/* Trend Zone (Section 3.3): Small inline sparkline of this ward's grade over last 5 and next 5 days */}
-        <div className="bg-[#0B0D0E] border border-[#232A2E] rounded-2xl p-4">
+        <div className="bg-tactical-900 border border-tactical-border rounded-2xl p-4">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-xs font-semibold text-white flex items-center gap-1.5">
-              <TrendingUp className="w-3.5 h-3.5 text-[#0F5C5C]" />
+              <TrendingUp className="w-3.5 h-3.5 text-cyan-500" />
               Cumulative Exposure Trend (10-Day Horizon)
             </h3>
             <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 uppercase tracking-widest font-semibold">
@@ -815,20 +815,20 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
                     }}
                     title={`Day ${dayOffset >= 0 ? '+' : ''}${dayOffset}: Risk Score ${simulatedVal}`}
                   />
-                  <span className={`text-[8px] font-mono ${isToday ? 'text-white font-bold' : 'text-[#8B9096]'}`}>
+                  <span className={`text-[8px] font-mono ${isToday ? 'text-white font-bold' : 'text-slate-400'}`}>
                     {dayOffset === 0 ? 'T' : dayOffset > 0 ? `+${dayOffset}` : dayOffset}
                   </span>
                 </div>
               );
             })}
           </div>
-          <p className="text-[10px] text-[#8B9096] mt-2 font-mono">
+          <p className="text-[10px] text-slate-400 mt-2 font-mono">
             Persistence: Multi-day cumulative heat stress triggers higher clinical hospital surge risk.
           </p>
         </div>
 
         {/* Advisory Zone (Section 3.3): The exact text being sent to citizens in this ward */}
-        <div className="bg-[#0B0D0E] border border-[#232A2E] rounded-2xl p-4">
+        <div className="bg-tactical-900 border border-tactical-border rounded-2xl p-4">
           <div className="flex items-center justify-between mb-1.5">
             <h3 className="text-xs font-semibold text-white flex items-center gap-1.5">
               <AlertCircle className="w-3.5 h-3.5 text-sky-400" />
@@ -837,25 +837,25 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
             <span className="text-[9px] font-mono text-sky-400">Live Broadcast Text</span>
           </div>
 
-          <div className="bg-[#14171A] p-2.5 rounded-xl border border-[#232A2E] text-xs text-[#F2F1EC] leading-relaxed font-sans">
+          <div className="bg-tactical-800 p-2.5 rounded-xl border border-tactical-border text-xs text-slate-200 leading-relaxed font-sans">
             &ldquo;🚨 [OSDMA/BMC ALERT] {activeWard?.ward_no}: Extreme thermal stress (WBGT {activeWard?.WBGT_celsius || 32.8}°C). Mandatory rest intervals for outdoor laborers. Cooling center open at nearest ward Kalyan Mandap.&rdquo;
           </div>
         </div>
 
         {/* Actions Zone (Section 3.3): Available administrative triggers */}
-        <div className="bg-[#0B0D0E] border border-[#232A2E] rounded-2xl p-4">
+        <div className="bg-tactical-900 border border-tactical-border rounded-2xl p-4">
           <h3 className="text-xs font-semibold text-white mb-2 flex items-center gap-1.5">
-            <Building2 className="w-3.5 h-3.5 text-[#0F5C5C]" />
+            <Building2 className="w-3.5 h-3.5 text-cyan-500" />
             Administrative Heat Action Triggers
           </h3>
-          <p className="text-[10px] text-[#8B9096] mb-3 font-sans">
+          <p className="text-[10px] text-slate-400 mb-3 font-sans">
             Directly executes municipal heat action plan interventions with audit logging:
           </p>
 
           <button
             id={`btn-ward-dispatch-${activeWard?.ward_no}`}
             onClick={() => onDispatchAlert(activeWard?.ward_no || 'W21')}
-            className="w-full py-2.5 bg-[#0F5C5C] hover:bg-teal-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition font-sans shadow-md"
+            className="w-full py-2.5 bg-cyan-950 hover:bg-teal-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition font-sans shadow-md"
           >
             <Send className="w-3.5 h-3.5" />
             Open Alert &amp; Administrative Action Console

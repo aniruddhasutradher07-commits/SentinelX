@@ -117,3 +117,21 @@ Append new entries here as the project progresses. Newest at the bottom. Any AI 
 - **What changed**: Removed CartoDB and Esri raster tile layers from `services/gis_map.py` (backend Folium map) and `src/components/OdishaMap.tsx` (frontend Leaflet map). Replaced the tile basemaps with a solid `#0a0e12` dark background. Removed the basemap switcher control.
 - **Why**: Both CartoDB and Esri required API keys/tokens for reliable usage (especially on Vercel production), causing "API KEY REQUIRED" watermarks and egress failures. Transitioning to a pure-GeoJSON + solid background approach removes third-party dependencies, ensures zero watermarks, and guarantees consistent rendering across localhost and Vercel.
 - **Notes**: Layer toggle functionality (Thermal Stress, Vulnerability, Cooling Centers, Emergency Routing) and India bounds clamping remain fully intact on top of the plain dark background.
+
+## 2026-09-22 — Stitch Command Center UI Overhaul
+- **What changed**: Imported a new visual reference from `stitch_command_center.html`. Updated `tailwind.config.js` to include the `tactical` scale and updated `design.md` tokens. Updated `src/index.css` with new `glow-cyan`, `glow-amber`, `glow-crimson`, radar-grid, and pulse animations. Began incremental update of `StatCard.tsx` to match the new dark mode aesthetic.
+- **Why**: The user provided an exact HTML/Tailwind mockup exported from Stitch with highly specific tokens, glows, and animations. This replaces previous generic styles with a much richer, "situation room" command-center look.
+- **Notes**: Updating incrementally, starting with `StatCard.tsx` before applying across the rest of the application.
+
+## 2026-09-22 — Incident Response: Removed HeatGuardAI/TailAdmin Contamination
+- **What changed**: Purged the generic `TailAdmin` CSS block from `src/index.css`. Reverted `src/App.tsx` back to rendering the original `SentinelX` `<Dashboard />` root. Deleted `src/components/heatguard/`, generic layout components (`src/layout/`, etc.), and `src/pages/Dashboard/Home.tsx`. Stripped unauthorized dependencies (`@fullcalendar/*`, `apexcharts`, etc.) from `package.json`. Re-added `react-router-dom` for the `Landing.tsx` route.
+- **Why**: Commit `5c5a4b6` inexplicably merged an entire "HeatGuardAI" TailAdmin template into the repository. This caused severe UI collisions (two overlapping dashboards) and forced the `App.tsx` router to bypass the genuine SentinelX components.
+- **Notes**: All SentinelX components (Tasks 1-12) are fully restored. The recent `StatCard` design updates and `Stitch` tactical design tokens remain intact.
+
+## 2026-09-22 — UI/UX: Tactical Design System Rollout
+- **What changed**: Rolled out the SentinelX tactical design system tokens (`tactical-900`, `tactical-850`, `border-tactical-border`, `cyan/amber glows`) across all Command Center components. This included:
+  1. The `Header` (updated branding badges to use the tactical cyan/amber palette, replaced action buttons with the Stitch reference styling, and refreshed the CDC realtime pill).
+  2. `WardView` and `NightRecoveryCard` (replaced hardcoded hexes with `bg-tactical-900`/`800`, `border-tactical-border`, and `text-slate-200/400`).
+  3. All analytics tabs (`WorkerSafetyTab`, `SchoolSafetyTab`, `ResourceAllocationTab`, `HistoricalReplayTab`, `ModelValidationView`, etc.).
+- **Why**: To align the entire dashboard visually with the `stitch_command_center.html` reference and `design.md` specifications, ensuring a cohesive "situation-room" aesthetic.
+- **Notes**: All functional features, components, and provenance badges (`[REAL]`, `[CALCULATED]`, etc.) were perfectly preserved. The changes were purely stylistic CSS class swaps.

@@ -6,6 +6,8 @@ export default {
   theme: {
     fontFamily: {
       outfit: ["Outfit", "sans-serif"],
+      mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+      sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif']
     },
     screens: {
       "2xsm": "375px",
@@ -133,6 +135,20 @@ export default {
         },
         "theme-purple": {
           500: "#7A5AF8",
+        },
+        tactical: {
+          900: '#070a0d',
+          850: '#0b0f14',
+          800: '#11171f',
+          750: '#151d27',
+          700: '#1d2734',
+          600: '#2c3b4e',
+          border: '#1f2a38',
+          cyan: '#06b6d4',
+          emerald: '#10b981',
+          amber: '#f59e0b',
+          crimson: '#ef4444',
+          orange: '#f97316'
         },
       },
       boxShadow: {

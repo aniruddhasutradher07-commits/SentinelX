@@ -161,3 +161,19 @@
    |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 6567|  @layer base {
 6568|    body {
+2:58:42 PM [vite] (client) page reload data/stitch_sentinelx_thermal_intelligence_platform/code.html
+3:01:39 PM [vite] (client) page reload design_reference/stitch_command_center.html
+3:02:26 PM [vite] (client) page reload tailwind.config.js
+3:03:02 PM [vite] (client) hmr update /src/index.css
+3:03:34 PM [vite] (client) page reload src/components/ui/StatCard.tsx
+[vite:css][postcss] @import must precede all other statements (besides @charset or empty @layer)
+7052|    }
+7053|  }
+7054|  @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+7055|  @layer base {
+7056|    body {
+3:07:09 PM [vite] (client) page reload src/components/ui/StatCard.tsx
+3:07:22 PM [vite] (client) page reload src/components/ui/StatCard.tsx
+3:07:46 PM [vite] (client) page reload design.md
+3:09:19 PM [vite] (client) page reload memory.md

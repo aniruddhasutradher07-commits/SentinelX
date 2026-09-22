@@ -134,7 +134,7 @@ export default function HistoricalReplayTab() {
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-slate-900/80 border border-slate-800 p-5 rounded-2xl backdrop-blur-md">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-tactical-800/80 border border-tactical-border p-5 rounded-2xl backdrop-blur-md">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold text-white tracking-wide">Historical Event Replay Engine</h1>
@@ -151,7 +151,7 @@ export default function HistoricalReplayTab() {
         </div>
 
         {/* Year Selector Buttons */}
-        <div className="flex items-center gap-2 bg-slate-950/80 p-1.5 rounded-xl border border-slate-800 shrink-0">
+        <div className="flex items-center gap-2 bg-tactical-850/80 p-1.5 rounded-xl border border-tactical-border shrink-0">
           {[
             { year: '1998', label: '1998 Catastrophe', deaths: '~2,042 Deaths' },
             { year: '2015', label: '2015 Pre-Monsoon', deaths: '67 Deaths' },
@@ -175,8 +175,8 @@ export default function HistoricalReplayTab() {
 
       {/* Sourced NDMA Event Profile Banner */}
       {summary && (
-        <div className="bg-gradient-to-r from-slate-900 via-slate-900/90 to-amber-950/30 border border-slate-800 rounded-2xl p-5 space-y-3 relative overflow-hidden">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-800 pb-3">
+        <div className="bg-gradient-to-r from-slate-900 via-slate-900/90 to-amber-950/30 border border-tactical-border rounded-2xl p-5 space-y-3 relative overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-tactical-border pb-3">
             <div className="flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-amber-400" />
               <h2 className="text-lg font-bold text-white">{summary.event_name}</h2>
@@ -190,15 +190,15 @@ export default function HistoricalReplayTab() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
-            <div className="bg-slate-950/60 border border-slate-800 p-3 rounded-xl">
+            <div className="bg-tactical-850/60 border border-tactical-border p-3 rounded-xl">
               <span className="text-slate-400 text-xs block">Sourced Mortality Figure</span>
               <span className="text-sm font-bold text-rose-300 font-sans">{summary.confirmed_deaths_label}</span>
             </div>
-            <div className="bg-slate-950/60 border border-slate-800 p-3 rounded-xl">
+            <div className="bg-tactical-850/60 border border-tactical-border p-3 rounded-xl">
               <span className="text-slate-400 text-xs block">Reported Peak Air Temp</span>
               <span className="text-base font-bold text-amber-300 font-mono">{summary.reported_peak_temp_c}°C</span>
             </div>
-            <div className="bg-slate-950/60 border border-slate-800 p-3 rounded-xl">
+            <div className="bg-tactical-850/60 border border-tactical-border p-3 rounded-xl">
               <span className="text-slate-400 text-xs block">Official Source Citation</span>
               <span className="text-xs text-slate-300 italic font-sans">{summary.source_citation}</span>
             </div>
@@ -211,7 +211,7 @@ export default function HistoricalReplayTab() {
       )}
 
       {/* Playback Control Bar */}
-      <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl backdrop-blur-md space-y-4">
+      <div className="bg-tactical-800/80 border border-tactical-border p-4 rounded-2xl backdrop-blur-md space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
@@ -234,7 +234,7 @@ export default function HistoricalReplayTab() {
               <RotateCcw className="w-4 h-4" />
             </button>
 
-            <div className="flex items-center gap-1 bg-slate-950 border border-slate-800 rounded-xl p-1">
+            <div className="flex items-center gap-1 bg-tactical-850 border border-tactical-border rounded-xl p-1">
               <button
                 onClick={() => handleStepChange(Math.max(1, currentStep - 1))}
                 disabled={currentStep <= 1}
@@ -269,7 +269,7 @@ export default function HistoricalReplayTab() {
               className={`py-2 px-2 rounded-xl text-xs font-medium transition-all text-left border ${
                 currentStep === d.day_number
                   ? 'bg-cyan-950/80 border-cyan-500 text-white shadow-md shadow-cyan-950/50 font-bold'
-                  : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800/40'
+                  : 'bg-tactical-850/60 border-tactical-border text-slate-400 hover:text-white hover:bg-slate-800/40'
               }`}
             >
               <div className="text-[10px] uppercase font-mono text-cyan-400">Day {d.day_number}</div>
@@ -283,8 +283,8 @@ export default function HistoricalReplayTab() {
       {currentDay && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Card 1: Real Historical Sourced Weather */}
-          <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 space-y-4 backdrop-blur-md">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="bg-tactical-800/70 border border-tactical-border rounded-2xl p-5 space-y-4 backdrop-blur-md">
+            <div className="flex items-center justify-between border-b border-tactical-border pb-3">
               <span className="text-xs font-bold text-white flex items-center gap-1.5">
                 <Calendar className="w-4 h-4 text-emerald-400" />
                 Historical Synoptic Weather
@@ -295,15 +295,15 @@ export default function HistoricalReplayTab() {
             </div>
 
             <div className="space-y-3 font-mono text-xs">
-              <div className="bg-slate-950/60 border border-slate-800 p-3 rounded-xl flex justify-between items-center">
+              <div className="bg-tactical-850/60 border border-tactical-border p-3 rounded-xl flex justify-between items-center">
                 <span className="text-slate-400 font-sans">Peak Daytime Air Temp:</span>
                 <span className="text-lg font-bold text-rose-400">{currentDay.real_weather.temp_c}°C</span>
               </div>
-              <div className="bg-slate-950/60 border border-slate-800 p-3 rounded-xl flex justify-between items-center">
+              <div className="bg-tactical-850/60 border border-tactical-border p-3 rounded-xl flex justify-between items-center">
                 <span className="text-slate-400 font-sans">Relative Humidity:</span>
                 <span className="text-base font-bold text-cyan-300">{currentDay.real_weather.humidity_pct}%</span>
               </div>
-              <div className="bg-slate-950/60 border border-slate-800 p-3 rounded-xl flex justify-between items-center">
+              <div className="bg-tactical-850/60 border border-tactical-border p-3 rounded-xl flex justify-between items-center">
                 <span className="text-slate-400 font-sans">Nighttime Min Temp:</span>
                 <span className="text-base font-bold text-amber-300">{currentDay.real_weather.night_min_temp_c}°C</span>
               </div>
@@ -315,8 +315,8 @@ export default function HistoricalReplayTab() {
           </div>
 
           {/* Card 2: Reconstructed SentinelX HTSI & Surge Model */}
-          <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 space-y-4 backdrop-blur-md">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="bg-tactical-800/70 border border-tactical-border rounded-2xl p-5 space-y-4 backdrop-blur-md">
+            <div className="flex items-center justify-between border-b border-tactical-border pb-3">
               <span className="text-xs font-bold text-white flex items-center gap-1.5">
                 <Activity className="w-4 h-4 text-purple-400" />
                 Reconstructed SentinelX AI Outputs
@@ -327,11 +327,11 @@ export default function HistoricalReplayTab() {
             </div>
 
             <div className="space-y-3 font-mono text-xs">
-              <div className="bg-slate-950/60 border border-slate-800 p-3 rounded-xl flex justify-between items-center">
+              <div className="bg-tactical-850/60 border border-tactical-border p-3 rounded-xl flex justify-between items-center">
                 <span className="text-slate-400 font-sans">Reconstructed HTSI Score:</span>
                 <span className="text-lg font-bold text-purple-300">{currentDay.modelled_htsi.score} / 100</span>
               </div>
-              <div className="bg-slate-950/60 border border-slate-800 p-3 rounded-xl flex justify-between items-center">
+              <div className="bg-tactical-850/60 border border-tactical-border p-3 rounded-xl flex justify-between items-center">
                 <span className="text-slate-400 font-sans">Reconstructed Risk Tier:</span>
                 <span className={`px-2 py-0.5 rounded font-bold ${
                   currentDay.modelled_htsi.risk_tier.includes('RED') ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' :
@@ -341,11 +341,11 @@ export default function HistoricalReplayTab() {
                   {currentDay.modelled_htsi.risk_tier}
                 </span>
               </div>
-              <div className="bg-slate-950/60 border border-slate-800 p-3 rounded-xl flex justify-between items-center">
+              <div className="bg-tactical-850/60 border border-tactical-border p-3 rounded-xl flex justify-between items-center">
                 <span className="text-slate-400 font-sans">Predicted Daily ER Admissions:</span>
                 <span className="text-base font-bold text-rose-400">{currentDay.modelled_surge.expected_daily_admissions} (+{currentDay.modelled_surge.surge_pct}%)</span>
               </div>
-              <div className="bg-slate-950/60 border border-slate-800 p-3 rounded-xl flex justify-between items-center">
+              <div className="bg-tactical-850/60 border border-tactical-border p-3 rounded-xl flex justify-between items-center">
                 <span className="text-slate-400 font-sans">ICU Bed Utilization:</span>
                 <span className="text-base font-bold text-amber-300">{currentDay.modelled_surge.icu_utilization_pct}%</span>
               </div>
@@ -357,8 +357,8 @@ export default function HistoricalReplayTab() {
           </div>
 
           {/* Card 3: Reconstructed Disaster Action Engine Directives */}
-          <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 space-y-4 backdrop-blur-md">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="bg-tactical-800/70 border border-tactical-border rounded-2xl p-5 space-y-4 backdrop-blur-md">
+            <div className="flex items-center justify-between border-b border-tactical-border pb-3">
               <span className="text-xs font-bold text-white flex items-center gap-1.5">
                 <ShieldAlert className="w-4 h-4 text-cyan-400" />
                 Action Engine Advisory Directives
@@ -370,7 +370,7 @@ export default function HistoricalReplayTab() {
 
             <div className="space-y-2.5">
               {currentDay.modelled_directives.map((dir, idx) => (
-                <div key={idx} className="bg-slate-950/70 border border-slate-800 p-3 rounded-xl text-xs flex items-start gap-2.5">
+                <div key={idx} className="bg-tactical-850/70 border border-tactical-border p-3 rounded-xl text-xs flex items-start gap-2.5">
                   <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
                   <span className="text-slate-200 leading-relaxed font-sans">{dir}</span>
                 </div>

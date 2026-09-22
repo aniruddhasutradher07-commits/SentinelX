@@ -109,9 +109,9 @@ export const ModelValidationView: React.FC = () => {
   const surgeModel = data?.models?.surge_2stage_forecaster;
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 lg:p-6 bg-[#0B0D0E] text-slate-100 space-y-6">
+    <div className="flex-1 overflow-y-auto p-4 lg:p-6 bg-tactical-900 text-slate-100 space-y-6">
       {/* Header Banner */}
-      <div className="bg-[#14171A] border border-[#232A2E] rounded-2xl p-5 relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-tactical-800 border border-tactical-border rounded-2xl p-5 relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="space-y-1 z-10">
           <div className="flex items-center gap-2">
             <span className="p-2 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400">
@@ -138,7 +138,7 @@ export const ModelValidationView: React.FC = () => {
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             Refresh Audit
           </button>
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-1 flex items-center text-xs font-mono">
+          <div className="bg-tactical-800 border border-tactical-border rounded-xl p-1 flex items-center text-xs font-mono">
             <button
               onClick={() => setActiveModelTab('both')}
               className={`px-3 py-1 rounded-lg transition-all ${activeModelTab === 'both' ? 'bg-sky-600 text-white font-semibold' : 'text-slate-400 hover:text-white'}`}
@@ -195,7 +195,7 @@ export const ModelValidationView: React.FC = () => {
             
             {/* MODEL 1: Random Forest Classifier */}
             {(activeModelTab === 'both' || activeModelTab === 'rf') && rfModel && (
-              <div className="bg-[#14171A] border border-[#232A2E] rounded-2xl p-5 space-y-5 flex flex-col justify-between">
+              <div className="bg-tactical-800 border border-tactical-border rounded-2xl p-5 space-y-5 flex flex-col justify-between">
                 
                 {/* Header */}
                 <div>
@@ -212,7 +212,7 @@ export const ModelValidationView: React.FC = () => {
                 </div>
 
                 {/* Train / Val / Test Split */}
-                <div className="bg-[#0B0D0E] border border-[#232A2E] rounded-xl p-3.5 space-y-2">
+                <div className="bg-tactical-900 border border-tactical-border rounded-xl p-3.5 space-y-2">
                   <div className="flex items-center justify-between text-xs font-mono">
                     <span className="text-slate-400 flex items-center gap-1.5">
                       <Layers className="w-3.5 h-3.5 text-sky-400" />
@@ -269,22 +269,22 @@ export const ModelValidationView: React.FC = () => {
 
                 {/* Performance Metrics Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  <div className="bg-[#0B0D0E] border border-[#232A2E] rounded-xl p-2.5">
+                  <div className="bg-tactical-900 border border-tactical-border rounded-xl p-2.5">
                     <span className="text-[10px] font-mono text-slate-400">Accuracy</span>
                     <div className="text-lg font-bold font-mono text-emerald-400">{(rfModel.metrics.accuracy * 100).toFixed(1)}%</div>
                     <span className="text-[9px] font-mono text-slate-500">[MODELLED]</span>
                   </div>
-                  <div className="bg-[#0B0D0E] border border-[#232A2E] rounded-xl p-2.5">
+                  <div className="bg-tactical-900 border border-tactical-border rounded-xl p-2.5">
                     <span className="text-[10px] font-mono text-slate-400">Precision</span>
                     <div className="text-lg font-bold font-mono text-sky-400">{(rfModel.metrics.precision * 100).toFixed(1)}%</div>
                     <span className="text-[9px] font-mono text-slate-500">[MODELLED]</span>
                   </div>
-                  <div className="bg-[#0B0D0E] border border-[#232A2E] rounded-xl p-2.5">
+                  <div className="bg-tactical-900 border border-tactical-border rounded-xl p-2.5">
                     <span className="text-[10px] font-mono text-slate-400">Recall</span>
                     <div className="text-lg font-bold font-mono text-amber-400">{(rfModel.metrics.recall * 100).toFixed(1)}%</div>
                     <span className="text-[9px] font-mono text-slate-500">[MODELLED]</span>
                   </div>
-                  <div className="bg-[#0B0D0E] border border-[#232A2E] rounded-xl p-2.5">
+                  <div className="bg-tactical-900 border border-tactical-border rounded-xl p-2.5">
                     <span className="text-[10px] font-mono text-slate-400">ROC-AUC</span>
                     <div className="text-lg font-bold font-mono text-purple-400">{rfModel.metrics.roc_auc.toFixed(3)}</div>
                     <span className="text-[9px] font-mono text-slate-500">[MODELLED]</span>
@@ -292,7 +292,7 @@ export const ModelValidationView: React.FC = () => {
                 </div>
 
                 {/* Confusion Matrix Visualizer */}
-                <div className="bg-[#0B0D0E] border border-[#232A2E] rounded-xl p-3.5 space-y-2">
+                <div className="bg-tactical-900 border border-tactical-border rounded-xl p-3.5 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-mono text-slate-400 font-semibold flex items-center gap-1.5">
                       <BarChart3 className="w-3.5 h-3.5 text-purple-400" />
@@ -330,7 +330,7 @@ export const ModelValidationView: React.FC = () => {
                                       ? 'bg-emerald-950/40 text-emerald-300' 
                                       : isCriticalFN 
                                       ? 'bg-rose-950/80 text-rose-400 border border-rose-500/40' 
-                                      : 'bg-slate-900/40 text-slate-400'
+                                      : 'bg-tactical-800/40 text-slate-400'
                                   }`}
                                 >
                                   {val}
@@ -346,7 +346,7 @@ export const ModelValidationView: React.FC = () => {
 
                 {/* Feature Importance Chart */}
                 {rfModel.feature_importances && (
-                  <div className="bg-[#0B0D0E] border border-[#232A2E] rounded-xl p-3.5 space-y-2">
+                  <div className="bg-tactical-900 border border-tactical-border rounded-xl p-3.5 space-y-2">
                     <span className="text-xs font-mono text-slate-400 font-semibold flex items-center gap-1.5">
                       <TrendingUp className="w-3.5 h-3.5 text-sky-400" />
                       Random Forest Feature Importance Weights
@@ -371,7 +371,7 @@ export const ModelValidationView: React.FC = () => {
 
             {/* MODEL 2: 2-Stage DLNM + XGBoost Hospital Surge Forecaster */}
             {(activeModelTab === 'both' || activeModelTab === 'surge') && surgeModel && (
-              <div className="bg-[#14171A] border border-[#232A2E] rounded-2xl p-5 space-y-5 flex flex-col justify-between">
+              <div className="bg-tactical-800 border border-tactical-border rounded-2xl p-5 space-y-5 flex flex-col justify-between">
                 
                 {/* Header */}
                 <div>
@@ -388,7 +388,7 @@ export const ModelValidationView: React.FC = () => {
                 </div>
 
                 {/* Train / Val / Test Split */}
-                <div className="bg-[#0B0D0E] border border-[#232A2E] rounded-xl p-3.5 space-y-2">
+                <div className="bg-tactical-900 border border-tactical-border rounded-xl p-3.5 space-y-2">
                   <div className="flex items-center justify-between text-xs font-mono">
                     <span className="text-slate-400 flex items-center gap-1.5">
                       <Database className="w-3.5 h-3.5 text-amber-400" />
@@ -445,22 +445,22 @@ export const ModelValidationView: React.FC = () => {
 
                 {/* Performance Metrics Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  <div className="bg-[#0B0D0E] border border-[#232A2E] rounded-xl p-2.5">
+                  <div className="bg-tactical-900 border border-tactical-border rounded-xl p-2.5">
                     <span className="text-[10px] font-mono text-slate-400">Regression MAE</span>
                     <div className="text-lg font-bold font-mono text-emerald-400">{surgeModel.metrics.mae} adm</div>
                     <span className="text-[9px] font-mono text-slate-500">[MODELLED]</span>
                   </div>
-                  <div className="bg-[#0B0D0E] border border-[#232A2E] rounded-xl p-2.5">
+                  <div className="bg-tactical-900 border border-tactical-border rounded-xl p-2.5">
                     <span className="text-[10px] font-mono text-slate-400">Variance (R²)</span>
                     <div className="text-lg font-bold font-mono text-sky-400">{(surgeModel.metrics.r2_score! * 100).toFixed(1)}%</div>
                     <span className="text-[9px] font-mono text-slate-500">[MODELLED]</span>
                   </div>
-                  <div className="bg-[#0B0D0E] border border-[#232A2E] rounded-xl p-2.5">
+                  <div className="bg-tactical-900 border border-tactical-border rounded-xl p-2.5">
                     <span className="text-[10px] font-mono text-slate-400">Tier Accuracy</span>
                     <div className="text-lg font-bold font-mono text-amber-400">{(surgeModel.metrics.accuracy * 100).toFixed(1)}%</div>
                     <span className="text-[9px] font-mono text-slate-500">[MODELLED]</span>
                   </div>
-                  <div className="bg-[#0B0D0E] border border-[#232A2E] rounded-xl p-2.5">
+                  <div className="bg-tactical-900 border border-tactical-border rounded-xl p-2.5">
                     <span className="text-[10px] font-mono text-slate-400">ROC-AUC</span>
                     <div className="text-lg font-bold font-mono text-purple-400">{surgeModel.metrics.roc_auc.toFixed(3)}</div>
                     <span className="text-[9px] font-mono text-slate-500">[MODELLED]</span>
@@ -468,7 +468,7 @@ export const ModelValidationView: React.FC = () => {
                 </div>
 
                 {/* Confusion Matrix Visualizer */}
-                <div className="bg-[#0B0D0E] border border-[#232A2E] rounded-xl p-3.5 space-y-2">
+                <div className="bg-tactical-900 border border-tactical-border rounded-xl p-3.5 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-mono text-slate-400 font-semibold flex items-center gap-1.5">
                       <BarChart3 className="w-3.5 h-3.5 text-purple-400" />
@@ -507,7 +507,7 @@ export const ModelValidationView: React.FC = () => {
                                       ? 'bg-emerald-950/40 text-emerald-300' 
                                       : isCriticalFN 
                                       ? 'bg-amber-950/80 text-amber-400 border border-amber-500/40' 
-                                      : 'bg-slate-900/40 text-slate-400'
+                                      : 'bg-tactical-800/40 text-slate-400'
                                   }`}
                                 >
                                   {val}
@@ -523,7 +523,7 @@ export const ModelValidationView: React.FC = () => {
 
                 {/* Stage 1 DLNM Lag Weights Chart */}
                 {surgeModel.stage1_weights && (
-                  <div className="bg-[#0B0D0E] border border-[#232A2E] rounded-xl p-3.5 space-y-2">
+                  <div className="bg-tactical-900 border border-tactical-border rounded-xl p-3.5 space-y-2">
                     <span className="text-xs font-mono text-slate-400 font-semibold flex items-center gap-1.5">
                       <TrendingUp className="w-3.5 h-3.5 text-amber-400" />
                       Stage 1 DLNM Epidemiological Distributed Lag Weights
