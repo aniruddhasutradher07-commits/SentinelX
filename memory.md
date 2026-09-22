@@ -143,3 +143,7 @@ Append new entries here as the project progresses. Newest at the bottom. Any AI 
 ## 2026-09-22 — Bugfix: Restored /landing Route
 - **What changed**: Re-registered the `<BrowserRouter>` and `<Routes>` setup in `src/App.tsx`, pointing `/` to the `CommandCenter` component and `/landing` to `Landing.tsx`.
 - **Why**: During the earlier `App.tsx` revert (to strip the TailAdmin template), the routing configuration that made `/landing` accessible was accidentally reverted because the `ad19bc0` commit predated the Landing page's existence. The route has now been restored without reintroducing any template contamination.
+
+## 2026-09-22 — Dependency Cleanup: Replaced react-router-dom with react-router
+- **What changed**: Removed `react-router-dom` from `package.json`, installed `react-router` (v7), and updated all imports in `App.tsx` and `Landing.tsx` to `react-router`.
+- **Why**: The project was confirmed to use React Router v7's unified package (`react-router`) rather than the legacy separation of `react-router` and `react-router-dom`. Fixing this prevents unintentional dependency duplication.

@@ -18,7 +18,7 @@ import { AlertDispatchModal } from './components/AlertDispatchModal';
 // @ts-ignore
 import Dashboard from './pages/Dashboard';
 import { Zap, X, AlertCircle } from 'lucide-react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router';
 import Landing from './pages/Landing';
 import { subscribeToWardRiskUpdates } from './services/supabaseClient';
 import { 
