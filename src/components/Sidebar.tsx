@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   LayoutDashboard,
   Activity,
@@ -8,6 +8,8 @@ import {
   ShieldAlert,
   HelpCircle,
   Settings,
+  Menu,
+  ChevronLeft
 } from "lucide-react";
 import { TabNav } from "./ui/TabNav";
 
@@ -17,6 +19,8 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
+  const [isOpen, setIsOpen] = useState(true);
+
   const tabs = [
     { id: "overview", label: "Dashboard Overview", icon: LayoutDashboard },
     { id: "biotech", label: "Biotech & Physiology", icon: Activity },
@@ -28,14 +32,25 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
   return (
     <aside
       aria-label="Sidebar Navigation"
-      className="w-16 md:w-64 h-full border-r border-white/5 bg-[#030612] flex flex-col transition-all duration-300 shrink-0"
+      className={`h-full border-r border-white/5 bg-[#030612] flex flex-col transition-all duration-300 shrink-0 ${isOpen ? 'w-64' : 'w-16'}`}
     >
       {/* Brand area inside sidebar */}
-      <div className="h-14 border-b border-white/5 flex items-center justify-center md:justify-start md:px-5">
-        <ShieldAlert className="w-6 h-6 text-cyan-400 md:mr-3 shrink-0" />
-        <span className="font-tech font-bold text-white hidden md:block tracking-wide">
-          Command Center
-        </span>
+      <div className="h-14 border-b border-white/5 flex items-center justify-between px-3 md:px-4">
+        <div className="flex items-center">
+          <ShieldAlert className="w-6 h-6 text-cyan-400 shrink-0" />
+          {isOpen && (
+            <span className="font-tech font-bold text-white tracking-wide ml-3 whitespace-nowrap">
+              Command Center
+            </span>
+          )}
+        </div>
+        <button 
+          onClick={() => setIsOpen(!isOpen)}
+          className="text-slate-400 hover:text-cyan-400 focus:outline-none transition-colors"
+          aria-label={isOpen ? "Collapse Sidebar" : "Expand Sidebar"}
+        >
+          {isOpen ? <ChevronLeft className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
       </div>
 
       {/* Nav Menu */}
@@ -47,6 +62,8 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
           orientation="vertical"
           variant="glass"
           ariaLabel="Sidebar Menu"
+          showLabels={isOpen}
+          tabClassName={isOpen ? '' : 'justify-center px-0'}
         />
       </div>
 
@@ -55,18 +72,18 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
         <button
           type="button"
           aria-label="Open Documentation"
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-white/5 hover:text-slate-200 transition font-mono text-xs outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+          className={`w-full flex items-center gap-3 py-2.5 rounded-lg text-slate-400 hover:bg-white/5 hover:text-slate-200 transition font-mono text-xs outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${isOpen ? 'px-3' : 'justify-center px-0'}`}
         >
           <HelpCircle className="w-4 h-4 shrink-0 text-slate-500" />
-          <span className="hidden md:block">Documentation</span>
+          {isOpen && <span className="whitespace-nowrap">Documentation</span>}
         </button>
         <button
           type="button"
           aria-label="Open Settings"
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-white/5 hover:text-slate-200 transition font-mono text-xs outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+          className={`w-full flex items-center gap-3 py-2.5 rounded-lg text-slate-400 hover:bg-white/5 hover:text-slate-200 transition font-mono text-xs outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${isOpen ? 'px-3' : 'justify-center px-0'}`}
         >
           <Settings className="w-4 h-4 shrink-0 text-slate-500" />
-          <span className="hidden md:block">Settings</span>
+          {isOpen && <span className="whitespace-nowrap">Settings</span>}
         </button>
       </div>
     </aside>

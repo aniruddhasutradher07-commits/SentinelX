@@ -147,3 +147,7 @@ Append new entries here as the project progresses. Newest at the bottom. Any AI 
 ## 2026-09-22 — Dependency Cleanup: Replaced react-router-dom with react-router
 - **What changed**: Removed `react-router-dom` from `package.json`, installed `react-router` (v7), and updated all imports in `App.tsx` and `Landing.tsx` to `react-router`.
 - **Why**: The project was confirmed to use React Router v7's unified package (`react-router`) rather than the legacy separation of `react-router` and `react-router-dom`. Fixing this prevents unintentional dependency duplication.
+
+## 2026-09-22 — UI/UX: Implemented Collapsible Sidebar
+- **What changed**: Modified `Sidebar.tsx` and `TabNav.tsx` to support a collapsible sidebar state. Added an `isOpen` state with a toggle button (ChevronLeft/Menu icons) next to the Command Center brand. Updated `TabNav` to accept a `showLabels` prop to hide text when collapsed, ensuring the layout neatly fits into the `w-16` footprint.
+- **Why**: To polish the UI and provide users the option to collapse the sidebar for more screen real estate, while matching the dark theme of the attached reference design.

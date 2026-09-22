@@ -18,6 +18,7 @@ export interface TabNavProps<T extends string = string> {
   className?: string;
   tabClassName?: string;
   ariaLabel?: string;
+  showLabels?: boolean;
 }
 
 export function TabNav<T extends string = string>({
@@ -29,6 +30,7 @@ export function TabNav<T extends string = string>({
   className,
   tabClassName,
   ariaLabel = 'Navigation Tabs',
+  showLabels = true,
 }: TabNavProps<T>) {
   const isHorizontal = orientation === 'horizontal';
 
@@ -74,7 +76,7 @@ export function TabNav<T extends string = string>({
             )}
           >
             {Icon && <Icon className={cn('w-4 h-4 shrink-0', isActive ? 'text-cyan-400' : 'text-slate-400')} />}
-            <span>{tab.label}</span>
+            {showLabels && <span className="truncate">{tab.label}</span>}
             {tab.badge !== undefined && (
               <span
                 className={cn(
