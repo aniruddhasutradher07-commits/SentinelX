@@ -1,19 +1,17 @@
 """
-models/heatwave_classifier.py — Heatwave Risk ML Classifier
+experimental_ml/heatwave_classifier.py — Heatwave Risk ML Classifier
 =============================================================
 SIH 2026 · PS 26083 (MoES / NCMRWF / Disaster Management)
 
-Scikit-Learn Random Forest Classifier that predicts 24-hour heatwave risk:
-  Class 0  →  Low / Normal
-  Class 1  →  High Warning
-  Class 2  →  Critical Emergency
+⚠️ EXPERIMENTAL — NOT VALIDATED ⚠️
+This Random Forest Classifier currently relies on 100% synthetically generated labels 
+(derived from the features themselves), resulting in total target leakage. 
+It must NOT be used for production alerting or presented as a clinically validated 
+hospital-surge predictor. 
 
-Training uses a synthetic Indian weather dataset (3 years, seasonal patterns
-calibrated to pre-monsoon / monsoon / winter cycles across major heatwave
-corridors like Odisha, Rajasthan, Telangana, and Gujarat).
-
-The trained model is cached in memory via a singleton and optionally persisted
-to disk as a ``joblib`` file for fast reloads.
+The model is preserved here for research purposes to demonstrate the MLOps 
+pipeline structure, pending the integration of genuine, temporally validated 
+hospital admission datasets.
 """
 
 from __future__ import annotations
@@ -35,7 +33,7 @@ from sklearn.metrics import classification_report, accuracy_score
 # Local import — the HTSI calculator from the core package
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from core.thermal_stress import heat_index_celsius, compute_htsi
+from core.thermal_stress import heat_index_celsius, compute_environmental_score
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -117,8 +115,8 @@ def load_era5_dataset(csv_path: str) -> Tuple[np.ndarray, np.ndarray]:
         trend = row['temp_trend_24h']
         
         hi = heat_index_celsius(temp, rh)
-        htsi_result = compute_htsi(temp, rh, uv, aqi, wind)
-        htsi = htsi_result.htsi_score
+        htsi_result = compute_environmental_score(temp, rh, uv, aqi, wind)
+        htsi = htsi_result.environmental_score
         
         features = [temp, rh, uv, aqi, wind, hi, htsi, doy, trend]
         records_X.append(features)
@@ -287,7 +285,7 @@ class HeatwaveModel:
         self._ensure_trained()
 
         hi = heat_index_celsius(temperature_c, humidity_pct)
-        htsi = compute_htsi(temperature_c, humidity_pct, uv_index, aqi, wind_speed_ms).htsi_score
+        htsi = compute_environmental_score(temperature_c, humidity_pct, uv_index, aqi, wind_speed_ms).environmental_score
         doy = datetime.datetime.now().timetuple().tm_yday
 
         features = np.array([[

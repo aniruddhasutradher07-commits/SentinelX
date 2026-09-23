@@ -5,8 +5,7 @@ from typing import Optional
 from database import SessionLocal
 from models import Ward
 from services.thermal_processor import process_thermal_reading
-from core.thermal_stress import compute_htsi, compute_night_recovery, compute_24h_thermal_burden
-
+from core.thermal_stress import compute_environmental_score
 
 router = APIRouter(prefix="/api/v1/thermal")
 
@@ -70,31 +69,31 @@ def add_thermal_stress(
     }
 
 
-@router.api_route("/night-recovery", methods=["GET", "POST"], summary="Compute Nighttime Recovery Failure & 24h Thermal Burden")
-def get_night_recovery_index(
-    day_temp: float = Query(39.5, ge=-50.0, le=70.0, description="Daytime peak temperature °C"),
-    day_rh: float = Query(68.0, ge=0.0, le=100.0, description="Daytime relative humidity %"),
-    night_min_temp: float = Query(28.5, ge=-50.0, le=70.0, description="Nighttime minimum temperature °C"),
-    night_rh: float = Query(82.0, ge=0.0, le=100.0, description="Nighttime relative humidity %"),
-    consecutive_nights: int = Query(2, ge=1, le=10, description="Consecutive poor-recovery nights"),
-    ward_no: Optional[str] = Query("Ward 21", description="Target Ward ID / Name")
-):
-    day_result = compute_htsi(day_temp, day_rh)
-    night_result = compute_night_recovery(night_min_temp, night_rh)
-    burden_result = compute_24h_thermal_burden(day_result.htsi_score, night_result["failure_score"], consecutive_nights)
+# @router.api_route("/night-recovery", methods=["GET", "POST"], summary="Compute Nighttime Recovery Failure & 24h Thermal Burden")
+# def get_night_recovery_index(
+#     day_temp: float = Query(39.5, ge=-50.0, le=70.0, description="Daytime peak temperature °C"),
+#     day_rh: float = Query(68.0, ge=0.0, le=100.0, description="Daytime relative humidity %"),
+#     night_min_temp: float = Query(28.5, ge=-50.0, le=70.0, description="Nighttime minimum temperature °C"),
+#     night_rh: float = Query(82.0, ge=0.0, le=100.0, description="Nighttime relative humidity %"),
+#     consecutive_nights: int = Query(2, ge=1, le=10, description="Consecutive poor-recovery nights"),
+#     ward_no: Optional[str] = Query("Ward 21", description="Target Ward ID / Name")
+# ):
+#     day_result = compute_environmental_score(day_temp, day_rh)
+#     night_result = compute_night_recovery(night_min_temp, night_rh)
+#     burden_result = compute_24h_thermal_burden(day_result.htsi_score, night_result["failure_score"], consecutive_nights)
 
-    return {
-        "status": "success",
-        "ward_no": ward_no,
-        "provenance": "Calculated",
-        "day_risk": {
-            "temperature_c": day_temp,
-            "humidity_pct": day_rh,
-            "htsi_score": day_result.htsi_score,
-            "risk_tier": day_result.risk_tier,
-            "provenance": "Calculated"
-        },
-        "night_recovery": night_result,
-        "thermal_burden_24h": burden_result
-    }
+#     return {
+#         "status": "success",
+#         "ward_no": ward_no,
+#         "provenance": "Calculated",
+#         "day_risk": {
+#             "temperature_c": day_temp,
+#             "humidity_pct": day_rh,
+#             "htsi_score": day_result.htsi_score,
+#             "risk_tier": day_result.risk_tier,
+#             "provenance": "Calculated"
+#         },
+#         "night_recovery": night_result,
+#         "thermal_burden_24h": burden_result
+#     }
 

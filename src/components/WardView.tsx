@@ -15,7 +15,9 @@ import {
   Send,
   ChevronRight,
   TrendingUp,
+  ThermometerSun,
   MapPin,
+  Map,
   AlertCircle,
   Percent,
   Sparkles
@@ -361,6 +363,15 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
                         }`}>
                         M_v: ×{mult.toFixed(2)}
                       </span>
+                      {w.is_stale ? (
+                        <span className="text-[10px] font-mono px-1.5 py-0.2 rounded border bg-yellow-950/60 text-yellow-400 border-yellow-500/40">
+                          {(w.data_age_minutes ?? 0) >= 999 ? 'UNAVAILABLE' : `STALE (${Math.round((w.data_age_minutes ?? 0) / 60)}h)`}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-mono px-1.5 py-0.2 rounded border bg-emerald-950/60 text-emerald-400 border-emerald-500/40 flex items-center gap-1">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div> LIVE
+                        </span>
+                      )}
                     </div>
                     <p className="text-[11px] text-slate-400 font-sans mt-0.5">{w.zone}</p>
                   </div>
@@ -657,6 +668,114 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
             </>
           );
         })()}
+
+        {/* Panel 3.5: Bhuvan / ISRO GIS Context */}
+        {activeWard?.bhuvan_lulc && (
+          <div className="bg-tactical-800 border border-tactical-border rounded-2xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-[10px] font-mono text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Map className="w-3.5 h-3.5 text-emerald-500" />
+                Spatial Context
+              </h3>
+              <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border uppercase tracking-widest font-semibold ${
+                activeWard.bhuvan_lulc.status === 'LAST_VERIFIED_REFERENCE' 
+                  ? 'border-emerald-500/30 bg-emerald-950/50 text-emerald-300'
+                  : 'border-yellow-500/30 bg-yellow-950/50 text-yellow-300'
+              }`}>
+                [{activeWard.bhuvan_lulc.status}]
+              </span>
+            </div>
+            <div className="text-[10px] text-slate-300 font-sans space-y-2">
+              <p className="text-slate-400 border-b border-tactical-border/50 pb-1 mb-2">
+                <span className="text-emerald-400 font-medium">Source:</span> {activeWard.bhuvan_lulc.source} | <span className="text-emerald-400 font-medium">Dataset:</span> {activeWard.bhuvan_lulc.dataset}<br/>
+                <span className="text-emerald-400 font-medium">Method:</span> {activeWard.bhuvan_lulc.method} <br/>
+                <span className="text-emerald-400 font-medium">Verification Status:</span> {activeWard.bhuvan_lulc.verification_status}
+              </p>
+              
+              {activeWard.bhuvan_lulc.statistics ? (
+                Object.entries(activeWard.bhuvan_lulc.statistics).map(([code, val]) => (
+                  code !== 'State' && (
+                    <div key={code} className="flex justify-between items-center bg-tactical-900/50 p-1.5 rounded">
+                      <span className="font-mono text-slate-400">{code.replace(/'/g, '')}</span>
+                      <div className="text-right">
+                        <span className="font-bold text-emerald-400">{String(val)}</span>
+                      </div>
+                    </div>
+                  )
+                ))
+              ) : (
+                <div className="text-slate-500 italic">No verified statistics available.</div>
+              )}
+              
+              <div className="flex justify-between items-center mt-2">
+                <span className="text-[9px] text-slate-400">Unit: Not specified by API response</span>
+              </div>
+              <p className="text-[9px] text-rose-400 italic mt-2 pt-1 border-t border-tactical-border/50">
+                Not used in Environmental Hazard Score
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Panel 3.6: Mapped Health Infrastructure */}
+        {activeWard?.health_infrastructure && (
+          <div className="bg-tactical-800 border border-tactical-border rounded-2xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-[10px] font-mono text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5 text-blue-500" />
+                Mapped Health Infrastructure
+              </h3>
+              <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border uppercase tracking-widest font-semibold ${
+                activeWard.health_infrastructure.status === 'DATA_NOT_AVAILABLE' 
+                  ? 'border-yellow-500/30 bg-yellow-950/50 text-yellow-300'
+                  : 'border-blue-500/30 bg-blue-950/50 text-blue-300'
+              }`}>
+                [{activeWard.health_infrastructure.status}]
+              </span>
+            </div>
+            
+            {activeWard.health_infrastructure.status === 'DATA_NOT_AVAILABLE' ? (
+              <div className="text-[10px] text-slate-400 italic">
+                Facility data is not available or missing for this ward.
+              </div>
+            ) : (
+              <div className="text-[10px] text-slate-300 font-sans space-y-2">
+                <p className="text-slate-400 border-b border-tactical-border/50 pb-1 mb-2">
+                  <span className="text-blue-400 font-medium">Source:</span> {activeWard.health_infrastructure.source} | <span className="text-blue-400 font-medium">Dataset:</span> {activeWard.health_infrastructure.dataset} ({activeWard.health_infrastructure.dataset_year})
+                </p>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <div className="bg-tactical-900/50 p-2 rounded border border-tactical-border/50">
+                    <span className="block text-slate-400 font-mono text-[9px] mb-1">Hospitals & NH</span>
+                    <span className="text-sm font-bold text-slate-200">
+                      {(activeWard.health_infrastructure.categories?.hospitals || 0) + (activeWard.health_infrastructure.categories?.nursing_homes || 0)}
+                    </span>
+                  </div>
+                  <div className="bg-tactical-900/50 p-2 rounded border border-tactical-border/50">
+                    <span className="block text-slate-400 font-mono text-[9px] mb-1">UPHC / UCHC</span>
+                    <span className="text-sm font-bold text-slate-200">
+                      {(activeWard.health_infrastructure.categories?.uphc || 0) + (activeWard.health_infrastructure.categories?.uchc || 0)}
+                    </span>
+                  </div>
+                  <div className="bg-tactical-900/50 p-2 rounded border border-tactical-border/50">
+                    <span className="block text-slate-400 font-mono text-[9px] mb-1">ICDS Centers</span>
+                    <span className="text-sm font-bold text-slate-200">
+                      {activeWard.health_infrastructure.categories?.icds_centers || 0}
+                    </span>
+                  </div>
+                  <div className="bg-tactical-900/50 p-2 rounded border border-tactical-border/50">
+                    <span className="block text-slate-400 font-mono text-[9px] mb-1">Total Facilities</span>
+                    <span className="text-sm font-bold text-slate-200">
+                      {activeWard.health_infrastructure.facility_count || 0}
+                    </span>
+                  </div>
+                </div>
+                <p className="text-[9px] text-slate-500 italic mt-2 pt-1">
+                  Note: Response-context information only. Does not reflect live operational capacity or emergency readiness.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Panel 4: 5-day forecast horizon */}
         <div className="bg-tactical-800 border border-tactical-border rounded-2xl p-4">

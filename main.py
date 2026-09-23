@@ -26,7 +26,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 
 # New module imports
-from core.thermal_stress import compute_htsi, heat_index_celsius
+from core.thermal_stress import compute_environmental_score, heat_index_celsius
 from core.multi_hazard import evaluate_multi_hazards
 from services.ingestion import fetch_weather_data, WeatherReading
 from services.gis_map import generate_risk_map
@@ -45,7 +45,7 @@ if os.path.exists(".env"):
 
 from database import SessionLocal, engine, Base
 from routers import weather, wards, risk, thermal, alerts, dashboard, live, news, sentinelx, copilot, model_validation, worker_safety, school_safety, resource_allocation, historical_replay, forecast
-from services.live_weather import start_background_refresh
+
 
 # Initialize database tables
 Base.metadata.create_all(bind=engine)
@@ -111,12 +111,16 @@ app.include_router(risk.router, tags=["Risk Calculation"])
 app.include_router(thermal.router, tags=["Thermal Stress (UTCI/WBGT)"])
 app.include_router(alerts.router, tags=["Alert Management & Emergency Dispatch"])
 app.include_router(dashboard.router, tags=["Dashboard Aggregation (JSON)"])
-app.include_router(live.router, tags=["Live Ward Conditions"])
+# Legacy live route disabled
+# app.include_router(live.router, tags=["Live Ward Conditions"])
 
 # SentinelX ML, Intel & Copilot routers
-from routers import mock_api
-app.include_router(mock_api.router)
 app.include_router(sentinelx.router)
+
+if os.environ.get("USE_MOCK_DATA", "false").lower() == "true":
+    from routers import mock_api
+    app.include_router(mock_api.router)
+
 app.include_router(news.router)
 app.include_router(copilot.router)
 app.include_router(model_validation.router)
@@ -259,7 +263,8 @@ def predict_heatwave(
     Returns: HTSI score, ML risk prediction (Low/Warning/Critical),
     confidence, 48-hour trend, and auto-dispatched alerts.
     """
-    from ml_models.heatwave_classifier import predict_heatwave_risk
+    from core.risk_rules import evaluate_environmental_risk
+    from core.thermal_stress import compute_environmental_score
 
     lat = float(payload.get("lat", DEFAULT_LAT))
     lon = float(payload.get("lon", DEFAULT_LON))
@@ -283,125 +288,11 @@ def predict_heatwave(
         source = weather.source
 
     # Compute HTSI
-    htsi_result = compute_htsi(temp, rh, uv, aqi, wind)
-
-    # ML Prediction
-    trend_24h = float(payload.get("temp_trend_24h", 0.0))
-    ml_pred = predict_heatwave_risk(temp, rh, uv, aqi, wind, trend_24h)
-
-    # Auto-dispatch alert if warranted
-    alert_result = None
-    if alert_service.should_alert(ml_pred.risk_level, htsi_result.htsi_score):
-        alert_result = alert_service.dispatch_alert(
-            zone=name or f"({lat:.2f}, {lon:.2f})",
-            risk_level=ml_pred.risk_level,
-            htsi_score=htsi_result.htsi_score,
-            weather_data={
-                "temperature_c": temp, "humidity_pct": rh,
-                "uv_index": uv, "aqi": aqi, "wind_speed_ms": wind,
-            },
-        )
-
-    return {
-        "location": {"lat": lat, "lon": lon, "name": name},
-        "data_source": source,
-        "weather": {
-            "temperature_c": temp,
-            "humidity_pct": rh,
-            "uv_index": uv,
-            "aqi": aqi,
-            "wind_speed_ms": wind,
-        },
-        "thermal_stress": {
-            "heat_index_c": htsi_result.heat_index_c,
-            "htsi_score": htsi_result.htsi_score,
-            "risk_tier": htsi_result.risk_tier,
-            "feels_like_c": htsi_result.feels_like_c,
-            "components": {
-                "hi_normalised": htsi_result.hi_normalised,
-                "uv_normalised": htsi_result.uv_normalised,
-                "aqi_normalised": htsi_result.aqi_normalised,
-            },
-        },
-        "ml_prediction": {
-            "risk_level": ml_pred.risk_level,
-            "risk_label": ml_pred.risk_label,
-            "confidence": ml_pred.confidence,
-            "probabilities": ml_pred.probabilities,
-            "temperature_trend_48h": ml_pred.temperature_trend_48h,
-        },
-        "alert": alert_result,
-    }
-
-
-@app.get("/api/v1/gis-map", response_class=HTMLResponse,
-         tags=["GIS Risk Visualization"],
-         summary="Interactive heat risk map with emergency infrastructure")
-@app.get("/gis-map", response_class=HTMLResponse, include_in_schema=False)
-def get_gis_map(
-    lat: float = Query(DEFAULT_LAT, description="Center latitude"),
-    lon: float = Query(DEFAULT_LON, description="Center longitude"),
-    zoom: int = Query(11, description="Zoom level"),
-):
-    """
-    Returns a full interactive Folium/Leaflet HTML map with:
-    - Multi-zone heat risk overlay circles (Green/Yellow/Orange/Red)
-    - Nearby hospitals, cooling centers, and emergency responders
-    - Thermal intensity heatmap layer
-    """
-    # Build zone data from the existing SentinelX wards/districts
-    from services.ingestion import _generate_mock_iot
-    from core.thermal_stress import compute_htsi as _htsi
-
-    # Generate sample zones around the center point
-    zones = []
-    import random
-    random.seed(42)
-    for i in range(20):
-        z_lat = lat + random.uniform(-0.06, 0.06)
-        z_lon = lon + random.uniform(-0.06, 0.06)
-        mock = _generate_mock_iot(z_lat, z_lon, f"Zone-{i+1}")
-        htsi = _htsi(mock.temperature_c, mock.humidity_pct, mock.uv_index, mock.aqi, mock.wind_speed_ms)
-        zones.append({
-            "name": f"Zone {i+1}",
-            "lat": z_lat,
-            "lon": z_lon,
-            "risk_tier": htsi.risk_tier,
-            "temperature_c": mock.temperature_c,
-            "humidity_pct": mock.humidity_pct,
-            "htsi_score": htsi.htsi_score,
-            "uv_index": mock.uv_index,
-            "aqi": mock.aqi,
-            "radius_m": random.randint(400, 1000),
-        })
-
-    html = generate_risk_map(
-        zones=zones, center_lat=lat, center_lon=lon, zoom=zoom
-    )
-    return HTMLResponse(content=html)
-
-
-@app.get("/api/v1/live-status", tags=["Live Dashboard Feed"],
-         summary="Real-time system status for dashboard consumption")
-def get_live_status(
-    lat: float = Query(DEFAULT_LAT, description="Location latitude"),
-    lon: float = Query(DEFAULT_LON, description="Location longitude"),
-):
-    """
-    Unified live status endpoint consumed by the interactive dashboard.
-    Returns: weather metrics, HTSI gauge, ML prediction, and active alerts.
-    """
-    from ml_models.heatwave_classifier import predict_heatwave_risk
-
-    weather = fetch_weather_data(lat, lon, "Bhubaneswar")
-    htsi_result = compute_htsi(
+    htsi_result = compute_environmental_score(
         weather.temperature_c, weather.humidity_pct,
         weather.uv_index, weather.aqi, weather.wind_speed_ms
     )
-    ml_pred = predict_heatwave_risk(
-        weather.temperature_c, weather.humidity_pct,
-        weather.uv_index, weather.aqi, weather.wind_speed_ms
-    )
+    risk_result = evaluate_environmental_risk(weather.temperature_c, weather.humidity_pct, weather.uv_index, weather.aqi, weather.wind_speed_ms, getattr(weather, 'is_stale', False))
     
     mh_result = evaluate_multi_hazards(
         weather.precipitation_mm,
@@ -415,16 +306,14 @@ def get_live_status(
         "weather": weather.to_dict(),
         "thermal_stress": {
             "heat_index_c": htsi_result.heat_index_c,
-            "htsi_score": htsi_result.htsi_score,
-            "risk_tier": htsi_result.risk_tier,
+            "environmental_score": htsi_result.environmental_score,
+            "apparent_temperature_c": htsi_result.apparent_temperature_c,
+            "environmental_tier": htsi_result.environmental_tier,
             "feels_like_c": htsi_result.feels_like_c,
         },
-        "ml_prediction": {
-            "risk_level": ml_pred.risk_level,
-            "risk_label": ml_pred.risk_label,
-            "confidence": ml_pred.confidence,
-            "probabilities": ml_pred.probabilities,
-            "temperature_trend_48h": ml_pred.temperature_trend_48h,
+                "environmental_risk": risk_result,
+        "hospital_surge_model": {
+            "status": "EXPERIMENTAL_NOT_VALIDATED"
         },
         "multi_hazard": mh_result.to_dict(),
         "active_alerts": alert_service.get_alert_history(limit=5),
@@ -445,14 +334,14 @@ def get_alert_history(limit: int = Query(20, description="Max records")):
 # Startup Events
 # ---------------------------------------------------------------------------
 
+from services.live_sync import start_unified_scheduler
+
 @app.on_event("startup")
 def _launch_background_tasks():
-    # Starts the background live weather thread
-    start_background_refresh()
-
-    # Pre-train the ML model so first request is fast
+    # Starts the unified background providers
+    start_unified_scheduler()
     try:
-        from ml_models.heatwave_classifier import get_model
+        from experimental_ml.heatwave_classifier import get_model
         model = get_model()
         model.train()
     except Exception as e:

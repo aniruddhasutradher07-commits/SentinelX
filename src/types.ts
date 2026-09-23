@@ -88,6 +88,95 @@ export interface WardRiskRecord {
   nasa_solar_wm2?: number;
   nasa_solar_radiation_wm2?: number;
   satellite_tree_cover_pct?: number;
+  is_live?: boolean;
+  is_stale?: boolean;
+  data_age_minutes?: number;
+  source?: string;
+  observed_at?: string;
+  fetched_at?: string;
+  uv_index?: number;
+  aqi?: number;
+  aqi_standard?: string;
+
+  telemetry?: {
+    temperature_c: number;
+    relative_humidity_pct: number;
+    wind_speed_ms: number;
+    uv_index: number;
+    source: string;
+    status: string;
+    observed_at: string;
+    fetched_at: string;
+    data_age_minutes: number;
+  };
+  air_quality?: {
+    status: string;
+    aqi?: number;
+    aqi_standard?: string;
+    source?: string;
+    station_id?: string;
+    station_name?: string;
+    prominent_pollutant?: string;
+    distance_to_ward_km?: number;
+    spatial_quality?: string;
+    observed_at?: string;
+    fetched_at?: string;
+    data_age_minutes?: number;
+    reason?: string;
+  };
+  imd_context?: {
+    status: string;
+    district?: string;
+    warning_level?: string;
+    nowcast?: string;
+    source?: string;
+    observed_at?: string;
+    fetched_at?: string;
+    data_age_minutes?: number;
+    reason?: string;
+  };
+  data_quality?: {
+    weather: string;
+    air_quality: string;
+    imd: string;
+  };
+  bhuvan_lulc?: {
+    status: string;
+    source: string;
+    dataset: string;
+    method: string;
+    verification_status: string;
+    fetched_at?: string;
+    requested_at?: string;
+    response_received_at?: string;
+    statistics?: any;
+  };
+  health_infrastructure?: {
+    status: string;
+    facility_count: number | null;
+    categories?: {
+      icds_centers: number;
+      hospitals: number;
+      nursing_homes: number;
+      uphc: number;
+      uchc: number;
+      dispensaries: number;
+      other: number;
+    };
+    facilities?: Array<{
+      name: string;
+      type: string;
+      beds: number | null;
+      emergency_beds: number | null;
+      doctors: number | null;
+      nurses: number | null;
+      ambulance_available: string | null;
+      ambulance_count: number | null;
+    }>;
+    source?: string;
+    dataset?: string;
+    dataset_year?: number;
+  };
 }
 
 export interface SatelliteObservation {

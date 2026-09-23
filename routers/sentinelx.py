@@ -115,23 +115,25 @@ def get_live_feed():
     news_items = fetch_live_news(page_size=5)
     
     # Import our new ML and Multi-Hazard engines
-    from ml_models.heatwave_classifier import predict_heatwave_risk
+    from core.risk_rules import evaluate_environmental_risk
     from core.multi_hazard import evaluate_multi_hazards
     from services.ingestion import fetch_weather_data
     
-    # Fetch weather for Bhubaneswar as a representative feed
     weather = fetch_weather_data(20.2961, 85.8245, "Bhubaneswar")
     
     mh_result = evaluate_multi_hazards(
-        weather.precipitation_mm,
-        weather.wind_gusts_ms,
-        weather.forecast_7d_precip
+        weather.precipitation_mm if weather else 0.0,
+        weather.wind_gusts_ms if weather else 0.0,
+        weather.forecast_7d_precip if weather else [0.0]*7
     )
     
-    ml_pred = predict_heatwave_risk(
-        weather.temperature_c, weather.humidity_pct,
-        weather.uv_index, weather.aqi, weather.wind_speed_ms
-    )
+    temp = weather.temperature_c if weather and weather.temperature_c is not None else 35.0
+    rh = weather.humidity_percent if weather and weather.humidity_percent is not None else 50.0
+    uv = weather.uv_index if weather and weather.uv_index is not None else 0.0
+    aqi = weather.aqi if weather and weather.aqi is not None else 0.0
+    wind = weather.wind_speed_ms if weather and weather.wind_speed_ms is not None else 1.0
+
+    risk_result = evaluate_environmental_risk(temp, rh, uv, aqi, wind, getattr(weather, 'is_stale', False))
     return {
         "sync_timestamp": now_dt.isoformat(timespec="seconds"),
         "sync_time_display": now_dt.strftime("%I:%M %p IST"),
@@ -153,54 +155,12 @@ def get_live_feed():
             for a in news_items[:3]
         ],
         "multi_hazard": mh_result.to_dict(),
-        "ml_prediction": {
-            "risk_level": ml_pred.risk_level,
-            "risk_label": ml_pred.risk_label,
-            "confidence": ml_pred.confidence,
-            "probabilities": ml_pred.probabilities,
-            "temperature_trend_48h": ml_pred.temperature_trend_48h,
-        }
-    }
-
-
-@router.get("/summary", summary="City-wide & Statewide ML Surge KPIs")
-def get_summary_kpi():
-    total_admissions, top_ward_id, top_ward_val, orange_red_count = 75.2, "W21", 3.0, 1
-    ward_count, total_pop = 67, 837838
-
-    if os.path.exists("ward_impact_forecast.csv"):
-        try:
-            imp_df = pd.read_csv("ward_impact_forecast.csv")
-            today_str = imp_df["date"].iloc[0]
-            today_df = imp_df[imp_df["date"] == today_str]
-            total_admissions = round(float(today_df["predicted_admissions"].sum()), 1)
-            top_ward = today_df.sort_values("predicted_admissions", ascending=False).iloc[0]
-            top_ward_id = top_ward["ward_no"]
-            top_ward_val = float(top_ward["predicted_admissions"])
-            orange_red_count = int((today_df["ImpactTier"].isin(["Orange", "Red"])).sum())
-        except Exception:
-            pass
-
-    conn = get_sentinel_db()
-    if conn:
-        try:
-            cursor = conn.cursor()
-            ward_count = cursor.execute("SELECT count(*) FROM wards;").fetchone()[0]
-            total_pop = cursor.execute("SELECT sum(population) FROM wards;").fetchone()[0]
-            conn.close()
-        except Exception:
-            pass
-
-    return {
-        "city": "Bhubaneswar",
-        "monitored_wards": ward_count,
-        "total_population": total_pop,
-        "today_expected_hospital_admissions": total_admissions,
-        "peak_surge_ward": {
-            "ward_no": top_ward_id,
-            "expected_daily_admissions": top_ward_val
+                "environmental_risk": risk_result,
+        "hospital_surge_model": {
+            "status": "EXPERIMENTAL_NOT_VALIDATED",
+            "message": "Model removed from production alerting due to target leakage. Retained for research."
         },
-        "elevated_risk_wards_count": orange_red_count,
+        "elevated_risk_wards_count": 0,
         "model_engine": "2-Stage DLNM Lagged Baseline + XGBoost Residual ML",
         "confidence_score_r2": 0.566
     }
@@ -286,31 +246,48 @@ ODISHA_30_DISTRICTS_DATA = [
     {"district": "Deogarh", "pop": 312520, "lat": 21.53, "lon": 84.73, "t": 41.6, "rh": 51, "wbgt": 30.7}
 ]
 
-def compute_vulnerability(elderly, workers, tree_cover, roofs):
+def compute_vulnerability(elderly, workers, tree_cover=None, roofs=None):
     s_eld = min(100.0, (elderly / 18.0) * 100.0)
     s_work = min(100.0, (workers / 45.0) * 100.0)
-    s_tree = max(0.0, 100.0 - (tree_cover / 45.0) * 100.0)
-    s_roof = min(100.0, (roofs / 65.0) * 100.0)
-    score = round(s_eld * 0.25 + s_work * 0.35 + s_tree * 0.20 + s_roof * 0.20, 1)
-    mult = round(0.85 + (score / 100.0) * 0.55, 3)
+    
     factors = [
-        {"name": "Elderly Density (>60 yrs)", "score": s_eld},
-        {"name": "Outdoor Manual Labor Density", "score": s_work},
-        {"name": "Canopy & Green Deficit", "score": s_tree},
-        {"name": "Tin / Asbestos Roofing", "score": s_roof}
+        {"name": "Elderly Density (>60 yrs)", "score": s_eld, "weight": 0.35},
+        {"name": "Outdoor Manual Labor Density", "score": s_work, "weight": 0.65}
     ]
+    
+    if tree_cover is not None:
+        s_tree = max(0.0, 100.0 - (tree_cover / 45.0) * 100.0)
+        factors.append({"name": "Canopy & Green Deficit", "score": s_tree, "weight": 0.20})
+        # Adjust base weights when spatial data is present
+        factors[0]["weight"] = 0.25
+        factors[1]["weight"] = 0.35
+        
+    if roofs is not None:
+        s_roof = min(100.0, (roofs / 65.0) * 100.0)
+        factors.append({"name": "Tin / Asbestos Roofing", "score": s_roof, "weight": 0.20})
+    
+    total_w = sum(f["weight"] for f in factors)
+    score = round(sum(f["score"] * (f["weight"] / total_w) for f in factors), 1)
+    
+    mult = round(0.85 + (score / 100.0) * 0.55, 3)
     dominant = max(factors, key=lambda f: f["score"])["name"]
     tier = "SEVERE" if score >= 75 else ("HIGH" if score >= 50 else ("MODERATE" if score >= 30 else "LOW"))
-    return {
+    
+    res = {
         "elderly_pct": round(elderly, 1),
         "outdoor_worker_pct": round(workers, 1),
-        "tree_cover_pct": round(tree_cover, 1),
-        "high_heat_roof_pct": round(roofs, 1),
         "vulnerability_score": score,
         "vulnerability_multiplier": mult,
         "vulnerability_tier": tier,
         "dominant_factor": dominant
     }
+    
+    if tree_cover is not None:
+        res["tree_cover_pct"] = round(tree_cover, 1)
+    if roofs is not None:
+        res["high_heat_roof_pct"] = round(roofs, 1)
+        
+    return res
 
 def get_dist_vuln(name):
     coastal = name in ["Puri", "Ganjam", "Jagatsinghpur", "Kendrapara", "Bhadrak", "Balasore"]
@@ -380,7 +357,11 @@ def get_odisha_district_detail(name: str):
 
 @router.get("/wards", summary="All 67 Bhubaneswar Wards Live Telemetry")
 def get_bhubaneswar_wards():
-    geojson_path = "wards_bhubaneswar.geojson"
+    from database import SessionLocal
+    from services.bhuvan_lulc import BhuvanLULCService
+    db = SessionLocal()
+    try:
+        geojson_path = "wards_bhubaneswar.geojson"
     
     features = []
     if os.path.exists(geojson_path):
@@ -390,40 +371,53 @@ def get_bhubaneswar_wards():
         except Exception:
             pass
     
+    from services.ingestion import fetch_multi_location, WeatherReading
+    from services.imd_client import imd_client
+    from services.cpcb_client import cpcb_client
+    from services.health_infra import health_infra
+    imd_ctx = imd_client.get_district_context("Khordha")
+    
+    locations = []
+    for idx, feat in enumerate(features):
+        p = feat.get("properties", {})
+        w_no = p.get("wardno") or f"W{idx + 1}"
+        lat = p.get("latitudei") or (20.29 + idx * 0.001)
+        lon = p.get("longitudei") or (85.82 + idx * 0.001)
+        locations.append({"lat": lat, "lon": lon, "name": w_no})
+        
+    weather_results = fetch_multi_location(locations)
+    # Map weather by ward_no
+    weather_map = {}
+    for w in weather_results:
+        if w:
+            weather_map[w.ward_id] = w
+
     now_ts = datetime.datetime.now().strftime("%Y-%m-%d %H:00:00")
     wards = []
     for idx, feat in enumerate(features):
         p = feat.get("properties", {})
         w_no = p.get("wardno") or f"W{idx + 1}"
         pop = p.get("totalwardpopulation") or 13500
-        uhi = round(((idx % 10) * 0.22 + 0.1), 2)
+        # Demographic vulnerability (Spatial data omitted until Bhuvan API integration)
+        eld = 8.5
+        work = 24.0
+        vuln = compute_vulnerability(eld, work, tree_cover=None, roofs=None)
         
-        # Demographic vulnerability
-        num = int("".join(c for c in w_no if c.isdigit()) or str(idx + 1))
-        norm = (num % 67) / 67.0
-        eld = round(7.0 + (num % 10) * 1.1 + uhi * 1.5, 1)
-        work = round(14.0 + norm * 26.0 + ((num * 7) % 10), 1)
-        tree = round(max(4.0, min(44.0, 38.0 - norm * 28.0 + ((num * 3) % 8))), 1)
-        roof = round(max(6.0, min(62.0, 10.0 + norm * 35.0 + ((num * 5) % 12))), 1)
-        vuln = compute_vulnerability(eld, work, tree, roof)
-        
-        temp = round(38.0 + uhi, 1)
-        rh = 69.0
-        wind = 2.1
-        solar = 907.5
-        
-        # --- SIH "KILLER DEMO" OVERRIDES ---
-        if w_no == "W1":
-            temp = 38.0
-            rh = 40.0         # Dry
-            wind = 5.0        # High wind
-            solar = 700.0     # Moderate solar
-        elif w_no == "W2":
-            temp = 38.0
-            rh = 85.0         # Extremely humid
-            wind = 0.5        # Stagnant air
-            solar = 950.0     # High solar
+        w_data = weather_map.get(w_no)
+        if not w_data:
+            # Absolute fallback if even DB fails
+            w_data = WeatherReading(
+                ward_id=w_no, latitude=locations[idx]["lat"], longitude=locations[idx]["lon"],
+                temperature_c=35.0, humidity_percent=50.0, wind_speed_ms=1.0, uv_index=0.0,
+                aqi=0.0, aqi_standard="US_AQI", source="UNAVAILABLE", observed_at=now_ts, fetched_at=now_ts,
+                is_live=False, is_stale=True, data_age_minutes=999
+            )
             
+        temp = w_data.temperature_c if w_data.temperature_c is not None else 0.0
+        rh = w_data.humidity_percent if w_data.humidity_percent is not None else 0.0
+        wind = w_data.wind_speed_ms if w_data.wind_speed_ms is not None else 0.0
+        solar = 907.5 # Keep constant solar for now as API doesn't provide it easily
+        
         wbgt = round(wbgt_outdoor_celsius(temp, rh, solar, wind), 1)
         hi = round(heat_index_celsius(temp, rh), 1)
         utci = round(utci_celsius(temp, rh, solar, wind), 1)
@@ -432,25 +426,28 @@ def get_bhubaneswar_wards():
         risk_score = min(100.0, round(hazard * vuln["vulnerability_multiplier"], 1))
         tier = "Red" if risk_score >= 85 else ("Orange" if risk_score >= 70 else ("Yellow" if risk_score >= 45 else "Green"))
         
-        lst_day = round(temp + 6.4 + uhi * 1.5, 1)
-        lst_night = round(28.0 + uhi * 0.8, 1)
-        uhi_anomaly = round(lst_day - 41.2, 1)
-        ndvi = round(0.14 + (tree / 100.0) * 0.68, 3)
-        uhi_tier = "EXTREME_HOTSPOT" if uhi_anomaly >= 4.0 else ("MODERATE_UHI" if uhi_anomaly >= 2.0 else "NEUTRAL")
         
+        # Remote sensing fabrications have been stripped per provenance rules
+        
+        
+        cpcb_ctx = cpcb_client.map_ward_to_station(locations[idx]["lat"], locations[idx]["lon"])
+        
+        # Use CPCB AQI if available, otherwise preserve Open-Meteo AQI
+        aqi_val = cpcb_ctx.get("aqi")
+        if aqi_val is None:
+            aqi_val = w_data.aqi
         wards.append({
             "ward_no": w_no,
             "zone": p.get("municipalzone") or "North Zone",
             "population": pop,
-            "centroid_lat": p.get("latitudei") or (20.29 + idx * 0.001),
-            "centroid_lon": p.get("longitudei") or (85.82 + idx * 0.001),
+            "centroid_lat": locations[idx]["lat"],
+            "centroid_lon": locations[idx]["lon"],
             "timestamp": now_ts,
             "temperature_c": temp,
             "relative_humidity_pct": rh,
             "wind_speed_ms": wind,
             "solar_radiation_wm2": solar,
             "apparent_temp_c": round(temp + 3.8, 1),
-            "uhi_offset_c": uhi,
             "adjusted_temp_c": temp,
             "HI_celsius": hi,
             "WBGT_celsius": wbgt,
@@ -458,14 +455,43 @@ def get_bhubaneswar_wards():
             "thermal_hazard_score": hazard,
             "WardRiskScore": risk_score,
             "RiskTier": tier,
-            "modis_lst_day_c": lst_day,
-            "modis_lst_night_c": lst_night,
-            "copernicus_ndvi": ndvi,
-            "uhi_thermal_anomaly_c": uhi_anomaly,
-            "uhi_hotspot_tier": uhi_tier,
-            "nasa_surface_solar_wm2": 912.4,
-            **vuln
+            
+            # Legacy fields for compatibility
+            "is_live": w_data.is_live,
+            "is_stale": w_data.is_stale,
+            "data_age_minutes": w_data.data_age_minutes,
+            "source": w_data.source,
+            "observed_at": w_data.observed_at,
+            "fetched_at": w_data.fetched_at,
+            "uv_index": w_data.uv_index,
+            "aqi": aqi_val,
+            "aqi_standard": w_data.aqi_standard,
+            **vuln,
+            
+            # Unified structure
+            "telemetry": {
+                "temperature_c": temp,
+                "relative_humidity_pct": rh,
+                "wind_speed_ms": wind,
+                "uv_index": w_data.uv_index,
+                "source": w_data.source,
+                "status": "LIVE" if not w_data.is_stale else "STALE",
+                "observed_at": w_data.observed_at,
+                "fetched_at": w_data.fetched_at,
+                "data_age_minutes": w_data.data_age_minutes
+            },
+            "air_quality": cpcb_ctx,
+            "imd_context": imd_ctx,
+            "data_quality": {
+                "weather": "LIVE" if not w_data.is_stale else "STALE",
+                "air_quality": cpcb_ctx.get("status", "UNAVAILABLE"),
+                "imd": imd_ctx.get("status", "UNAVAILABLE")
+            },
+            "bhuvan_lulc": BhuvanLULCService.get_ward_context(w_no, db),
+            "health_infrastructure": health_infra.get_ward_infrastructure(w_no)
         })
+    finally:
+        db.close()
     return {"count": len(wards), "wards": wards}
 
 

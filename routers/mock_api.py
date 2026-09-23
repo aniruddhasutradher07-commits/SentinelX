@@ -11,7 +11,7 @@ import numpy as np
 import joblib
 from supabase import create_client, Client
 from core.multi_hazard import evaluate_multi_hazards
-from core.thermal_stress import compute_htsi
+from core.thermal_stress import compute_environmental_score
 
 router = APIRouter(prefix="/api/v1", tags=["Mock Data Ported from server.ts"])
 
@@ -517,7 +517,7 @@ def ward_detail(ward_no: str):
                 risk_multiplier = min(2.0, 1.0 + (0.15 * streak_count)) if streak_count >= 1 else 1.0
                 
                 # Calculate HTSI / WBGT (approx) for that day
-                ts_res = compute_htsi(t_max, rh_max, uv_index=8.0, aqi=100.0, wind_speed_ms=wind_ms)
+                ts_res = compute_environmental_score(t_max, rh_max, uv_index=8.0, aqi=100.0, wind_speed_ms=wind_ms)
                 # WBGT approximation formula (rough estimate for UI)
                 predicted_wbgt = round(t_max * 0.7 + (rh_max / 100.0) * 0.3 * t_max, 1)
                 
@@ -525,7 +525,7 @@ def ward_detail(ward_no: str):
                 adm = 0.0
                 if stage2_model is not None:
                     # Using current lags but replacing the first one with the future risk score
-                    future_risk = ts_res.htsi_score * vuln["vulnerability_multiplier"]
+                    future_risk = ts_res.environmental_score * vuln["vulnerability_multiplier"]
                     lags = [future_risk / 100.0] * 6
                     day_of_week = (datetime.datetime.now() + datetime.timedelta(days=i)).weekday()
                     vuln_norm = vuln["vulnerability_score"] / 100.0

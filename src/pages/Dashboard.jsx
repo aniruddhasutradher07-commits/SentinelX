@@ -127,7 +127,7 @@ export default function Dashboard({
         {/* Tab Content */}
         <main className="p-6 max-w-[1920px] mx-auto w-full">
           {activeTab === "overview" && (
-            <OverviewTab telemetry={telemetry} activeDistrict={activeDistrict} weather={weather} />
+            <OverviewTab telemetry={telemetry} activeDistrict={activeDistrict} weather={weather} wards={telemetry?.wards?.wards || []} />
           )}
           {activeTab === "biotech" && (
             <BiotechTab activeDistrict={activeDistrict} />

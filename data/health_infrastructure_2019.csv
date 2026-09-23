@@ -1,0 +1,424 @@
+City Name,Zone Name,Ward Name,Ward No.,Facility Name,Type  (Hospital / Nursing Home / Lab), Class : (Public / Private),Level (Primary / Secondary / Tertiary),Pharmacy Available : Yes/No,Number of Beds in Emergency Wards ,Number of Beds in facility type,Number of Doctors / Physicians,Number of Nurses,Number of Midwives Professional ,Average Monthly Patient Footfall,Ambulance Service Available,Count of Ambulance
+Bhubaneswar,NA,NA,48,Pratima Sahu,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,47,Rosalin  Bisoi,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,44,Minakshi Mohanty,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,44,Rasmi  Gochhayat,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,56,Pratima Das,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,56,Sailabala Panda,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,56,Pravamanjari Sahoo,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,56,Soudamini Jena,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,56,Susrisangeeta Patnaik,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,56,Laxmi  Choudhury,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,55,Aparajita Nayak,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,55,Krishna Mohapatra,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,54,Sanju Lata Barik,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,54,Satyabhama Mahapatra,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,54,Sabita Tripathy,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,54,Sasmita Mishra,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,54,Chinmayee   Nayak,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,54,Bijayalaxmi Swain,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,54,Baruni Dei,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,60,Jhili Dei,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,67,Namita Champati,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,67,Rama Dei,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,67,Ruksana Permin,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,67,Sulochana Mohapatra,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,67,Tilottama Dash,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,67,Sakha Behera,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,67,Rina Pradhan,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,67,Priyadarsini Sethy,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,67,Madhusmita Champati,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,50,Basant Manjari Barik,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,48,Banitanjali Das,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,48,Sabitarani Nayak,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,48,Sabitarani Nayak (I/C),ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,50,Kabita Swain,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,50,Minati Bala Taras,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,50,Sushree Sangita Sahoo,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,50,Usha Rani Ray,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,49,Suchitrarani Das,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,50,Jogamaya Sahoo,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,23,Bilash Rashmi Dash,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,23,Manorama Sahoo,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,49,Ranjukta Kumari Das,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,49,Pravasini  Sundaray,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,23,Kalpana Kumari Jena,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,66,Kanti Sahoo,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,66,Ranjita Sahoo,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,66,Surekha Dash,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,66,Puspanjali Sahoo,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,66,Mamata Dash,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,66,Pinki Sahoo,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,66,Nirupama Dei,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,66,Rajani Rani Pradhan,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,66,Pinki Sahoo (I/C),ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,64,Sarwari Bibi,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,64,Muzna Musharraf,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,64,Nibedita Jena,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,64,Subhasmita Patra,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,64,Radhamani Mohapatra,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,64,Radhamani Mohapatra (IC),ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,65,Saraswati Subudhi,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,24,Sujata Beura,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,24,Shantilata Sahoo,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,24,Minubala Panda,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,63,Sabita Kumari Senapati,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,63,Sibani Mohanty,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,63,Sumitra Khuntia,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,63,Rasmimayee Nayak,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,63,Yostna Samal,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,62,Sukanti Behera,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,52,Babina Parida,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,62,Pravabati Samantaray,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,62,Laxmipriya Subudhi,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,62,Sarojini  Manasingh,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,52,Tulasilata Sahoo,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,52,Hara Manjula Sahu,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,51,Bishnupriya Mohapatra,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,51,Arati Dehuri,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,51,Renubala Behera,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,51,Basanti Panda  ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,52,Trupti Moharana,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,52,Mamata Sahu,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,52,Gauri Pradhan,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,51,Kousalya Sahoo,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,61,Swarnalata Das,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,61,Priyanka Jena,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,61,Sanjukta Satapathy,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,61,Sonia Mishra,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,53,Pravati Mohanty (I/C),ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,53,Minubala Nath,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,53,Kuntala Pradhan,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,53,Pragyan Shree Sasmal,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,53,Pravati Mohanty,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,53,Hemalata Rout,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,53,Sanjukta Mohapatra,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,53,Rangalata Mahana,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,57,Sanjukta Patra(I/C),ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,58,Sanjukta Patra,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,60,Pankajini Ojha,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,58,Dejalin Mohapatra,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,58,Mamilata  Dei,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,58,Harapriya Swain,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,59,Hema Lata Mishra,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,59,Anupama Mohanty,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,59,Sanjukta Mohanty,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,59,Rojalin Parida,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,59,Puspalata Baral,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,59,Sulochana Maharana,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,59,Rajalaxmi Malia,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,59,Jayalaxmi Mallia,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,28,Anjali Das,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,28,Sunita Bairiganjan,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,28,Binodini Dei,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,28,Sunetra Samanta,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,28,Bijaya Laxmi Singh,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,41,Subasini Mohanty,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,41,Ranjana Behera,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,41,Bharati Kalayani,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,41,Pravatee Raysingh,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,41,Prasanti Mohapatra,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,41,Suryakanti Sahoo,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,41,Mamata Das,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,41,Mina kumari Panda,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,35,Nibedita Mohanty,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,35,VACANT,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,35,VACANT,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,35,VACANT,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,46,Ritarani Jena,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,47,Arati Sahu,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,47,Pragnya Parmita Jena,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,47,Jayashree Mohanty,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,46,Supriya Pradhan,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,46,Madhusmita Nanda,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,46,Kuni Pradhan,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,46,VACANT,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,25,Sarmista  Kar,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,25,Sandhya Samtaray,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,25,Basanti Dei,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,31,Nirjharini Nayak,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,31,Janaki Behera,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,31,Kalyani Behura,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,31,Jyostnarani Behera,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,37,Tilottama Mahabhoi,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,37,Tunibala Swain,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,37,Sabita Soren,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,37,Gayatri Das,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,38,Sarojini Sahoo,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,38,Pralava pattanaik,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,47,Hena  Sahoo,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,47,Laxmi Priya Sahu,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,47,Namita Barik,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,47,Nayani Dei,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,47,Soudamini Pal,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,39,Babita Mohapatra,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,39,Sasmita Mallick,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,36,Sankutala Sahoo,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,36,Manjulata Behera,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,40,Mandakini Pradhan,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,40,Anusaya Rout,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,40,Laxmipriya Panda,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,46,Lalita  Sahoo,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,22,LaxmiPriya Mishra,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,29,Subhadra Mohapatra,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,29,Sukanti Dei,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,29,R.Lalita  Dora,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,29,Nirupama Jena,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,35,Narmada Barik,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,35,A. Laxmi,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,35,Arati Mohapatra,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,29,Saubhagini Mohapatra,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,34,Sumitra Das,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,34,Jayanti Pradhan,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,34,Pratichi Sahoo,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,30,Rinarani Rout,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,34,Babita Sahoo,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,41,Geetanjali Nayak,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,41,Subhadra Das,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,34,Lily Das,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,34,Banani Das,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,34,Lalita Behera,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,41,Namita Swain,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,41,Susama Panda,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,41,Snehaprava Jena,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,41,Sasmita Sahoo,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,42,A. Nasima,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,33,Suprava Nayak,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,33,Manashi Dash,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,42,Priyashree  palaur,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,32,Kumudini Nayak,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,32,Sarmila Sahoo,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,32,Tahartun Nessa,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,32,Nilendri   Satapathy,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,43,Subhadra Pal,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,43,Nirupama Mishra,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,43,Kunjalata Biswal,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,43,Rukmuni Samal,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,43,Suchitra Mohapatra,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,43,Kanchan  Sarkar,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,42,Usharani Samal,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,42,Minakshi Chhualsingh,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,42,Debadarshini Hota,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,55,Sraddhanjali Sabat,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,42,Jayanti Sahoo,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,42,Nirmala Mohapatra,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,42,A. Minakshi Dora,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,45,Kamalini Sahoo,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,45,Bidulata Mallick,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,45,Sailabala Kar,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,10,Urmila Dash           ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,23,Damayanti Patra    ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,22,Puspalata Rath      ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,10,Swarnalata Raula ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,22,K. Laxmikanta       ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,22,Manjulata Behera   ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,22,Monarama Das         ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,22,Prabina Mallick  ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,22,Satyabhama Jena    ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,10,Jemamani Behera  ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,22,Lilybala  Mallick        ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,22,Sabita   Panda  ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,10,Manjushri Sahoo     ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,10,Sangeeta Sidhu ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,10,Ranjana Sethy       ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,10,Gayatri Biswal         ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,22,Laxmipriya Muduli     ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,10,Pravasini Biswal  ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,22,Laxmipriya Marandi   ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,19,Basanti Satapathy      ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,10,Madhusmita Shyanti     ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,22,Santilata Das            ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,10,Sasmita Dei   ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,23,Sasmita  Bhuyan   ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,22,Manorama Patra      ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,23,Sanghamitra Majhi,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,22,AWH-Radha Pattanaik,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,10,Prativa Parida       ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,5,Pramila Tad                 ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,5,Bilima Pati           ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,5,Binapani Mishra     ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,5,Bisnupriya Behera    ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,4,Hiramani Sahoo     ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,10,Milli  Bhoi                     ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,5,Sanjukta Bhoi      ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,5,Urmila Beura              ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,5,Urmila Kumari Rout       ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,5,Mamata Raut          ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,4,Lipti Bharati Jena    ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,4,Arupama Rath        ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,4,Anusaya Bhoi  ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,19,Sujata Das                   ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,19,Menaka Sahoo   ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,5,Kalpana Samantaray     ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,5,Urmila Das,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,5,Simadri Lenka     ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,5,Manarama Nayak   ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,5,Amrita Pritam Parida   ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,4,Ullasa Sahoo                ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,18,AWH-Lalita Das,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,18,Sabita Behera     ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,20,Sulochana Parida      ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,21,Gayamani  Nath   ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,26,Pramila Khuntia    ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,11,Anita Bhujabal         ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,17,Sangita Das         ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,20,AWH-Malati Pradhan,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,21,Pramoda Senapati   ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,21,Pratima Lenka     ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,21,Sanjukta Pal        ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,21,Kalyani Paikaray   ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,21,Minati Kumar Dei      ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,21,Rasmi Rekha Behera  ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,11,Binapani Parida            ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,11,Soudamini Mohapatra   ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,17,Sasmita Pradhan      ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,17,Sandyarani Mallik         ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,17,Pratima Behera     ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,17,Sanjula Pattnaik     ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,21,Manjurani Chand  ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,21,Puspalata Patra  ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,21,Urmila Sahoo      ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,21,Mamata Sahoo    ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,21,Sarita Murmu    ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,21,Sujata Patra      ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,26,Rashmita Priyadrashne Das                           ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,17,Kiranabala Mohapatra     ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,20,Janaki Moharana   ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,16,Saraswati Pradhan  ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,16,Jayanti Prusti         ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,16,Chhabirani Senapati  ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,26,Haimabati Behera  ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,26,Lipsa Mohapatra ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,26,Jharana Ghadei  ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,16,Suprava Jena       ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,27,Pallishree Subudhi    ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,27,Binapani Nayak   ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,26,Lily Grees Lakra   ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,26,Jayantibala Sahoo ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,16,A Malati Devi   ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,16,Sabita Sahu   ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,16,Sanjukta Mohapatra    ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,26,Kalpana Jena    ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,26,Labanga Nayak  ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,16,Renubala Jena,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,16,Sasmita Jena  ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,16,Jyotsnarani Swain ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,16,Kalpana Hasda     ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,16,Kukumina Das   ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,27,Nibedita Nayak,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,27,Nirupama Das  ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,27,Kuni Behera ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,16,Gangi Minj       ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,14,Kunjalata Das      ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,13,Smita  Parida                   ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,14,Purnima Digal     ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,8,Jhunu Bhata        ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,2,Sanjukta Bishoi                 ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,2,Usharani Sahoo    ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,2,Sukantidiri Samanta      ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,2,Basanti Satapathy    ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,14,Ambika  Routray     ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,14,Jayanti Mahanty       ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,14,Ujali   Martha     ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,14,Sankutala Sahu  ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,14,Tamala Behera    ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,14,Jyoshna Kanar     ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,8,Milli Bagha             ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,1,Sanjukta Barik    ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,6,Minati Sahoo        ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,14,Jhulalata Rout            ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,8,Geetanjali Dalei    ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,8,Sanjita Murmu     ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,2,AWH-Sanjukta Moharana,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,13,Pratima Khatua         ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,14,Tamala Bhusan      ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,3,Charulata Badajena      ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,12,Pranati  Behera     ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,12,Tapaswani Ghadei    ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,9,Bijaylaxmi Sabut    ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,9,Santilata Behera    ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,9,Rita Routaray ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,9,Renubala Patra      ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,3,Chinmayee Parida     ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,15,Soudamini Behera ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,9,Prabasini Das       ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,9,Jyoshnamayee Parida              ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,9,Monalisha Behera       ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,12,Swornalata Hatua    ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,9,Tuni Maharana      ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,9,Manamayee Nanda ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,12,Puspalata Sahoo  ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,3,Bharati Parida ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,3,Suryamani Dei        ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,3,Subasini  Satpathy      ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,3,Mamina Behera       ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,9,Pramila Pati      ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,3,Rasmi Prava Naik ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,15,Pravati Dei           ,ICDS center,NA,primary,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Capital Hospital Bhubaneswar,hospital,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,"Govt. Zonal Dispensary, Chandrasekharpur",Govt. Dispensary,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Sishu Bhawan,Govt. Dispensary,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Raj Bhawan Dispensary,Govt. Dispensary,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,"Govt. Zonal Dispensary, Unit-9 Flat",Govt. Dispensary,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,"Govt. Zonal Dispensary, OLA ",Govt. Dispensary,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,"Govt. Zonal Dispensary, Sceretariate ",Govt. Dispensary,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Multicare Homeopathy Treatment Center,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Jeevan Jyoti Clinic,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Kar Vision Eye Hospital,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,CARE 32 Multispecialty Dental Clinic.,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Morden Medicare Hospital,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Aditya Care Hospital,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,AMRI Hospital,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Apollo Hospitals,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Ayush Hospital,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Baidyanath Memorial Hospital,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Hemalata Hospital,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Hi-Tech Hospital,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Indira Gandhi Memorial Ayurvedic Medical College And Hospital,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Kalinga Hospital,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Kar Clinic,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,LV Prasad Eye Hospital,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Maashakti Hospital,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Millenium Eye Hospital,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,"O.F.D.C Ltd, Neelachala Hospital",HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Pallashpalli Hospital,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Sanjeevani Medicare Hospital,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Sparsh Hospital & Critical Care,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Sum Hospital,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Usthi Hospital,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Vision Care Eye Hospital,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Vivekananda Hospital,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Sai Bone and Joint Clinic,HOSPITAL,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Swarna Nursing Home,Nursing Home,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Jeevan Rekha Nursing Home,Nursing Home,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Ruchika Nursing Home,Nursing Home,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Hill Side Nursing Home,Nursing Home,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Sipra Nursing Home,Nursing Home,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Deepak Nurshing Home,Nursing Home,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Krishna Nurshing Home,Nursing Home,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Panda Nurshing Home,Nursing Home,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Jagannath Seva Sadan,Nursing Home,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Bapu Opticals,OTHER,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Dr. Lal Rath Lab,OTHER,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Osho Dhyan Kendra,OTHER,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Sadhana Aushadalalya,OTHER,PRIVATE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,UPHC Saheed Nagar ,urban community health center,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,UCHC Unit- 4,urban community health center,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,Maternity And Child Welfare Centre,urban community health center,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,UPHC Pahal,urban community health center,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,UCHC Dumduma (Proposed),urban community health center,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,UCHC Patia (Proposed),urban community health center,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,UPHC IRC Village ,urban primary health center,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,UPHC Baramunda,urban primary health center,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,UPHC Gadakana,urban primary health center,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,UPHC Bharatpur,urban primary health center,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,UPHC Brahmeswar Patna ,urban primary health center,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,UCHC BMC Hospital ,urban primary health center,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,UPHC Kapilprasad ,urban primary health center,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,UPHC Unit 3 ,urban primary health center,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,UPHC UNIT-8,urban primary health center,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,UPHC Satya Nagar ,urban primary health center,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,UPHC GGP  Rasulgarh,urban primary health center,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,UPHC Kalpana ,urban primary health center,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,UPHC Jharpada ,urban primary health center,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Bhubaneswar,NA,NA,NA,UPHC Unit 9  ,urban primary health center,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA

@@ -91,3 +91,15 @@ class Alert(Base):
     status = Column(String)
 
     alert_time = Column(String)
+
+class BhuvanLULCCache(Base):
+    __tablename__ = "bhuvan_lulc_cache"
+    ward_no = Column(String, primary_key=True, index=True)
+    requested_at = Column(String)
+    response_received_at = Column(String, nullable=True)
+    status = Column(String)
+    raw_response = Column(String, nullable=True)
+    parsed_statistics = Column(String, nullable=True)
+    source = Column(String, default="ISRO/NRSC Bhuvan")
+    dataset = Column(String, default="LULC 50K")
+    verification_status = Column(String, default="NEEDS_LEGEND_MAPPING")

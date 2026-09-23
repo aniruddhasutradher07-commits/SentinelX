@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 // @ts-ignore
 import OtherHazardsCard from "../OtherHazardsCard";
-import { fetchWithColdStart } from "../../services/apiConfig";
 import { StatCard } from "../ui/StatCard";
 import { SectionHeader } from "../ui/SectionHeader";
 import { Thermometer, Droplets, Wind, Sun, AlertTriangle, Activity, Clock } from "lucide-react";
+import { LiveRadarMap } from "../ui/LiveRadarMap";
+import { fetchWithColdStart } from "../../services/apiConfig";
 
 interface DistrictInfo {
   district?: string;
@@ -17,9 +18,10 @@ interface OverviewTabProps {
   telemetry: any;
   activeDistrict: DistrictInfo;
   weather: any;
+  wards?: any[];
 }
 
-export default function OverviewTab({ telemetry, activeDistrict, weather }: OverviewTabProps) {
+export default function OverviewTab({ telemetry, activeDistrict, weather, wards = [] }: OverviewTabProps) {
   const [dispatchStatus, setDispatchStatus] = useState("");
 
   const handleSiren = async () => {
@@ -64,6 +66,14 @@ export default function OverviewTab({ telemetry, activeDistrict, weather }: Over
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     return `${hours}h ${minutes.toString().padStart(2, '0')}m`;
   };
+  
+  // Data Quality Metrics
+  const totalWards = wards?.length || 0;
+  const liveWards = wards?.filter(w => w.is_live).length || 0;
+  const staleWards = wards?.filter(w => w.is_stale && w.data_age_minutes < 999).length || 0;
+  const unavailableWards = wards?.filter(w => w.data_age_minutes >= 999).length || 0;
+  const primarySource = wards?.length > 0 ? wards[0].source : 'Open-Meteo';
+  const aqiSource = "Open-Meteo Air Quality";
 
   return (
     <div className="space-y-5">
@@ -71,6 +81,34 @@ export default function OverviewTab({ telemetry, activeDistrict, weather }: Over
         title="Live Meteorological & Bioclimatic Telemetry"
         subtitle={`Real-time sensor feed and GIS plume model for ${activeDistrict?.district || 'Bhubaneswar'}`}
       />
+
+      {/* Data Quality / Provenance Section */}
+      <div className="glass-panel rounded-xl p-3 border border-slate-700/50 flex flex-wrap items-center justify-between gap-4 text-xs font-mono">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5 text-slate-300">
+            <span className="text-slate-500">Weather:</span>
+            <span className="text-cyan-300 font-semibold">{primarySource}</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-slate-300">
+            <span className="text-slate-500">Air Quality:</span>
+            <span className="text-cyan-300 font-semibold">{aqiSource}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+            <span className="text-emerald-400">LIVE: {liveWards}/{totalWards}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+            <span className="text-yellow-400">STALE: {staleWards}/{totalWards}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-rose-500"></div>
+            <span className="text-rose-400">N/A: {unavailableWards}/{totalWards}</span>
+          </div>
+        </div>
+      </div>
 
       {/* Top Telemetry Grid */}
       <section aria-label="Live Telemetry" className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3.5">
@@ -212,45 +250,8 @@ export default function OverviewTab({ telemetry, activeDistrict, weather }: Over
           </span>
         </div>
         
-        {/* Procedural Map SVG */}
-        <div className="absolute inset-0 top-12 bottom-0 w-full rounded-lg overflow-hidden border border-white/10 bg-[#071120] flex items-center justify-center">
-          <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 800 400" aria-label="GIS Hazard Plume Contour Map">
-            <defs>
-              <radialGradient id="heatCoreVijayawada" cx="45%" cy="52%" r="48%">
-                <stop offset="0%" stopColor="#C0392B" stopOpacity="0.85"></stop>
-                <stop offset="25%" stopColor="#D9772E" stopOpacity="0.8"></stop>
-                <stop offset="55%" stopColor="#C9A227" stopOpacity="0.7"></stop>
-                <stop offset="78%" stopColor="#3A7D5C" stopOpacity="0.45"></stop>
-                <stop offset="100%" stopColor="#08142c" stopOpacity="0.05"></stop>
-              </radialGradient>
-              <linearGradient id="riverPath" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#00F2FE" stopOpacity="0.4"></stop>
-                <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.8"></stop>
-              </linearGradient>
-            </defs>
-            <pattern id="gridPattern" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1"></path>
-            </pattern>
-            <rect width="100%" height="100%" fill="url(#gridPattern)"></rect>
-            <path d="M -20,200 Q 150,220 300,190 T 550,260 T 820,240" fill="none" stroke="url(#riverPath)" strokeWidth="26" strokeLinecap="round"></path>
-            <circle cx="360" cy="210" r="180" fill="url(#heatCoreVijayawada)"></circle>
-            
-            <g transform="translate(350, 185)">
-              <circle cx="10" cy="10" r="22" fill="none" stroke="#C0392B" strokeWidth="1.5" className="animate-ping"></circle>
-              <circle cx="10" cy="10" r="6" fill="#C0392B"></circle>
-              <rect x="22" y="2" width="150" height="22" rx="4" fill="rgba(5, 12, 30, 0.85)" stroke="#C0392B" strokeWidth="1"></rect>
-              <text x="30" y="17" fill="#FFFFFF" fontSize="11" fontWeight="bold" fontFamily="Space Grotesk">{activeDistrict?.district || 'Bhubaneswar'} Core ({liveTemp}°C)</text>
-            </g>
-          </svg>
-          
-          <div className="absolute top-3 left-3 bg-black/80 p-2.5 rounded-lg border border-white/15 text-[10px] font-mono space-y-1.5 shadow-lg">
-            <span className="text-white font-bold block border-b border-white/10 pb-1 uppercase tracking-wider">Risk Level Severity</span>
-            <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-[#3A7D5C]"></span> <span className="text-white">Low (&lt; 30°C)</span></div>
-            <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-[#C9A227]"></span> <span className="text-white">Moderate (31 - 38°C)</span></div>
-            <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-[#D9772E]"></span> <span className="text-white">High (39 - 43°C)</span></div>
-            <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-[#C0392B] animate-pulse"></span> <span className="font-bold text-rose-300">Extreme (44°C+)</span></div>
-          </div>
-        </div>
+        {/* Live Interactive Weather Radar Map (Option 6) */}
+        <LiveRadarMap peakTemp={liveTemp} />
       </div>
     </div>
   );
