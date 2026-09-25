@@ -390,8 +390,8 @@ def summary():
             "peak_ward_expected_admissions": bmc_top_val,
             "elevated_risk_wards_count": bmc_orange_red,
         },
-        "model_engine": '2-Stage DLNM Lagged Baseline + XGBoost Residual ML',
-        "confidence_score_r2": 0.566,
+        "legacy_model_engine": '2-Stage DLNM Lagged Baseline + XGBoost Residual ML',
+        "legacy_hospital_model_r2": "UNVALIDATED",
     }
 
 @router.get("/districts")

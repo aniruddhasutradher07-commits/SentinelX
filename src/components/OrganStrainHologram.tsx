@@ -1,31 +1,30 @@
 import React, { useState } from 'react';
-import { Heart, Brain, Droplets, Activity, ShieldAlert, Sparkles, X } from 'lucide-react';
+import { Heart, Brain, Droplets, Activity, ShieldAlert, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface OrganMetric {
-  id: 'brain' | 'heart' | 'kidneys' | 'skin' | 'respiratory';
+  id: 'brain' | 'heart' | 'respiratory' | 'kidneys' | 'skin';
   name: string;
   icon: any;
   status: 'Normal' | 'Elevated Strain' | 'Critical Stress';
-  value: string;
-  subtext: string;
-  clinicalImpact: string;
-  countermeasure: string;
+  primaryValue: string;
+  primaryLabel: string;
+  secondaryValue: string;
+  secondaryLabel: string;
+  interpretation: string;
+  reference: string;
   x: number; // percentage in SVG
   y: number; // percentage in SVG
 }
 
 interface OrganStrainHologramProps {
   score?: number; // H-THERM Score 0-100
-  wbgt?: number;
-  ambientTemp?: number;
 }
 
 export const OrganStrainHologram: React.FC<OrganStrainHologramProps> = ({
   score = 78,
-  wbgt = 32.4,
-  ambientTemp = 39.5,
 }) => {
-  const [selectedOrgan, setSelectedOrgan] = useState<OrganMetric | null>(null);
+  const [selectedOrganId, setSelectedOrganId] = useState<string>('skin');
+  const [isModelExpanded, setIsModelExpanded] = useState<boolean>(true);
 
   // Derive dynamic organ indicators based on H-THERM score
   const isCritical = score >= 80;
@@ -34,67 +33,77 @@ export const OrganStrainHologram: React.FC<OrganStrainHologramProps> = ({
   const organs: OrganMetric[] = [
     {
       id: 'brain',
-      name: 'Central Nervous System (Brain)',
+      name: 'Central Nervous System',
       icon: Brain,
-      status: isCritical ? 'Critical Stress' : isElevated ? 'Elevated Strain' : 'Normal',
-      value: isCritical ? 'Hyperthermia Delirium Risk' : isElevated ? 'Cognitive Fatigue (+35% lag)' : 'Optimal Neurological Function',
-      subtext: isCritical ? 'Core temp >39.0°C danger' : 'Reaction time slowed by 420ms',
-      clinicalImpact: 'Impaired thermoregulatory hypothalamus signaling leading to heat syncope, dizziness, and loss of motor coordination.',
-      countermeasure: 'Immediate shaded rest, cranial cold pack immersion, electrolyte replacement.',
+      status: 'Normal',
+      primaryValue: 'NOT AVAILABLE',
+      primaryLabel: 'Thermoregulatory Response',
+      secondaryValue: 'NOT AVAILABLE',
+      secondaryLabel: 'Cognitive Fatigue',
+      interpretation: 'No validated continuous cognitive metric available in current sensor array.',
+      reference: 'Standard shaded rest recommended.',
       x: 50,
       y: 16,
     },
     {
       id: 'heart',
-      name: 'Cardiovascular System (Heart)',
+      name: 'Cardiovascular System',
       icon: Heart,
       status: isCritical ? 'Critical Stress' : isElevated ? 'Elevated Strain' : 'Normal',
-      value: `+${Math.round(score * 0.35 + 8)} BPM Tachycardia Elevation`,
-      subtext: `Cardiac output ${ (1.0 + score * 0.006).toFixed(2) }× baseline`,
-      clinicalImpact: 'Peripheral vasodilation shunts systemic blood to skin for radiative cooling, causing diastolic pressure drops and stroke risk.',
-      countermeasure: 'Cessation of physical exertion, passive supine positioning with elevated legs.',
+      primaryValue: 'CALCULATED',
+      primaryLabel: 'Estimated Tachycardia Elevation',
+      secondaryValue: 'NOT AVAILABLE',
+      secondaryLabel: 'Estimated Cardiac Output',
+      interpretation: 'Peripheral vasodilation shunts systemic blood to skin for radiative cooling.',
+      reference: 'Refer to Experimental Physiology Replay for actual dataset HR patterns.',
       x: 53,
       y: 33,
     },
     {
       id: 'respiratory',
-      name: 'Respiratory Airway (Lungs)',
+      name: 'Respiratory Airway',
       icon: Activity,
-      status: isElevated ? 'Elevated Strain' : 'Normal',
-      value: `${Math.round(14 + score * 0.12)} Breaths/min Tachypnea`,
-      subtext: 'High-enthalpy convective heat intake',
-      clinicalImpact: 'Inhaling ambient air at >38°C accelerates respiratory heat exchange and mucosal moisture loss.',
-      countermeasure: 'Relocation to air-filtered cooling shelter, nasal hydration spray.',
+      status: 'Normal',
+      primaryValue: 'NOT AVAILABLE',
+      primaryLabel: 'Estimated Tachypnea',
+      secondaryValue: 'NOT AVAILABLE',
+      secondaryLabel: 'Airway Exchange',
+      interpretation: 'Respiratory rate requires specialized belt sensors not currently active.',
+      reference: 'Relocation to air-filtered cooling shelter.',
       x: 47,
       y: 38,
     },
     {
       id: 'kidneys',
-      name: 'Renal Function (Kidneys)',
+      name: 'Renal Function',
       icon: ShieldAlert,
-      status: isCritical ? 'Critical Stress' : isElevated ? 'Elevated Strain' : 'Normal',
-      value: isCritical ? 'Severe AKI Hypovolemia Risk' : isElevated ? 'Elevated Filtration Burden' : 'Stable Electrolyte Balance',
-      subtext: `GFR strain: -${Math.round(score * 0.25)}% filtration rate`,
-      clinicalImpact: 'Prolonged sweating without oral rehydration causes acute tubular necrosis and elevated serum creatinine.',
-      countermeasure: 'Oral Rehydration Salts (ORS) solution with sodium chloride and potassium citrate.',
+      status: 'Normal',
+      primaryValue: 'NOT AVAILABLE',
+      primaryLabel: 'Estimated Renal Load',
+      secondaryValue: 'NOT AVAILABLE',
+      secondaryLabel: 'Glomerular Filtration Estimate',
+      interpretation: 'Renal perfusion metrics cannot be accurately determined from surface wearables.',
+      reference: 'Oral Rehydration Salts (ORS) solution.',
       x: 51,
       y: 50,
     },
     {
       id: 'skin',
-      name: 'Dermal & Sweat Glands (Skin)',
+      name: 'Dermal & Sweat Glands',
       icon: Droplets,
       status: isCritical ? 'Critical Stress' : 'Elevated Strain',
-      value: `${(0.4 + score * 0.012).toFixed(2)} Liters/Hour Sweat Loss`,
-      subtext: `Evaporative efficiency: ${Math.max(20, Math.round(100 - score * 0.75))}%`,
-      clinicalImpact: 'Massive trans-epidermal fluid loss leads to hyponatremia, painful heat cramps, and dermal prickling.',
-      countermeasure: 'Evaporative misting spray, loose open-weave cotton clothing, cool damp towels.',
+      primaryValue: 'CALCULATED',
+      primaryLabel: 'Thermoregulatory Load',
+      secondaryValue: 'NOT AVAILABLE',
+      secondaryLabel: 'Evaporative Efficiency',
+      interpretation: 'Massive trans-epidermal fluid loss impacts thermoregulation.',
+      reference: 'Refer to Experimental Physiology Replay for actual dataset Skin Temp patterns.',
       x: 32,
       y: 58,
     },
   ];
 
-  const activeOrgan = selectedOrgan || organs[0];
+  const activeOrgan = organs.find(o => o.id === selectedOrganId) || organs[4];
 
   const getStatusColor = (status: string) => {
     if (status === 'Critical Stress') return '#C0392B';
@@ -103,94 +112,94 @@ export const OrganStrainHologram: React.FC<OrganStrainHologramProps> = ({
   };
 
   return (
-    <div className="bg-gradient-to-br from-[#14171A] to-[#1A1F24] rounded-2xl border border-white/[0.08] p-5 shadow-2xl relative overflow-hidden">
-      {/* Ambient background glow */}
-      <div 
-        className="pointer-events-none absolute -left-10 -top-10 w-48 h-48 rounded-full blur-3xl opacity-15"
-        style={{ backgroundColor: getStatusColor(activeOrgan.status) }}
-      />
-
+    <div className="flex flex-col h-full bg-slate-900/80 p-5 w-full">
+      
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30">
-            <Activity className="w-5 h-5 animate-pulse" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-base font-bold text-white font-display">
-                Biotech Human Physiological Strain Hologram
-              </h3>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-300 border border-sky-500/30 font-bold">
-                ISO 7933 / PHS Model
-              </span>
-              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold">
-                [CALCULATED]
-              </span>
-            </div>
-            <p className="text-xs text-slate-400">
-              Multi-organ heat strain distribution modeled at {wbgt}°C WBGT &amp; {ambientTemp}°C dry-bulb
-            </p>
-          </div>
+      <div className="flex items-center justify-between mb-6 border-b border-slate-800/80 pb-4">
+        <div>
+          <h2 className="text-sm font-bold text-slate-200 uppercase tracking-wide">
+            PHYSIOLOGICAL RESPONSE REFERENCE
+          </h2>
+          <span className="text-xs text-slate-400 font-sans mt-1 block">
+            Selected Subsystem: <span className="text-white font-medium">{activeOrgan.name}</span>
+          </span>
         </div>
-
-        <span className="text-[11px] font-mono text-slate-400 hidden sm:inline">
-          Click any organ node to inspect pathology
+        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold">
+          EXPERIMENTAL
         </span>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-        {/* Holographic Body Silhouette with Interactive Glowing Nodes */}
-        <div className="lg:col-span-5 relative flex justify-center items-center py-2 bg-[#0B0D0E]/60 rounded-2xl border border-white/[0.05]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-grow">
+        
+        {/* LEFT 45%: Holographic Body Silhouette (5 cols out of 12 = 41.6%) */}
+        <div className="lg:col-span-5 relative flex justify-center items-center py-4 bg-slate-950/60 rounded-2xl border border-slate-800/80 overflow-hidden">
           {/* Radar Scan Grid Line */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl opacity-20">
+          <div className="absolute inset-0 pointer-events-none opacity-20">
             <div className="w-full h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-scan" />
           </div>
 
-          <div className="relative w-64 h-96 flex items-center justify-center">
+          <div className="relative w-64 h-[400px] flex items-center justify-center">
             {/* Stylized Futuristic Anatomical Silhouette */}
             <svg
-              viewBox="0 0 200 360"
-              className="w-full h-full filter drop-shadow-[0_0_15px_rgba(56,189,248,0.2)]"
+              viewBox="0 0 200 400"
+              className="w-full h-full filter drop-shadow-[0_0_15px_rgba(56,189,248,0.3)]"
             >
               <defs>
                 <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.4" />
-                  <stop offset="50%" stopColor="#818cf8" stopOpacity="0.25" />
-                  <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.1" />
+                  <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.45" />
+                  <stop offset="40%" stopColor="#818cf8" stopOpacity="0.15" />
+                  <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.05" />
                 </linearGradient>
-                <pattern id="gridPattern" width="10" height="10" patternUnits="userSpaceOnUse">
-                  <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
+                <pattern id="hexPattern" width="12" height="20.7846" patternUnits="userSpaceOnUse" patternTransform="scale(0.5)">
+                  <path d="M6 0 L12 3.4641 L12 10.3923 L6 13.8564 L0 10.3923 L0 3.4641 Z" fill="none" stroke="rgba(56,189,248,0.15)" strokeWidth="1" />
                 </pattern>
+                <filter id="glow">
+                  <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                  <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
               </defs>
 
-              {/* Grid Background */}
-              <rect x="0" y="0" width="200" height="360" fill="url(#gridPattern)" />
+              {/* Hex Background in Body */}
+              <mask id="bodyMask">
+                {/* Advanced Human Path */}
+                <path d="M100 20 C 112 20, 118 28, 118 42 C 118 55, 112 65, 108 68 C 120 72, 138 78, 146 95 C 152 110, 148 160, 142 195 C 140 205, 132 210, 128 215 C 128 220, 125 280, 120 350 C 118 375, 102 375, 102 350 C 102 280, 100 230, 100 230 C 100 230, 98 280, 98 350 C 98 375, 82 375, 80 350 C 75 280, 72 220, 72 215 C 68 210, 60 205, 58 195 C 52 160, 48 110, 54 95 C 62 78, 80 72, 92 68 C 88 65, 82 55, 82 42 C 82 28, 88 20, 100 20 Z" fill="white" />
+              </mask>
 
-              {/* Head */}
-              <ellipse cx="100" cy="50" rx="24" ry="30" fill="url(#bodyGrad)" stroke="#38bdf8" strokeWidth="1.5" strokeDasharray="3 2" />
-              {/* Neck */}
-              <rect x="92" y="80" width="16" height="16" rx="4" fill="url(#bodyGrad)" stroke="#38bdf8" strokeWidth="1" />
-              {/* Torso & Shoulders */}
-              <path
-                d="M 52 100 Q 100 88 148 100 L 138 200 Q 100 206 62 200 Z"
-                fill="url(#bodyGrad)"
-                stroke="#38bdf8"
-                strokeWidth="1.5"
+              <rect x="0" y="0" width="200" height="400" fill="url(#hexPattern)" mask="url(#bodyMask)" />
+              
+              {/* Outer Shell */}
+              <path d="M100 20 C 112 20, 118 28, 118 42 C 118 55, 112 65, 108 68 C 120 72, 138 78, 146 95 C 152 110, 148 160, 142 195 C 140 205, 132 210, 128 215 C 128 220, 125 280, 120 350 C 118 375, 102 375, 102 350 C 102 280, 100 230, 100 230 C 100 230, 98 280, 98 350 C 98 375, 82 375, 80 350 C 75 280, 72 220, 72 215 C 68 210, 60 205, 58 195 C 52 160, 48 110, 54 95 C 62 78, 80 72, 92 68 C 88 65, 82 55, 82 42 C 82 28, 88 20, 100 20 Z" 
+                    fill="url(#bodyGrad)" 
+                    stroke="#38bdf8" 
+                    strokeWidth="1.5" 
+                    className="animate-pulse"
               />
-              {/* Left Arm */}
-              <path d="M 52 100 L 32 180 L 26 240" fill="none" stroke="#38bdf8" strokeWidth="12" strokeLinecap="round" opacity="0.6" />
-              {/* Right Arm */}
-              <path d="M 148 100 L 168 180 L 174 240" fill="none" stroke="#38bdf8" strokeWidth="12" strokeLinecap="round" opacity="0.6" />
-              {/* Pelvis */}
-              <path d="M 62 200 L 138 200 L 126 230 L 74 230 Z" fill="url(#bodyGrad)" stroke="#38bdf8" strokeWidth="1" />
-              {/* Left Leg */}
-              <path d="M 80 230 L 74 300 L 72 350" fill="none" stroke="#38bdf8" strokeWidth="16" strokeLinecap="round" opacity="0.6" />
-              {/* Right Leg */}
-              <path d="M 120 230 L 126 300 L 128 350" fill="none" stroke="#38bdf8" strokeWidth="16" strokeLinecap="round" opacity="0.6" />
 
-              {/* Spine line */}
-              <line x1="100" y1="85" x2="100" y2="220" stroke="rgba(255,255,255,0.2)" strokeWidth="1" strokeDasharray="2 2" />
+              {/* Central Nervous System / Spine */}
+              <path d="M100 35 L100 210" stroke="#818cf8" strokeWidth="2" filter="url(#glow)" strokeDasharray="4 4" className="opacity-80" />
+              
+              {/* Brain node indicator */}
+              <circle cx="100" cy="40" r="10" fill="none" stroke="#a78bfa" strokeWidth="1" opacity="0.6" filter="url(#glow)"/>
+              
+              {/* Heart node indicator */}
+              <path d="M95 90 C 95 90, 110 80, 110 95 C 110 110, 95 115, 95 115 C 95 115, 80 110, 80 95 C 80 80, 95 90, 95 90 Z" fill="none" stroke="#f43f5e" strokeWidth="1" opacity="0.4" filter="url(#glow)"/>
+              
+              {/* Lungs outline */}
+              <path d="M92 80 C 80 80, 70 100, 75 120 C 80 120, 92 110, 92 80 Z" fill="none" stroke="#38bdf8" strokeWidth="1" opacity="0.3" filter="url(#glow)"/>
+              <path d="M108 80 C 120 80, 130 100, 125 120 C 120 120, 108 110, 108 80 Z" fill="none" stroke="#38bdf8" strokeWidth="1" opacity="0.3" filter="url(#glow)"/>
+
+              {/* Joint Nodes */}
+              <circle cx="72" cy="85" r="3" fill="#38bdf8" opacity="0.5" />
+              <circle cx="128" cy="85" r="3" fill="#38bdf8" opacity="0.5" />
+              <circle cx="62" cy="140" r="2" fill="#38bdf8" opacity="0.5" />
+              <circle cx="138" cy="140" r="2" fill="#38bdf8" opacity="0.5" />
+              <circle cx="85" cy="215" r="4" fill="#38bdf8" opacity="0.5" />
+              <circle cx="115" cy="215" r="4" fill="#38bdf8" opacity="0.5" />
+              <circle cx="78" cy="285" r="3" fill="#38bdf8" opacity="0.5" />
+              <circle cx="122" cy="285" r="3" fill="#38bdf8" opacity="0.5" />
             </svg>
 
             {/* Glowing Interactive Organ Target Nodes */}
@@ -201,135 +210,112 @@ export const OrganStrainHologram: React.FC<OrganStrainHologramProps> = ({
               return (
                 <button
                   key={organ.id}
-                  onClick={() => setSelectedOrgan(organ)}
-                  style={{
-                    left: `${organ.x}%`,
-                    top: `${organ.y}%`,
-                  }}
+                  onClick={() => setSelectedOrganId(organ.id)}
+                  style={{ left: `${organ.x}%`, top: `${organ.y}%` }}
                   className="absolute -translate-x-1/2 -translate-y-1/2 group cursor-pointer focus:outline-none"
                   title={organ.name}
                 >
-                  {/* Outer Pulsing Aura */}
                   <span
-                    className={`absolute inset-0 -m-2 rounded-full opacity-75 animate-ping ${
-                      isSelected ? 'block' : 'hidden group-hover:block'
-                    }`}
+                    className={`absolute inset-0 -m-2 rounded-full opacity-75 animate-ping ${isSelected ? 'block' : 'hidden group-hover:block'}`}
                     style={{ backgroundColor: color }}
                   />
-
-                  {/* Organ Node Button */}
                   <div
-                    className={`relative w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300 shadow-lg ${
-                      isSelected ? 'scale-125 z-20' : 'hover:scale-110 z-10'
-                    }`}
-                    style={{
-                      backgroundColor: '#0E1114',
-                      borderColor: color,
-                      boxShadow: `0 0 12px ${color}80`,
-                    }}
+                    className={`relative w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300 shadow-lg ${isSelected ? 'scale-125 z-20' : 'hover:scale-110 z-10'}`}
+                    style={{ backgroundColor: '#0E1114', borderColor: color, boxShadow: `0 0 12px ${color}80` }}
                   >
                     <organ.icon className="w-4 h-4" style={{ color }} />
                   </div>
-
-                  {/* Pulsing Tag */}
-                  <span className="absolute top-8 left-1/2 -translate-x-1/2 text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#14171A] border border-white/[0.1] text-slate-300 whitespace-nowrap shadow opacity-80 group-hover:opacity-100">
-                    {organ.id.toUpperCase()}
-                  </span>
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Selected Organ Pathology & Countermeasure Panel */}
-        <div className="lg:col-span-7 flex flex-col justify-between space-y-4">
-          <div className="bg-[#0B0D0E]/80 border border-white/[0.08] rounded-2xl p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <activeOrgan.icon
-                  className="w-5 h-5"
-                  style={{ color: getStatusColor(activeOrgan.status) }}
-                />
-                <h4 className="text-base font-bold text-white font-display">
-                  {activeOrgan.name}
-                </h4>
-              </div>
+        {/* RIGHT 55%: Selected physiological subsystem (7 cols out of 12 = 58.3%) */}
+        <div className="lg:col-span-7 flex flex-col space-y-6">
+          
+          {/* Tab Strip */}
+          <div className="flex items-center gap-1 border-b border-slate-800">
+            {organs.map((organ) => (
+              <button
+                key={organ.id}
+                onClick={() => setSelectedOrganId(organ.id)}
+                className={`flex-1 py-2 text-xs font-semibold uppercase tracking-wider transition-all border-b-2 ${
+                  activeOrgan.id === organ.id
+                    ? 'border-cyan-400 text-cyan-400 bg-cyan-400/5'
+                    : 'border-transparent text-slate-500 hover:text-slate-300 hover:bg-slate-800/50'
+                }`}
+              >
+                {organ.id}
+              </button>
+            ))}
+          </div>
 
-              <div className="flex items-center gap-1.5">
-                <span
-                  className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full border"
-                  style={{
-                    backgroundColor: `${getStatusColor(activeOrgan.status)}20`,
-                    borderColor: `${getStatusColor(activeOrgan.status)}60`,
-                    color: getStatusColor(activeOrgan.status) === '#3A7D5C' ? '#a7f3d0' : '#ffffff',
-                  }}
-                >
-                  {activeOrgan.status}
-                </span>
-                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold">
-                  [CALCULATED]
-                </span>
+          {/* Primary Signal */}
+          <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-5">
+            <span className="text-[10px] text-slate-400 font-mono uppercase tracking-widest block mb-2">
+              PRIMARY SIGNAL
+            </span>
+            <div className="flex items-end justify-between">
+              <div className="text-3xl font-mono font-bold text-white tracking-tight">
+                {activeOrgan.primaryValue}
               </div>
-            </div>
-
-            <div className="mt-3 bg-white/[0.03] p-3 rounded-xl border border-white/[0.05]">
-              <div className="flex items-center justify-between">
-                <div className="text-xl font-bold font-mono text-white tracking-tight">
-                  {activeOrgan.value}
-                </div>
-                <span className="text-[8px] font-mono px-1 py-0.2 rounded border border-cyan-500/30 text-cyan-300 uppercase">
-                  [CALC]
-                </span>
+              <div className="text-xs text-slate-500 font-medium">
+                {activeOrgan.primaryLabel}
               </div>
-              <div className="text-xs text-slate-400 font-mono mt-0.5">
-                {activeOrgan.subtext}
-              </div>
-            </div>
-
-            {/* Pathophysiology */}
-            <div className="mt-3">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-rose-400 font-bold block mb-1">
-                PATHOPHYSIOLOGY &amp; CLINICAL STRAIN
-              </span>
-              <p className="text-xs text-slate-300 leading-relaxed font-sans">
-                {activeOrgan.clinicalImpact}
-              </p>
-            </div>
-
-            {/* Countermeasure */}
-            <div className="mt-3 pt-3 border-t border-white/[0.06]">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-bold block mb-1">
-                RECOMMENDED DISASTER INTERVENTION
-              </span>
-              <p className="text-xs text-slate-300 leading-relaxed font-sans">
-                ✓ {activeOrgan.countermeasure}
-              </p>
             </div>
           </div>
 
-          {/* Quick Selector Pills for all 5 systems */}
-          <div className="grid grid-cols-5 gap-2">
-            {organs.map((organ) => {
-              const isSelected = activeOrgan.id === organ.id;
-              const color = getStatusColor(organ.status);
-              return (
-                <button
-                  key={organ.id}
-                  onClick={() => setSelectedOrgan(organ)}
-                  className={`p-2 rounded-xl text-center border transition-all ${
-                    isSelected
-                      ? 'bg-white/[0.12] border-sky-400 shadow-md scale-[1.02]'
-                      : 'bg-[#0B0D0E]/50 border-white/[0.05] hover:bg-white/[0.05]'
-                  }`}
-                >
-                  <organ.icon className="w-4 h-4 mx-auto mb-1" style={{ color }} />
-                  <span className="text-[10px] font-mono block text-slate-300 capitalize truncate">
-                    {organ.id}
+          {/* Secondary Signal */}
+          <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-5">
+            <span className="text-[10px] text-slate-400 font-mono uppercase tracking-widest block mb-2">
+              SECONDARY SIGNAL
+            </span>
+            <div className="flex items-end justify-between">
+              <div className="text-2xl font-mono font-semibold text-cyan-400 tracking-tight">
+                {activeOrgan.secondaryValue}
+              </div>
+              <div className="text-xs text-slate-500 font-medium">
+                {activeOrgan.secondaryLabel}
+              </div>
+            </div>
+          </div>
+
+          {/* Model Interpretation Collapsible Block */}
+          <div className="mt-auto bg-slate-950/80 border border-slate-800 rounded-xl overflow-hidden">
+            <button 
+              onClick={() => setIsModelExpanded(!isModelExpanded)}
+              className="w-full flex items-center justify-between p-4 bg-slate-900/50 hover:bg-slate-800/80 transition-colors"
+            >
+              <span className="text-xs font-bold text-slate-300 uppercase tracking-widest flex items-center gap-2">
+                <Activity className="w-4 h-4 text-emerald-400" />
+                MODEL INTERPRETATION
+              </span>
+              {isModelExpanded ? <ChevronUp className="w-4 h-4 text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
+            </button>
+            
+            {isModelExpanded && (
+              <div className="p-4 border-t border-slate-800/50 space-y-4">
+                <div>
+                  <span className="text-[10px] font-mono text-slate-500 uppercase block mb-1">
+                    THERMOREGULATORY RESPONSE
                   </span>
-                </button>
-              );
-            })}
+                  <p className="text-xs text-slate-300 font-sans leading-relaxed">
+                    {activeOrgan.interpretation}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono text-slate-500 uppercase block mb-1">
+                    EXPERIMENTAL PHYSIOLOGY REFERENCE
+                  </span>
+                  <p className="text-xs text-slate-300 font-sans leading-relaxed">
+                    {activeOrgan.reference}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
+
         </div>
       </div>
     </div>

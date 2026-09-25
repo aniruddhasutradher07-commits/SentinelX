@@ -87,7 +87,7 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </div>
             <p className="text-[11px] text-slate-400 tracking-tight hidden sm:block">
-              Human Thermal Stress &amp; Hospital Surge Early Warning
+              Environmental Hazard Intelligence
             </p>
           </div>
         </div>
@@ -155,7 +155,7 @@ export const Header: React.FC<HeaderProps> = ({
             title="Simulate Realtime Ingestion of Ward IoT / AWS Telemetry"
           >
             <Zap className={`w-3.5 h-3.5 text-emerald-400 ${isSimulatingPulse ? 'animate-spin' : ''}`} />
-            <span className="font-medium">Ingest Sensor Pulse</span>
+            <span className="font-medium">SIMULATION: Ingest Sensor Pulse</span>
           </button>
         )}
 

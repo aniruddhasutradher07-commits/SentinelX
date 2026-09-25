@@ -615,7 +615,6 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
           return (
             <>
               <NightRecoveryCard
-                wardNo={activeWard?.ward_no || 'W21'}
                 data={{
                   night_min_temp_c: nightMinTemp,
                   night_humidity_pct: nightRecoveryData?.night_recovery?.night_humidity_pct ?? 82.0,
@@ -668,6 +667,60 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
             </>
           );
         })()}
+        
+        {/* Panel 3.4.5: Ward Profile Context */}
+        {activeWard?.ward_profile && (
+          <div className="bg-tactical-800 border border-tactical-border rounded-2xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-[10px] font-mono text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-blue-400" />
+                Ward Profile
+              </h3>
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-blue-500/30 bg-blue-950/50 text-blue-300 uppercase tracking-widest font-semibold">
+                [{activeWard.ward_profile.status}]
+              </span>
+            </div>
+            
+            <div className="text-[10px] text-slate-300 font-sans space-y-2">
+              <p className="text-slate-400 border-b border-tactical-border/50 pb-1 mb-2">
+                <span className="text-blue-400 font-medium">Source:</span> {activeWard.ward_profile.source} | <span className="text-blue-400 font-medium">Dataset:</span> {activeWard.ward_profile.dataset} ({activeWard.ward_profile.dataset_year})
+              </p>
+              
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                <div className="bg-tactical-900/50 p-2 rounded border border-tactical-border/50">
+                  <span className="block text-slate-400 font-mono text-[9px] mb-1">Total Population</span>
+                  <span className="text-lg font-bold text-slate-200">
+                    {activeWard.ward_profile.population_total?.toLocaleString() ?? 'N/A'}
+                  </span>
+                  <div className="flex justify-between text-[8px] text-slate-500 mt-1">
+                    <span>M: {activeWard.ward_profile.population_male?.toLocaleString() ?? 'N/A'}</span>
+                    <span>F: {activeWard.ward_profile.population_female?.toLocaleString() ?? 'N/A'}</span>
+                  </div>
+                </div>
+                
+                <div className="bg-tactical-900/50 p-2 rounded border border-tactical-border/50">
+                  <span className="block text-slate-400 font-mono text-[9px] mb-1">Households</span>
+                  <span className="text-lg font-bold text-slate-200">
+                    {activeWard.ward_profile.households?.toLocaleString() ?? 'N/A'}
+                  </span>
+                  <div className="flex justify-between text-[8px] text-slate-500 mt-1">
+                    <span>SC: {activeWard.ward_profile.sc_population?.toLocaleString() ?? 'N/A'}</span>
+                    <span>ST: {activeWard.ward_profile.st_population?.toLocaleString() ?? 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-tactical-900/50 p-2 rounded border border-tactical-border/50 mt-2">
+                <div className="grid grid-cols-2 gap-y-1 text-[9px]">
+                  <div className="text-slate-400">Corporator:</div>
+                  <div className="text-slate-200 text-right">{activeWard.ward_profile.corporator_name || 'N/A'}</div>
+                  <div className="text-slate-400">Ward Officer:</div>
+                  <div className="text-slate-200 text-right">{activeWard.ward_profile.ward_officer || 'N/A'}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Panel 3.5: Bhuvan / ISRO GIS Context */}
         {activeWard?.bhuvan_lulc && (

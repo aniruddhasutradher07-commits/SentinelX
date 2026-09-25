@@ -23,6 +23,24 @@ interface OverviewTabProps {
 
 export default function OverviewTab({ telemetry, activeDistrict, weather, wards = [] }: OverviewTabProps) {
   const [dispatchStatus, setDispatchStatus] = useState("");
+  const [mlForecast, setMlForecast] = useState<any>(null);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    async function fetchForecast() {
+      try {
+        const res = await fetchWithColdStart(`/api/v1/ml-v2/forecast?lat=${activeDistrict?.lat || 20.25}&lon=${activeDistrict?.lon || 85.75}`);
+        const data = await res.json();
+        if (isMounted && data.status === "SUCCESS") {
+          setMlForecast(data);
+        }
+      } catch (err) {
+        console.error("ML Forecast fetch error", err);
+      }
+    }
+    fetchForecast();
+    return () => { isMounted = false; };
+  }, [activeDistrict]);
 
   const handleSiren = async () => {
     setDispatchStatus("Broadcasting...");
@@ -168,7 +186,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
         </StatCard>
 
         <StatCard
-          title="HEAT INDEX (FEELS LIKE)"
+          title="CURRENT APPARENT TEMPERATURE"
           value={liveApparent}
           unit="°C"
           subtitle={`Stroke Probability: ${strokeProbText}`}
@@ -214,6 +232,59 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
           </div>
         </StatCard>
       </section>
+
+      {/* ML V2 FORECAST PANEL */}
+      <div className="glass-panel rounded-xl p-4 border border-fuchsia-500/30 bg-gradient-to-r from-fuchsia-950/20 via-slate-900/60 to-slate-900/40 relative overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-col">
+            <h2 className="text-sm font-bold font-tech text-white uppercase tracking-wider mb-1">
+              ML V2 ENVIRONMENTAL FORECAST
+            </h2>
+            <div className="flex gap-4 items-center mt-2">
+              <div className="flex flex-col">
+                <span className="text-[10px] text-slate-400 font-mono">CURRENT APPARENT TEMPERATURE</span>
+                <span className="text-xl font-bold text-slate-200">{liveApparent} °C</span>
+              </div>
+              <div className="h-8 w-px bg-slate-700/50 hidden sm:block"></div>
+              <div className="flex flex-col">
+                <span className="text-[10px] text-fuchsia-300 font-mono">NEXT 24H MAX APPARENT TEMPERATURE</span>
+                <span className="text-2xl font-bold text-fuchsia-400">
+                  {mlForecast ? `${mlForecast.prediction.toFixed(1)} °C` : "UNAVAILABLE"}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex flex-col gap-1 text-[10px] font-mono text-slate-400 border-l border-slate-700/50 pl-4">
+            <div className="flex gap-2 justify-between">
+              <span>Status:</span>
+              <span className="text-amber-400 border border-amber-500/30 bg-amber-950/30 px-1 rounded">EXPERIMENTAL</span>
+            </div>
+            <div className="flex gap-2 justify-between">
+              <span>Training:</span>
+              <span className="text-slate-200">ERA5 2021-2025</span>
+            </div>
+            <div className="flex gap-2 justify-between">
+              <span>Live Input:</span>
+              <span className="text-cyan-300">Open-Meteo</span>
+            </div>
+            <div className="flex gap-2 justify-between">
+              <span>Source Alignment:</span>
+              <span className="text-rose-300">NOT EXACT</span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Model Provenance Metrics */}
+        <div className="mt-3 pt-3 border-t border-slate-700/50 flex flex-wrap gap-x-6 gap-y-2 text-[9px] font-mono text-slate-500">
+          <span>TRAINING PERIOD: 2021-2023</span>
+          <span>VALIDATION: 2024</span>
+          <span>TEST: 2025</span>
+          <span className="text-slate-400">TEST MAE: 1.08 °C</span>
+          <span className="text-slate-400">TEST RMSE: 1.39 °C</span>
+          <span className="text-slate-400">TEST R²: 0.91</span>
+        </div>
+      </div>
 
       {/* Multi-Hazard & Directive Banner */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">

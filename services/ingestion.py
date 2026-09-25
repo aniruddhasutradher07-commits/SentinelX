@@ -34,6 +34,18 @@ def init_db():
             fetched_at TEXT
         )
     """)
+    try:
+        c.execute("ALTER TABLE weather_observations ADD COLUMN precipitation_mm REAL DEFAULT 0.0")
+        c.execute("ALTER TABLE weather_observations ADD COLUMN rain_mm REAL DEFAULT 0.0")
+        c.execute("ALTER TABLE weather_observations ADD COLUMN weather_code INTEGER")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        c.execute("ALTER TABLE weather_observations ADD COLUMN pressure_hpa REAL DEFAULT 1013.25")
+        c.execute("ALTER TABLE weather_observations ADD COLUMN cloud_cover_pct REAL DEFAULT 0.0")
+        c.execute("ALTER TABLE weather_observations ADD COLUMN wind_direction REAL DEFAULT 0.0")
+    except sqlite3.OperationalError:
+        pass
     conn.commit()
     conn.close()
 
@@ -58,8 +70,11 @@ class WeatherReading:
     data_age_minutes: int = 0
     wind_gusts_ms: float = 0.0
     precipitation_mm: float = 0.0
+    rain_mm: float = 0.0
+    weather_code: Optional[int] = None
     pressure_hpa: float = 1013.25
     cloud_cover_pct: float = 0.0
+    wind_direction: float = 0.0
     forecast_7d_precip: List[float] = field(default_factory=lambda: [0.0]*7)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -106,10 +121,10 @@ def _fetch_open_meteo_batch(locations: List[Dict[str, Any]]) -> Dict[str, Option
         params = {
             "latitude": lats,
             "longitude": lons,
-            "current": "temperature_2m,relative_humidity_2m,wind_speed_10m,wind_gusts_10m,precipitation,surface_pressure,cloud_cover",
+            "current": "temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,precipitation,rain,surface_pressure,cloud_cover,weather_code",
             "hourly": "uv_index",
             "daily": "precipitation_sum",
-            "timezone": "auto",
+            "timezone": "UTC",
             "forecast_days": 7,
         }
         w_resp = session.get("https://api.open-meteo.com/v1/forecast", params=params, timeout=timeout)
@@ -192,8 +207,11 @@ def _fetch_open_meteo_batch(locations: List[Dict[str, Any]]) -> Dict[str, Option
                     fetched_at=fetched_dt,
                     wind_gusts_ms=(current.get("wind_gusts_10m") or 0.0) / 3.6,
                     precipitation_mm=current.get("precipitation") or 0.0,
+                    rain_mm=current.get("rain") or 0.0,
+                    weather_code=current.get("weather_code"),
                     pressure_hpa=current.get("surface_pressure") or 1013.25,
                     cloud_cover_pct=current.get("cloud_cover") or 0.0,
+                    wind_direction=current.get("wind_direction_10m") or 0.0,
                     forecast_7d_precip=[float(x) if x is not None else 0.0 for x in wd.get("daily", {}).get("precipitation_sum", [])]
                 )
             except Exception as e:
@@ -229,19 +247,31 @@ def _get_cached_reading(ward_id: str) -> Optional[WeatherReading]:
         aqi_standard=row["aqi_standard"],
         source=row["source"],
         observed_at=row["observed_at"],
-        fetched_at=row["fetched_at"]
+        fetched_at=row["fetched_at"],
+        precipitation_mm=row["precipitation_mm"] if "precipitation_mm" in row.keys() else 0.0,
+        rain_mm=row["rain_mm"] if "rain_mm" in row.keys() else 0.0,
+        weather_code=row["weather_code"] if "weather_code" in row.keys() else None,
+        pressure_hpa=row["pressure_hpa"] if "pressure_hpa" in row.keys() else 1013.25,
+        cloud_cover_pct=row["cloud_cover_pct"] if "cloud_cover_pct" in row.keys() else 0.0,
+        wind_direction=row["wind_direction"] if "wind_direction" in row.keys() else 0.0
     )
 
 def _save_reading(r: WeatherReading):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    wind_kmh = r.wind_speed_ms * 3.6 if r.wind_speed_ms is not None else None
-    c.execute("""
-        INSERT INTO weather_observations 
-        (ward_id, latitude, longitude, temperature_c, humidity_percent, wind_speed_kmh, uv_index, pm25, pm10, aqi, aqi_standard, source, observed_at, fetched_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, ?, ?, ?)
-    """, (r.ward_id, r.latitude, r.longitude, r.temperature_c, r.humidity_percent, wind_kmh, r.uv_index, r.aqi, r.aqi_standard, r.source, r.observed_at, r.fetched_at))
-    conn.commit()
+    
+    # Idempotency check: natural key is ward_id + observed_at
+    c.execute("SELECT id FROM weather_observations WHERE ward_id = ? AND observed_at = ?", (r.ward_id, r.observed_at))
+    existing = c.fetchone()
+    
+    if existing is None:
+        wind_kmh = r.wind_speed_ms * 3.6 if r.wind_speed_ms is not None else None
+        c.execute("""
+            INSERT INTO weather_observations 
+            (ward_id, latitude, longitude, temperature_c, humidity_percent, wind_speed_kmh, uv_index, pm25, pm10, aqi, aqi_standard, source, observed_at, fetched_at, precipitation_mm, rain_mm, weather_code, pressure_hpa, cloud_cover_pct, wind_direction)
+            VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (r.ward_id, r.latitude, r.longitude, r.temperature_c, r.humidity_percent, wind_kmh, r.uv_index, r.aqi, r.aqi_standard, r.source, r.observed_at, r.fetched_at, r.precipitation_mm, r.rain_mm, r.weather_code, r.pressure_hpa, r.cloud_cover_pct, r.wind_direction))
+        conn.commit()
     conn.close()
 
 def _generate_mock_iot(lat: float, lon: float, ward_id: str) -> WeatherReading:

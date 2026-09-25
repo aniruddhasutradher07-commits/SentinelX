@@ -51,6 +51,15 @@ def _run_open_meteo_loop():
             print(f"[live_sync] Open-Meteo Sync failed: {e}")
         time.sleep(OPEN_METEO_REFRESH_SECONDS)
 
+def _run_multihazard_loop():
+    from services.live_multihazard import live_multihazard_client
+    while True:
+        try:
+            live_multihazard_client.sync()
+        except Exception as e:
+            print(f"[live_sync] Multi-Hazard Sync failed: {e}")
+        time.sleep(900)
+
 def start_unified_scheduler():
     global _scheduler_running
     if _scheduler_running:
@@ -67,4 +76,5 @@ def start_unified_scheduler():
     threading.Thread(target=_run_imd_loop, daemon=True, name="Sync-IMD").start()
     threading.Thread(target=_run_cpcb_loop, daemon=True, name="Sync-CPCB").start()
     threading.Thread(target=_run_open_meteo_loop, daemon=True, name="Sync-OpenMeteo").start()
+    threading.Thread(target=_run_multihazard_loop, daemon=True, name="Sync-MultiHazard").start()
 

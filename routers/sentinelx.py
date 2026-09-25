@@ -116,16 +116,48 @@ def get_live_feed():
     
     # Import our new ML and Multi-Hazard engines
     from core.risk_rules import evaluate_environmental_risk
-    from core.multi_hazard import evaluate_multi_hazards
+    from services.live_multihazard import live_multihazard_client
     from services.ingestion import fetch_weather_data
     
     weather = fetch_weather_data(20.2961, 85.8245, "Bhubaneswar")
     
-    mh_result = evaluate_multi_hazards(
-        weather.precipitation_mm if weather else 0.0,
-        weather.wind_gusts_ms if weather else 0.0,
-        weather.forecast_7d_precip if weather else [0.0]*7
-    )
+    mh_result = live_multihazard_client.get_current_status()
+    
+    if weather:
+        precip = weather.precipitation_mm
+        w_code = getattr(weather, 'weather_code', None)
+        
+        rain_status = "UNAVAILABLE"
+        if w_code is not None:
+            # WMO Weather codes for rain/drizzle/thunderstorm
+            if w_code in [51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99]:
+                rain_status = "RAINING"
+            else:
+                rain_status = "NO RAIN"
+        elif precip is not None and precip > 0:
+            rain_status = "RAINING"
+            
+        freshness = "UNAVAILABLE"
+        if weather.is_live:
+            freshness = "LIVE"
+        elif weather.is_stale:
+            freshness = "STALE"
+            
+        mh_result["rain"] = {
+            "status": rain_status,
+            "value_mm": precip if precip is not None else 0.0,
+            "source": "Open-Meteo",
+            "freshness": freshness,
+            "observed_at": weather.observed_at,
+            "fetched_at": weather.fetched_at
+        }
+    else:
+        mh_result["rain"] = {
+            "status": "UNAVAILABLE",
+            "value_mm": None,
+            "source": "Open-Meteo",
+            "freshness": "UNAVAILABLE"
+        }
     
     temp = weather.temperature_c if weather and weather.temperature_c is not None else 35.0
     rh = weather.humidity_percent if weather and weather.humidity_percent is not None else 50.0
@@ -154,16 +186,156 @@ def get_live_feed():
             {"title": a["title"], "source": a["source"], "threat": a["threat_level"], "url": a["url"]}
             for a in news_items[:3]
         ],
-        "multi_hazard": mh_result.to_dict(),
-                "environmental_risk": risk_result,
+        "multi_hazard": mh_result,
+        "environmental_risk": risk_result,
         "hospital_surge_model": {
             "status": "EXPERIMENTAL_NOT_VALIDATED",
             "message": "Model removed from production alerting due to target leakage. Retained for research."
         },
         "elevated_risk_wards_count": 0,
-        "model_engine": "2-Stage DLNM Lagged Baseline + XGBoost Residual ML",
-        "confidence_score_r2": 0.566
+        "legacy_model_engine": "2-Stage DLNM Lagged Baseline + XGBoost Residual ML",
+        "legacy_hospital_model_r2": "UNVALIDATED"
     }
+
+
+@router.get("/map/era5", summary="Fetch Historical ERA5 Mapping Data")
+def get_map_era5(
+    date: str = Query(..., description="Target date in YYYY-MM-DD format"),
+    variable: str = Query(..., description="Weather variable to fetch (e.g. temperature_c)"),
+    ward_id: str = Query(None, description="Optional specific ward filter")
+):
+    """
+    Returns deterministic historical ERA5 grid data for the given variable.
+    If the 5-year extraction is not yet complete or imported, returns DATA_PENDING.
+    """
+    era5_file = "data/ml_v2/historical_weather_era5_cds_2021_2025.csv"
+    if not os.path.exists(era5_file):
+        return {
+            "status": "DATA_PENDING",
+            "message": "ERA5 historical reanalysis extraction (2021-2025) is currently in progress on CDS. Data will be available once the background pipeline completes.",
+            "date": date,
+            "variable": variable,
+            "ward_id": ward_id,
+            "data": []
+        }
+        
+    try:
+        # Load and filter efficiently
+        cols = ["timestamp", "era5_grid_latitude", "era5_grid_longitude", variable]
+        df = pd.read_csv(era5_file, usecols=cols)
+        df = df[df['timestamp'].str.startswith(date)]
+        
+        # Group by grid to return daily mean
+        df_grouped = df.groupby(["era5_grid_latitude", "era5_grid_longitude"])[variable].mean().reset_index()
+        
+        data_records = []
+        for _, row in df_grouped.iterrows():
+            val = float(row[variable]) if pd.notna(row[variable]) else None
+            data_records.append({
+                "latitude": float(row["era5_grid_latitude"]),
+                "longitude": float(row["era5_grid_longitude"]),
+                "value": val
+            })
+            
+        return {
+            "status": "VALIDATED_DATA_AVAILABLE",
+            "message": "CDS ERA5 60-Month Dataset Validated",
+            "date": date,
+            "variable": variable,
+            "ward_id": ward_id,
+            "data": data_records
+        }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "message": str(e),
+            "date": date,
+            "variable": variable,
+            "ward_id": ward_id,
+            "data": []
+        }
+
+@router.get("/ml-v2/forecast", summary="Get ML V2 Next-24-Hour Environmental Forecast")
+def get_ml_forecast(lat: float = Query(20.25), lon: float = Query(85.75)):
+    from ml_v2.live_features import build_live_feature_vector
+    from ml_v2.inference import predict_next_24h
+    import pandas as pd
+    from datetime import datetime, timezone
+
+    # 1. Acquire exact current time (do not round down, which would exclude newer valid sub-hourly telemetry)
+    now = datetime.now(timezone.utc)
+    
+    # 2. Build live features from local telemetry DB
+    feature_res = build_live_feature_vector(lat, lon, now.isoformat())
+    
+    if feature_res["status"] != "SUCCESS":
+        # Missing lags, insufficient history, or duplicates trigger this
+        return {
+            "status": "DATA_UNAVAILABLE",
+            "message": feature_res.get("reason", "Live feature history incomplete."),
+            "experimental": True,
+            "source": "Copernicus / ECMWF ERA5 trained model",
+            "model_version": "HistGradientBoosting"
+        }
+        
+    vector = feature_res["feature_vector"]
+    
+    # 3. Predict via the exact trained model schema
+    try:
+        df_vec = pd.DataFrame([vector])
+        prediction = predict_next_24h(df_vec)
+        if prediction["status"] != "SUCCESS":
+            return {"status": "DATA_UNAVAILABLE", "message": "Model inference failed"}
+            
+        pred_val = float(prediction["predictions"][0])
+    except Exception as e:
+        return {"status": "DATA_UNAVAILABLE", "message": f"Inference error: {str(e)}"}
+        
+    return {
+        "status": "SUCCESS",
+        "model_version": "HistGradientBoosting",
+        "target": "NEXT_24H_MAX_APPARENT_TEMPERATURE",
+        "forecast_horizon": "Next 24 hours",
+        "prediction": pred_val,
+        "prediction_time": feature_res["prediction_time"],
+        "history_start": feature_res["history_start"],
+        "history_end": feature_res["history_end"],
+        "training_source": feature_res["training_source"],
+        "live_input_source": feature_res["live_input_source"],
+        "source_alignment": feature_res["source_alignment"],
+        "experimental": True
+    }
+
+@router.get("/ml-v2/map", summary="Get ML V2 Predictions for Map Layer")
+def get_ml_map_layer():
+    pred_file = "data/ml_v2/predictions/predictions.csv"
+    if not os.path.exists(pred_file):
+        return {"status": "DATA_UNAVAILABLE", "data": []}
+        
+    try:
+        df = pd.read_csv(pred_file)
+        
+        # Get the latest timestamp predictions for all grids
+        df['timestamp'] = pd.to_datetime(df['timestamp'])
+        latest_ts = df['timestamp'].max()
+        df_latest = df[df['timestamp'] == latest_ts]
+        
+        data = []
+        for _, row in df_latest.iterrows():
+            data.append({
+                "timestamp": row['timestamp'].isoformat(),
+                "era5_grid_latitude": float(row['era5_grid_latitude']),
+                "era5_grid_longitude": float(row['era5_grid_longitude']),
+                "prediction": float(row['prediction']),
+                "model_version": row['model_version']
+            })
+            
+        return {
+            "status": "SUCCESS",
+            "data": data
+        }
+    except Exception as e:
+        return {"status": "ERROR", "message": str(e)}
 
 
 @router.get("/h-therm/calculate", summary="Calculate H-THERM Physiological Strain (GET)")
@@ -363,133 +535,158 @@ def get_bhubaneswar_wards():
     try:
         geojson_path = "wards_bhubaneswar.geojson"
     
-    features = []
-    if os.path.exists(geojson_path):
-        try:
-            with open(geojson_path, "r", encoding="utf-8") as f:
-                features = json.load(f).get("features", [])
-        except Exception:
-            pass
+        features = []
+        if os.path.exists(geojson_path):
+            try:
+                with open(geojson_path, "r", encoding="utf-8") as f:
+                    features = json.load(f).get("features", [])
+            except Exception:
+                pass
     
-    from services.ingestion import fetch_multi_location, WeatherReading
-    from services.imd_client import imd_client
-    from services.cpcb_client import cpcb_client
-    from services.health_infra import health_infra
-    imd_ctx = imd_client.get_district_context("Khordha")
+        from services.ingestion import fetch_multi_location, WeatherReading
+        from services.imd_client import imd_client
+        from services.cpcb_client import cpcb_client
+        from services.health_infra import health_infra
+        imd_ctx = imd_client.get_district_context("Khordha")
     
-    locations = []
-    for idx, feat in enumerate(features):
-        p = feat.get("properties", {})
-        w_no = p.get("wardno") or f"W{idx + 1}"
-        lat = p.get("latitudei") or (20.29 + idx * 0.001)
-        lon = p.get("longitudei") or (85.82 + idx * 0.001)
-        locations.append({"lat": lat, "lon": lon, "name": w_no})
+        locations = []
+        for idx, feat in enumerate(features):
+            p = feat.get("properties", {})
+            w_no = p.get("wardno") or f"W{idx + 1}"
+            lat = p.get("latitudei") or (20.29 + idx * 0.001)
+            lon = p.get("longitudei") or (85.82 + idx * 0.001)
+            locations.append({"lat": lat, "lon": lon, "name": w_no})
         
-    weather_results = fetch_multi_location(locations)
-    # Map weather by ward_no
-    weather_map = {}
-    for w in weather_results:
-        if w:
-            weather_map[w.ward_id] = w
+        weather_results = fetch_multi_location(locations)
+        # Map weather by ward_no
+        weather_map = {}
+        for w in weather_results:
+            if w:
+                weather_map[w.ward_id] = w
 
-    now_ts = datetime.datetime.now().strftime("%Y-%m-%d %H:00:00")
-    wards = []
-    for idx, feat in enumerate(features):
-        p = feat.get("properties", {})
-        w_no = p.get("wardno") or f"W{idx + 1}"
-        pop = p.get("totalwardpopulation") or 13500
-        # Demographic vulnerability (Spatial data omitted until Bhuvan API integration)
-        eld = 8.5
-        work = 24.0
-        vuln = compute_vulnerability(eld, work, tree_cover=None, roofs=None)
+        now_ts = datetime.datetime.now().strftime("%Y-%m-%d %H:00:00")
+        wards = []
+        for idx, feat in enumerate(features):
+            p = feat.get("properties", {})
+            w_no = p.get("wardno") or f"W{idx + 1}"
+            pop = p.get("totalwardpopulation") or 13500
+            # Demographic vulnerability (Spatial data omitted until Bhuvan API integration)
+            eld = 8.5
+            work = 24.0
+            vuln = compute_vulnerability(eld, work, tree_cover=None, roofs=None)
         
-        w_data = weather_map.get(w_no)
-        if not w_data:
-            # Absolute fallback if even DB fails
-            w_data = WeatherReading(
-                ward_id=w_no, latitude=locations[idx]["lat"], longitude=locations[idx]["lon"],
-                temperature_c=35.0, humidity_percent=50.0, wind_speed_ms=1.0, uv_index=0.0,
-                aqi=0.0, aqi_standard="US_AQI", source="UNAVAILABLE", observed_at=now_ts, fetched_at=now_ts,
-                is_live=False, is_stale=True, data_age_minutes=999
-            )
+            w_data = weather_map.get(w_no)
+            if not w_data:
+                # Absolute fallback if even DB fails
+                w_data = WeatherReading(
+                    ward_id=w_no, latitude=locations[idx]["lat"], longitude=locations[idx]["lon"],
+                    temperature_c=35.0, humidity_percent=50.0, wind_speed_ms=1.0, uv_index=0.0,
+                    aqi=0.0, aqi_standard="US_AQI", source="UNAVAILABLE", observed_at=now_ts, fetched_at=now_ts,
+                    is_live=False, is_stale=True, data_age_minutes=999
+                )
             
-        temp = w_data.temperature_c if w_data.temperature_c is not None else 0.0
-        rh = w_data.humidity_percent if w_data.humidity_percent is not None else 0.0
-        wind = w_data.wind_speed_ms if w_data.wind_speed_ms is not None else 0.0
-        solar = 907.5 # Keep constant solar for now as API doesn't provide it easily
+            temp = w_data.temperature_c if w_data.temperature_c is not None else 0.0
+            rh = w_data.humidity_percent if w_data.humidity_percent is not None else 0.0
+            wind = w_data.wind_speed_ms if w_data.wind_speed_ms is not None else 0.0
+            solar = 907.5 # Keep constant solar for now as API doesn't provide it easily
         
-        wbgt = round(wbgt_outdoor_celsius(temp, rh, solar, wind), 1)
-        hi = round(heat_index_celsius(temp, rh), 1)
-        utci = round(utci_celsius(temp, rh, solar, wind), 1)
+            wbgt = round(wbgt_outdoor_celsius(temp, rh, solar, wind), 1)
+            hi = round(heat_index_celsius(temp, rh), 1)
+            utci = round(utci_celsius(temp, rh, solar, wind), 1)
         
-        hazard = round((wbgt / 33.0) * 75.0)
-        risk_score = min(100.0, round(hazard * vuln["vulnerability_multiplier"], 1))
-        tier = "Red" if risk_score >= 85 else ("Orange" if risk_score >= 70 else ("Yellow" if risk_score >= 45 else "Green"))
-        
-        
-        # Remote sensing fabrications have been stripped per provenance rules
+            hazard = round((wbgt / 33.0) * 75.0)
+            risk_score = min(100.0, round(hazard * vuln["vulnerability_multiplier"], 1))
+            tier = "Red" if risk_score >= 85 else ("Orange" if risk_score >= 70 else ("Yellow" if risk_score >= 45 else "Green"))
         
         
-        cpcb_ctx = cpcb_client.map_ward_to_station(locations[idx]["lat"], locations[idx]["lon"])
+            # Remote sensing fabrications have been stripped per provenance rules
         
-        # Use CPCB AQI if available, otherwise preserve Open-Meteo AQI
-        aqi_val = cpcb_ctx.get("aqi")
-        if aqi_val is None:
-            aqi_val = w_data.aqi
-        wards.append({
-            "ward_no": w_no,
-            "zone": p.get("municipalzone") or "North Zone",
-            "population": pop,
-            "centroid_lat": locations[idx]["lat"],
-            "centroid_lon": locations[idx]["lon"],
-            "timestamp": now_ts,
-            "temperature_c": temp,
-            "relative_humidity_pct": rh,
-            "wind_speed_ms": wind,
-            "solar_radiation_wm2": solar,
-            "apparent_temp_c": round(temp + 3.8, 1),
-            "adjusted_temp_c": temp,
-            "HI_celsius": hi,
-            "WBGT_celsius": wbgt,
-            "UTCI_celsius": utci,
-            "thermal_hazard_score": hazard,
-            "WardRiskScore": risk_score,
-            "RiskTier": tier,
+            # Build ward profile
+            def _get_val(key):
+                val = p.get(key)
+                if val == "" or val == "NA" or val is None:
+                    return None
+                return val
             
-            # Legacy fields for compatibility
-            "is_live": w_data.is_live,
-            "is_stale": w_data.is_stale,
-            "data_age_minutes": w_data.data_age_minutes,
-            "source": w_data.source,
-            "observed_at": w_data.observed_at,
-            "fetched_at": w_data.fetched_at,
-            "uv_index": w_data.uv_index,
-            "aqi": aqi_val,
-            "aqi_standard": w_data.aqi_standard,
-            **vuln,
-            
-            # Unified structure
-            "telemetry": {
+            ward_profile = {
+                "status": "STATIC_REFERENCE",
+                "source": "Odisha Government OGD",
+                "dataset": "City Profile Bhubaneswar 2019",
+                "dataset_year": 2019,
+                "municipal_zone": _get_val("municipalzone"),
+                "corporator_name": _get_val("nameofthecorporator"),
+                "corporator_mobile": _get_val("mobilenoofcorporator"),
+                "ward_officer": _get_val("WardLevelOfficer"),
+                "ward_officer_mobile": _get_val("WardLevelOfficialContactNo"),
+                "households": _get_val("numberofhouseholds"),
+                "population_total": _get_val("totalwardpopulation"),
+                "population_male": _get_val("totalmalepopulation"),
+                "population_female": _get_val("totalfemalepopulation"),
+                "sc_population": _get_val("totalscpopulation"),
+                "st_population": _get_val("totalstpopulation")
+            }
+        
+            cpcb_ctx = cpcb_client.map_ward_to_station(locations[idx]["lat"], locations[idx]["lon"])
+        
+            # Use CPCB AQI if available, otherwise preserve Open-Meteo AQI
+            aqi_val = cpcb_ctx.get("aqi")
+            if aqi_val is None:
+                aqi_val = w_data.aqi
+            wards.append({
+                "ward_no": w_no,
+                "zone": p.get("municipalzone") or "North Zone",
+                "population": pop,
+                "centroid_lat": locations[idx]["lat"],
+                "centroid_lon": locations[idx]["lon"],
+                "timestamp": now_ts,
                 "temperature_c": temp,
                 "relative_humidity_pct": rh,
                 "wind_speed_ms": wind,
-                "uv_index": w_data.uv_index,
+                "solar_radiation_wm2": solar,
+                "apparent_temp_c": round(temp + 3.8, 1),
+                "adjusted_temp_c": temp,
+                "HI_celsius": hi,
+                "WBGT_celsius": wbgt,
+                "UTCI_celsius": utci,
+                "thermal_hazard_score": hazard,
+                "WardRiskScore": risk_score,
+                "RiskTier": tier,
+            
+                # Legacy fields for compatibility
+                "is_live": w_data.is_live,
+                "is_stale": w_data.is_stale,
+                "data_age_minutes": w_data.data_age_minutes,
                 "source": w_data.source,
-                "status": "LIVE" if not w_data.is_stale else "STALE",
                 "observed_at": w_data.observed_at,
                 "fetched_at": w_data.fetched_at,
-                "data_age_minutes": w_data.data_age_minutes
-            },
-            "air_quality": cpcb_ctx,
-            "imd_context": imd_ctx,
-            "data_quality": {
-                "weather": "LIVE" if not w_data.is_stale else "STALE",
-                "air_quality": cpcb_ctx.get("status", "UNAVAILABLE"),
-                "imd": imd_ctx.get("status", "UNAVAILABLE")
-            },
-            "bhuvan_lulc": BhuvanLULCService.get_ward_context(w_no, db),
-            "health_infrastructure": health_infra.get_ward_infrastructure(w_no)
-        })
+                "uv_index": w_data.uv_index,
+                "aqi": aqi_val,
+                "aqi_standard": w_data.aqi_standard,
+                **vuln,
+            
+                # Unified structure
+                "telemetry": {
+                    "temperature_c": temp,
+                    "relative_humidity_pct": rh,
+                    "wind_speed_ms": wind,
+                    "uv_index": w_data.uv_index,
+                    "source": w_data.source,
+                    "status": "LIVE" if not w_data.is_stale else "STALE",
+                    "observed_at": w_data.observed_at,
+                    "fetched_at": w_data.fetched_at,
+                    "data_age_minutes": w_data.data_age_minutes
+                },
+                "air_quality": cpcb_ctx,
+                "imd_context": imd_ctx,
+                "data_quality": {
+                    "weather": "LIVE" if not w_data.is_stale else "STALE",
+                    "air_quality": cpcb_ctx.get("status", "UNAVAILABLE"),
+                    "imd": imd_ctx.get("status", "UNAVAILABLE")
+                },
+                "ward_profile": ward_profile,
+                "bhuvan_lulc": BhuvanLULCService.get_ward_context(w_no, db),
+                "health_infrastructure": health_infra.get_ward_infrastructure(w_no)
+            })
     finally:
         db.close()
     return {"count": len(wards), "wards": wards}
@@ -530,3 +727,22 @@ def get_benchmarks():
         df = pd.read_csv(csv_path)
         return {"count": len(df), "benchmarks": df.to_dict(orient="records")}
     return {"count": 0, "benchmarks": []}
+
+@router.get("/physiology-reference", summary="Get PhysioNet Wearable Dataset Reference Data")
+def get_physiology_reference_endpoint(
+    subject_id: Optional[str] = Query(None, description="Participant ID (e.g., S01)"),
+    session_type: Optional[str] = Query(None, description="Session Type (STRESS, AEROBIC, ANAEROBIC)")
+):
+    from services.physiology_reference import get_physiology_reference, get_available_subjects_and_sessions
+    
+    if not subject_id or not session_type:
+        return {
+            "status": "STATIC_REFERENCE",
+            "message": "Provide subject_id and session_type. Returning available combinations.",
+            "available": get_available_subjects_and_sessions()
+        }
+        
+    result = get_physiology_reference(subject_id, session_type)
+    if result.get("status") == "NOT_FOUND":
+        raise HTTPException(status_code=404, detail="HR / skin-temperature recording is unavailable for this participant/session.")
+    return result

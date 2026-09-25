@@ -1,0 +1,62 @@
+{
+    "model_type": "HistGradientBoosting",
+    "target_definition": "NEXT_24H_MAX_APPARENT_TEMPERATURE",
+    "features": [
+        "temperature_c",
+        "relative_humidity_pct",
+        "dew_point_c",
+        "apparent_temperature_c",
+        "wind_u_ms",
+        "wind_v_ms",
+        "wind_speed_ms",
+        "precipitation_mm",
+        "pressure_hpa",
+        "cloud_cover_pct",
+        "hour_sin",
+        "hour_cos",
+        "doy_sin",
+        "doy_cos",
+        "temperature_c_lag_1h",
+        "apparent_temperature_c_lag_1h",
+        "temperature_c_lag_3h",
+        "apparent_temperature_c_lag_3h",
+        "temperature_c_lag_6h",
+        "apparent_temperature_c_lag_6h",
+        "temperature_c_lag_12h",
+        "apparent_temperature_c_lag_12h",
+        "temperature_c_lag_24h",
+        "apparent_temperature_c_lag_24h",
+        "temperature_c_roll_3h_mean",
+        "temperature_c_roll_6h_mean",
+        "temperature_c_roll_12h_mean",
+        "temperature_c_roll_24h_mean",
+        "temperature_c_24h_max",
+        "temperature_c_24h_min",
+        "dew_point_c_24h_mean",
+        "relative_humidity_pct_24h_mean",
+        "precipitation_mm_24h_sum",
+        "wind_speed_ms_24h_mean",
+        "wind_speed_ms_24h_min",
+        "wind_speed_ms_24h_max"
+    ],
+    "train_period": [
+        "2021-01-02 00:00:00",
+        "2023-12-31 23:00:00"
+    ],
+    "val_period": [
+        "2024-01-01 00:00:00",
+        "2024-12-31 23:00:00"
+    ],
+    "test_period": [
+        "2025-01-01 00:00:00",
+        "2025-12-30 23:00:00"
+    ],
+    "training_timestamp": "2026-09-25T01:28:37.571213",
+    "source_dataset": "data/ml_v2/historical_weather_era5_cds_2021_2025.csv",
+    "provenance": "Copernicus / ECMWF ERA5",
+    "test_metrics": {
+        "mae": 1.0828647708205579,
+        "rmse": 1.3862477629738943,
+        "r2": 0.9054864516363426
+    }
+}

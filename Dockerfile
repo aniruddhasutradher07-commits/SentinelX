@@ -51,15 +51,26 @@ COPY main.py database.py schemas.py models.py ./
 COPY routers ./routers
 COPY services ./services
 COPY scripts ./scripts
+COPY core ./core
+COPY config ./config
+COPY ml_v2 ./ml_v2
+COPY experimental_ml ./experimental_ml
 
 # Create required directories
-RUN mkdir -p data
+RUN mkdir -p data/ml_v2/models data/ndma_benchmarks
 
 # Copy data, GeoJSON, and pre-built HTML dashboards
-COPY data/ ./data/
+# Only copy specifically required model artifacts and mapped grids
+COPY data/ml_v2/models/ml_v2_model.joblib ./data/ml_v2/models/
+COPY data/ml_v2/models/ml_v2_model_metadata.json ./data/ml_v2/models/
+COPY data/ml_v2/era5_grid_mapping.csv ./data/ml_v2/
+# Also any top-level CSV/JSON that might be used by services
+COPY data/*.csv data/*.json ./data/
 COPY *.geojson ./
 COPY *.html ./
 COPY *.csv ./
+# Copy frontend built assets if exists
+COPY dist/ ./dist/
 
 # Expose port
 EXPOSE 8000

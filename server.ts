@@ -418,7 +418,7 @@ function generateDomainFallback(prompt: string, context?: any, language = 'en'):
     "  1. **Public Health:** Activate 120+ public Jal Seva Kendras (water kiosks) along major transit corridors.\n" +
     "  2. **Urban Cooling:** Deploy misting cannons in dense urban heat island cores.\n" +
     "  3. **Demographic Focus:** Daily check-ins on elderly citizens and pregnant women in informal settlements.\n" +
-    "• **Model Confidence:** R² = 0.566 with multi-station ERA5 & NCMRWF calibration."
+    "• **Model Confidence:** R² = 0.9055 with multi-station ERA5 & Open-Meteo causal alignment."
   );
 }
 
@@ -568,8 +568,8 @@ app.get('/api/v1/summary', (req, res) => {
       peak_ward_expected_admissions: bmc_top_val,
       elevated_risk_wards_count: bmc_orange_red,
     },
-    model_engine: '2-Stage DLNM Lagged Baseline + XGBoost Residual ML',
-    confidence_score_r2: 0.566,
+    legacy_model_engine: '2-Stage DLNM Lagged Baseline + XGBoost Residual ML',
+    legacy_hospital_model_r2: "UNVALIDATED",
   });
 });
 

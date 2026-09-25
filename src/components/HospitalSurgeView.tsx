@@ -37,12 +37,12 @@ export const HospitalSurgeView: React.FC<HospitalSurgeViewProps> = ({ summary })
   return (
     <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-6">
       {/* Top Header & Model Performance Metrics */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/50 border border-tactical-border rounded-2xl p-5">
+      <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-amber-950/50 border border-tactical-border rounded-2xl p-5">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-400 font-mono text-[10px] font-bold uppercase">
-                2-Stage AI/ML Epidemiological Model
+              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 font-mono text-[10px] font-bold uppercase">
+                LEGACY / EXPERIMENTAL — NOT VALIDATED
               </span>
               <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 uppercase tracking-widest font-semibold">
                 [MODELLED]
@@ -53,30 +53,29 @@ export const HospitalSurgeView: React.FC<HospitalSurgeViewProps> = ({ summary })
             <h1 className="text-xl md:text-2xl font-bold font-display text-white mt-1">
               Hospital Admission &amp; Morbidity Surge Intelligence
             </h1>
-            <p className="text-xs text-slate-400 max-w-2xl mt-1">
-              Predicts ward-level and district-level hospital emergency admissions with 3–5 days lead time,
-              capturing delayed cumulative physiological heat strain.
+            <p className="text-xs text-amber-400 max-w-2xl mt-1 font-semibold">
+              WARNING: This is an unvalidated experimental legacy model. Do not use for clinical or emergency decisions.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="bg-tactical-850/70 border border-tactical-border p-3 rounded-xl text-right">
+            <div className="bg-tactical-850/70 border border-amber-500/30 p-3 rounded-xl text-right">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[10px] font-mono text-slate-400 block">Model R² Fit</span>
+                <span className="text-[10px] font-mono text-amber-400 block">Model R² Fit</span>
                 <span className="text-[9px] font-mono px-1 py-0.2 rounded border border-purple-500/30 text-purple-300">
-                  [MODELLED]
+                  [EXPERIMENTAL]
                 </span>
               </div>
-              <span className="text-lg font-bold font-mono text-emerald-400">{summary?.confidence_score_r2 || '0.566'}</span>
+              <span className="text-lg font-bold font-mono text-amber-500">UNVALIDATED</span>
             </div>
-            <div className="bg-tactical-850/70 border border-tactical-border p-3 rounded-xl text-right">
+            <div className="bg-tactical-850/70 border border-tactical-border p-3 rounded-xl text-right opacity-50">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[10px] font-mono text-slate-400 block">MAE Error</span>
                 <span className="text-[9px] font-mono px-1 py-0.2 rounded border border-purple-500/30 text-purple-300">
                   [MODELLED]
                 </span>
               </div>
-              <span className="text-lg font-bold font-mono text-sky-400">0.90 adm/day</span>
+              <span className="text-lg font-bold font-mono text-sky-400">N/A</span>
             </div>
           </div>
         </div>

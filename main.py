@@ -50,8 +50,28 @@ from routers import weather, wards, risk, thermal, alerts, dashboard, live, news
 # Initialize database tables
 Base.metadata.create_all(bind=engine)
 
+from contextlib import asynccontextmanager
+from services.live_sync import start_unified_scheduler
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Starts the unified background providers
+    start_unified_scheduler()
+    try:
+        from experimental_ml.heatwave_classifier import get_model
+        model = get_model()
+        model.train()
+    except Exception as e:
+        print(f"[startup] ML model pre-training skipped: {e}")
+    
+    yield
+    
+    # Shutdown logic (if any)
+    pass
+
 app = FastAPI(
     title="🛡️ SentinelX / THERMO-SHIELD AI — Master Intelligence API",
+    lifespan=lifespan,
     description="""
 ### Smart India Hackathon 2026 · Problem Statement 26083
 **MoES / NCMRWF / Disaster Management**
@@ -333,20 +353,6 @@ def get_alert_history(limit: int = Query(20, description="Max records")):
 # ---------------------------------------------------------------------------
 # Startup Events
 # ---------------------------------------------------------------------------
-
-from services.live_sync import start_unified_scheduler
-
-@app.on_event("startup")
-def _launch_background_tasks():
-    # Starts the unified background providers
-    start_unified_scheduler()
-    try:
-        from experimental_ml.heatwave_classifier import get_model
-        model = get_model()
-        model.train()
-    except Exception as e:
-        print(f"[startup] ML model pre-training skipped: {e}")
-
 
 @app.get("/health", tags=["System Health"])
 def health_check():

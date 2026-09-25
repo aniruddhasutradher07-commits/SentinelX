@@ -28,7 +28,6 @@ __pycache__
 .Python
 build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
@@ -71,7 +70,11 @@ out/
 sentinelx_data.db
 
 # Large data files (keep only essential GeoJSON and CSVs in image)
-/data/**/
+data/wearable-device-dataset*
+data/raw*
+data/ml_v2/*.csv
+!data/ml_v2/era5_grid_mapping.csv
+data/historical_weather_era5_cds_2021_2025.csv
 *.log
 *.zip
 *.tar.gz

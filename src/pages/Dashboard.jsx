@@ -10,6 +10,7 @@ import { ShieldAlert, MapPin, Clock } from "lucide-react";
 
 export default function Dashboard({
   districts = [],
+  wards = [],
   telemetry = null,
   realtimeStatus,
 }) {
@@ -127,16 +128,16 @@ export default function Dashboard({
         {/* Tab Content */}
         <main className="p-6 max-w-[1920px] mx-auto w-full">
           {activeTab === "overview" && (
-            <OverviewTab telemetry={telemetry} activeDistrict={activeDistrict} weather={weather} wards={telemetry?.wards?.wards || []} />
+            <OverviewTab telemetry={telemetry} activeDistrict={activeDistrict} weather={weather} wards={wards} />
           )}
           {activeTab === "biotech" && (
-            <BiotechTab activeDistrict={activeDistrict} />
+            <BiotechTab activeDistrict={activeDistrict} telemetry={telemetry} weather={weather} hourlyForecast={hourlyForecast} />
           )}
           {activeTab === "analytics" && (
             <AnalyticsTab hourlyForecast={hourlyForecast} activeDistrict={activeDistrict} />
           )}
           {activeTab === "command" && (
-            <CommandTab activeDistrict={activeDistrict} liveTemp={liveTemp} />
+            <CommandTab activeDistrict={activeDistrict} liveTemp={liveTemp} telemetry={telemetry} />
           )}
           {activeTab === "demographics" && (
             <DemographicsTab activeDistrict={activeDistrict} />

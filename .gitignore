@@ -8,3 +8,8 @@ __pycache__/
 .env
 node_modules/
 dist/
+data/wearable-device-dataset-from-induced-stress-and-structured-exercise-sessions-1.0.1/
+
+# SentinelX production frontend build
+!dist/
+!dist/**

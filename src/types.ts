@@ -140,6 +140,23 @@ export interface WardRiskRecord {
     air_quality: string;
     imd: string;
   };
+  ward_profile?: {
+    status: string;
+    source: string;
+    dataset: string;
+    dataset_year: number;
+    municipal_zone: string | null;
+    corporator_name: string | null;
+    corporator_mobile: number | string | null;
+    ward_officer: string | null;
+    ward_officer_mobile: string | null;
+    households: number | null;
+    population_total: number | null;
+    population_male: number | null;
+    population_female: number | null;
+    sc_population: number | null;
+    st_population: number | null;
+  };
   bhuvan_lulc?: {
     status: string;
     source: string;
@@ -235,6 +252,43 @@ export interface LiveTelemetry {
     active_alert_level: 'GREEN' | 'YELLOW' | 'ORANGE' | 'RED';
     grid_status: string;
     hospitals_reporting: number;
+  };
+  multi_hazard?: {
+    updated_at: string;
+    overall_status: string;
+    cyclone: {
+      status: string;
+      system_type?: string;
+      message?: string;
+      source?: string;
+      source_url?: string;
+    };
+    heavy_rain: {
+      status: string;
+      message?: string;
+      source?: string;
+      source_url?: string;
+    };
+    flood: {
+      status: string;
+      message?: string;
+      source?: string;
+      source_url?: string;
+    };
+    landslide: {
+      status: string;
+      message?: string;
+      source?: string;
+      source_url?: string;
+    };
+    rain?: {
+      status: string;
+      value_mm: number | null;
+      source: string;
+      freshness: string;
+      observed_at?: string;
+      fetched_at?: string;
+    };
   };
 }
 
