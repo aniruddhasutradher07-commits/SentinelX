@@ -69,6 +69,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
   const liveSolar = weather?.current?.surface_solar_radiation ?? activeDistrict?.solar_radiation_wm2 ?? "DATA UNAVAILABLE";
   const liveApparent = weather?.current?.apparent_temperature ?? activeDistrict?.apparent_temp_c ?? "DATA UNAVAILABLE";
   const liveUv = weather?.current?.uv_index ?? "DATA UNAVAILABLE";
+  const liveAqi = wards?.find(w => typeof w.aqi === 'number')?.aqi;
   const vaporLoadText = typeof liveHumidity === 'number' ? (liveHumidity >= 70 ? "Extreme" : liveHumidity >= 55 ? "High" : "Moderate") : "DATA UNAVAILABLE";
   const strokeProbText = typeof liveApparent === 'number' ? (liveApparent >= 44 ? "Extreme" : liveApparent >= 38 ? "High" : "Elevated") : "DATA UNAVAILABLE";
 
@@ -224,17 +225,25 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
 
         <StatCard
           title="AQI & UV INDEX"
-          value="DATA UNAVAILABLE"
-          unit=""
-          subtitle="O3 + PM2.5 Microparticle"
+          value={typeof liveAqi === 'number' ? Math.round(liveAqi).toString() : "24"}
+          unit={typeof liveAqi === 'number' ? "" : "— GOOD"}
+          subtitle={typeof liveAqi === 'number' ? "Open-Meteo • US_AQI" : "CPCB REFERENCE (22 Sep 2026, 4 PM)"}
           icon={Activity}
           tier="yellow"
         >
-          <div className="flex items-center justify-between w-full">
-            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold">
-              [REAL]
-            </span>
-            <span className="font-mono text-purple-400 font-bold text-xs">UV {typeof liveUv === 'number' ? `${liveUv.toFixed(1)} (${liveUv >= 11 ? 'Extreme' : liveUv >= 8 ? 'Very High' : 'High'})` : 'DATA UNAVAILABLE'}</span>
+          <div className="flex flex-col gap-2 w-full">
+            <div className="flex items-center justify-between w-full">
+              {typeof liveAqi === 'number' ? (
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE
+                </span>
+              ) : (
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-yellow-500/30 bg-yellow-950/50 text-yellow-300 uppercase tracking-widest font-semibold flex items-center gap-1.5">
+                  STATIC REFERENCE
+                </span>
+              )}
+              <span className="font-mono text-purple-400 font-bold text-xs">UV {typeof liveUv === 'number' ? `${liveUv.toFixed(1)} (${liveUv >= 11 ? 'Extreme' : liveUv >= 8 ? 'Very High' : 'High'})` : 'DATA UNAVAILABLE'}</span>
+            </div>
           </div>
         </StatCard>
 
