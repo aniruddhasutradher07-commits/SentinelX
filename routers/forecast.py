@@ -18,6 +18,8 @@ DISTRICT_COORDS = {
     "cuttack": (20.46, 85.88)
 }
 
+_forecast_cache = {}
+
 class ForecastDayResponse(BaseModel):
     date: str
     provenance: str
@@ -37,11 +39,41 @@ def get_forecast_risk(district: str = Query(..., description="District or city n
     # Fetch hourly forecast from Open-Meteo to properly calculate peak stress, rather than using daily disjointed maximums.
     url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,shortwave_radiation&timezone=auto&forecast_days={horizon}"
     
+    cache_key = f"{lat}_{lon}_{horizon}"
+    current_time = datetime.datetime.now().timestamp()
+    
+    # 3-hour TTL cache (10800 seconds) for the 5-day forecast to prevent 429s
+    if cache_key in _forecast_cache:
+        cached_data, timestamp = _forecast_cache[cache_key]
+        if current_time - timestamp < 10800:
+            return cached_data
+            
     try:
-        resp = requests.get(url, timeout=10)
-        resp.raise_for_status()
-        data = resp.json()
+        max_retries = 3
+        for attempt in range(max_retries):
+            resp = requests.get(url, timeout=10)
+            if resp.status_code == 429:
+                import time
+                time.sleep(2 ** attempt)
+                continue
+            resp.raise_for_status()
+            data = resp.json()
+            break
+        else:
+            # If we exhausted retries (all 429s)
+            if cache_key in _forecast_cache:
+                cached_data, _ = _forecast_cache[cache_key]
+                # Mark provenance as STALE / CACHED
+                for day in cached_data:
+                    day["provenance"] = "[STALE CACHE]"
+                return cached_data
+            raise HTTPException(status_code=429, detail="Open-Meteo rate limit exceeded and no cache available")
     except Exception as e:
+        if cache_key in _forecast_cache:
+            cached_data, _ = _forecast_cache[cache_key]
+            for day in cached_data:
+                day["provenance"] = "[STALE CACHE]"
+            return cached_data
         raise HTTPException(status_code=502, detail=f"Weather upstream fetch failed: {str(e)}")
     
     if "hourly" not in data or "time" not in data["hourly"]:
@@ -134,4 +166,5 @@ def get_forecast_risk(district: str = Query(..., description="District or city n
             }
         })
 
+    _forecast_cache[cache_key] = (response_list, current_time)
     return response_list

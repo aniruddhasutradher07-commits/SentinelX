@@ -44,10 +44,10 @@ export default function OtherHazardsCard({ telemetry }) {
               <Tornado className="w-4 h-4 text-slate-400" />
               <span className="text-xs text-slate-300 font-semibold uppercase">CYCLONIC DISTURBANCE</span>
             </div>
-            <div className={`px-2 py-1 mb-2 rounded text-[10px] font-mono font-bold border text-center ${getStatusStyles(mh.cyclone.status)}`}>
-              {getStatusText(mh.cyclone.status)}
+            <div className={`px-2 py-1 mb-2 rounded text-[10px] font-mono font-bold border text-center ${getStatusStyles(mh.cyclone?.status)}`}>
+              {getStatusText(mh.cyclone?.status)}
             </div>
-            {mh.cyclone.status !== 'UNAVAILABLE' && mh.cyclone.status !== 'NO_ACTIVE_SIGNAL' && (
+            {mh.cyclone?.status && mh.cyclone.status !== 'UNAVAILABLE' && mh.cyclone.status !== 'NO_ACTIVE_SIGNAL' && (
               <div className="text-[10px] text-slate-400 font-mono mb-2">
                 <div className="text-white font-bold">{mh.cyclone.system_type || 'SYSTEM'}</div>
                 <div>{mh.cyclone.message}</div>
@@ -58,8 +58,8 @@ export default function OtherHazardsCard({ telemetry }) {
             )}
           </div>
           <div className="text-[9px] text-slate-500 mt-2 border-t border-white/5 pt-2">
-            <div>Source: {mh.cyclone.source || 'IMD'}</div>
-            <div>Updated: {mh.cyclone.fetched_at ? new Date(mh.cyclone.fetched_at).toLocaleTimeString() : 'N/A'}</div>
+            <div>Source: {mh.cyclone?.source || 'IMD'}</div>
+            <div>Updated: {mh.cyclone?.fetched_at ? new Date(mh.cyclone.fetched_at).toLocaleTimeString() : 'N/A'}</div>
           </div>
         </div>
 
@@ -70,18 +70,18 @@ export default function OtherHazardsCard({ telemetry }) {
               <CloudRain className="w-4 h-4 text-sky-400" />
               <span className="text-xs text-slate-300 font-semibold uppercase">HEAVY RAIN (IMD)</span>
             </div>
-            <div className={`px-2 py-1 mb-2 rounded text-[10px] font-mono font-bold border text-center ${getStatusStyles(mh.heavy_rain.status)}`}>
-              {getStatusText(mh.heavy_rain.status)}
+            <div className={`px-2 py-1 mb-2 rounded text-[10px] font-mono font-bold border text-center ${getStatusStyles(mh.heavy_rain?.status)}`}>
+              {getStatusText(mh.heavy_rain?.status)}
             </div>
-            {mh.heavy_rain.status !== 'UNAVAILABLE' && mh.heavy_rain.status !== 'NO_ACTIVE_SIGNAL' && (
+            {mh.heavy_rain?.status && mh.heavy_rain.status !== 'UNAVAILABLE' && mh.heavy_rain.status !== 'NO_ACTIVE_SIGNAL' && (
               <div className="text-[10px] text-slate-400 mb-2">
                 <div>{mh.heavy_rain.message}</div>
               </div>
             )}
           </div>
           <div className="text-[9px] text-slate-500 mt-2 border-t border-white/5 pt-2">
-            <div>Source: {mh.heavy_rain.source || 'IMD'}</div>
-            <div>Updated: {mh.heavy_rain.fetched_at ? new Date(mh.heavy_rain.fetched_at).toLocaleTimeString() : 'N/A'}</div>
+            <div>Source: {mh.heavy_rain?.source || 'IMD'}</div>
+            <div>Updated: {mh.heavy_rain?.fetched_at ? new Date(mh.heavy_rain.fetched_at).toLocaleTimeString() : 'N/A'}</div>
           </div>
         </div>
         
@@ -95,9 +95,9 @@ export default function OtherHazardsCard({ telemetry }) {
             <div className={`px-2 py-1 mb-2 rounded text-[10px] font-mono font-bold border text-center ${getStatusStyles(mh.rain?.status || 'UNAVAILABLE')}`}>
               {getStatusText(mh.rain?.status || 'UNAVAILABLE')}
             </div>
-            {mh.rain?.status !== 'UNAVAILABLE' && mh.rain?.status !== 'NO_ACTIVE_SIGNAL' && (
+            {mh.rain?.status && mh.rain.status !== 'UNAVAILABLE' && mh.rain.status !== 'NO_ACTIVE_SIGNAL' && (
               <div className="text-[10px] text-slate-400 mb-2 font-mono">
-                <div className="text-white font-bold">{mh.rain.value_mm} mm / last hour</div>
+                <div className="text-white font-bold">{mh.rain?.value_mm ?? 'NOT AVAILABLE'} {mh.rain?.value_mm !== undefined && mh.rain?.value_mm !== null ? 'mm / last hour' : ''}</div>
               </div>
             )}
           </div>
@@ -117,18 +117,18 @@ export default function OtherHazardsCard({ telemetry }) {
               <Waves className="w-4 h-4 text-cyan-400" />
               <span className="text-xs text-slate-300 font-semibold uppercase">FLOOD RISK</span>
             </div>
-            <div className={`px-2 py-1 mb-2 rounded text-[10px] font-mono font-bold border text-center ${getStatusStyles(mh.flood.status)}`}>
-              {getStatusText(mh.flood.status)}
+            <div className={`px-2 py-1 mb-2 rounded text-[10px] font-mono font-bold border text-center ${getStatusStyles(mh.flood?.status)}`}>
+              {getStatusText(mh.flood?.status)}
             </div>
-            {mh.flood.status !== 'UNAVAILABLE' && mh.flood.status !== 'NO_ACTIVE_SIGNAL' && (
+            {mh.flood?.status && mh.flood.status !== 'UNAVAILABLE' && mh.flood.status !== 'NO_ACTIVE_SIGNAL' && (
               <div className="text-[10px] text-slate-400 mb-2">
                 <div>{mh.flood.message}</div>
               </div>
             )}
           </div>
           <div className="text-[9px] text-slate-500 mt-2 border-t border-white/5 pt-2">
-            <div>Source: {mh.flood.source || 'CWC / SACHET'}</div>
-            <div>Updated: {mh.flood.fetched_at ? new Date(mh.flood.fetched_at).toLocaleTimeString() : 'N/A'}</div>
+            <div>Source: {mh.flood?.source || 'CWC / SACHET'}</div>
+            <div>Updated: {mh.flood?.fetched_at ? new Date(mh.flood.fetched_at).toLocaleTimeString() : 'N/A'}</div>
           </div>
         </div>
 
@@ -139,18 +139,18 @@ export default function OtherHazardsCard({ telemetry }) {
               <Mountain className="w-4 h-4 text-amber-700" />
               <span className="text-xs text-slate-300 font-semibold uppercase">LANDSLIDE</span>
             </div>
-            <div className={`px-2 py-1 mb-2 rounded text-[10px] font-mono font-bold border text-center ${getStatusStyles(mh.landslide.status)}`}>
-              {getStatusText(mh.landslide.status)}
+            <div className={`px-2 py-1 mb-2 rounded text-[10px] font-mono font-bold border text-center ${getStatusStyles(mh.landslide?.status)}`}>
+              {getStatusText(mh.landslide?.status)}
             </div>
-            {mh.landslide.status !== 'UNAVAILABLE' && mh.landslide.status !== 'NO_ACTIVE_SIGNAL' && (
+            {mh.landslide?.status && mh.landslide.status !== 'UNAVAILABLE' && mh.landslide.status !== 'NO_ACTIVE_SIGNAL' && (
               <div className="text-[10px] text-slate-400 mb-2">
                 <div>{mh.landslide.message}</div>
               </div>
             )}
           </div>
           <div className="text-[9px] text-slate-500 mt-2 border-t border-white/5 pt-2">
-            <div>Source: {mh.landslide.source || 'SACHET / official source'}</div>
-            <div>Updated: {mh.landslide.fetched_at ? new Date(mh.landslide.fetched_at).toLocaleTimeString() : 'N/A'}</div>
+            <div>Source: {mh.landslide?.source || 'SACHET / official source'}</div>
+            <div>Updated: {mh.landslide?.fetched_at ? new Date(mh.landslide.fetched_at).toLocaleTimeString() : 'N/A'}</div>
           </div>
         </div>
 

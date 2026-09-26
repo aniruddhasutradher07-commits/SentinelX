@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getApiUrl } from '../services/apiConfig';
+import { getApiUrl, fetchWithColdStart } from '../services/apiConfig';
 import { Activity } from 'lucide-react';
 
 interface HumanImpactForecastProps {
@@ -15,8 +15,15 @@ export const HumanImpactForecast: React.FC<HumanImpactForecastProps> = ({ distri
     async function loadData() {
       try {
         setLoading(true);
-        const res = await fetch(getApiUrl(`/api/v1/forecast-risk?district=${districtName}&horizon=5`));
+        const url = `/api/v1/forecast-risk?district=${districtName}&horizon=5`;
+        const res = await fetchWithColdStart(url);
+        
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        
         const data = await res.json();
+        
         if (isMounted) {
           setForecast(Array.isArray(data) ? data : []);
         }
@@ -45,7 +52,7 @@ export const HumanImpactForecast: React.FC<HumanImpactForecastProps> = ({ distri
       {loading ? (
         <div className="text-xs text-slate-400 py-10 text-center font-mono">Loading 5-day horizon...</div>
       ) : forecast.length === 0 ? (
-        <div className="text-xs text-slate-400 py-10 text-center font-mono">No forecast data available.</div>
+        <div className="text-xs text-slate-400 py-10 text-center font-mono">DATA UNAVAILABLE</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
           {forecast.slice(0, 5).map((day, idx) => (
@@ -100,17 +107,17 @@ export const HumanImpactForecast: React.FC<HumanImpactForecastProps> = ({ distri
 
               {/* Hospital Section */}
               <div className="mt-3 bg-amber-950/20 border border-amber-500/20 rounded p-2 flex flex-col gap-1">
-                <span className="text-[9px] font-bold text-amber-400">HOSPITAL SURGE</span>
-                <div className="flex justify-between text-[10px] font-mono">
-                  <span className="text-slate-500">Predicted Admissions:</span>
+                <span className="text-[9px] font-bold text-amber-400">HOSPITAL SURGE RISK</span>
+                <span className="text-[8px] text-slate-400 font-mono">EXPERIMENTAL / NOT VALIDATED</span>
+                <div className="flex justify-between text-[10px] font-mono mt-1">
+                  <span className="text-slate-500">Admissions:</span>
                   <span className="text-white">N/A</span>
                 </div>
-                <span className="text-[8px] text-slate-400 italic">EXPERIMENTAL / NOT VALIDATED</span>
               </div>
 
               {/* Mortality Section */}
               <div className="mt-2 bg-rose-950/20 border border-rose-500/20 rounded p-2 flex flex-col gap-1 text-center">
-                <span className="text-[9px] font-bold text-rose-400">MORTALITY PREDICTION</span>
+                <span className="text-[9px] font-bold text-rose-400">MORTALITY RISK PROXY</span>
                 <span className="text-[10px] font-mono text-white mt-1">EXPERIMENTAL / UNAVAILABLE</span>
               </div>
               

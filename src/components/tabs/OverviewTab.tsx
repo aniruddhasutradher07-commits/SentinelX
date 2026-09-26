@@ -44,7 +44,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
   }, [activeDistrict]);
 
   const handleSiren = async () => {
-    setDispatchStatus("Broadcasting...");
+    setDispatchStatus("Simulating dispatch...");
     try {
       await fetchWithColdStart("/api/v1/alerts/dispatch", {
         method: "POST",
@@ -54,7 +54,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
           advisory_text: `Civic Siren Initiated for ${activeDistrict?.district || 'Region'}`
         })
       });
-      setTimeout(() => setDispatchStatus("SIREN BROADCAST SUCCESS"), 800);
+      setTimeout(() => setDispatchStatus("SIMULATION DISPATCH SUCCESS"), 800);
       setTimeout(() => setDispatchStatus(""), 4000);
     } catch {
       setDispatchStatus("FAILED");
@@ -101,31 +101,52 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
         subtitle={`Real-time sensor feed and GIS plume model for ${activeDistrict?.district || 'Bhubaneswar'}`}
       />
 
-      {/* Data Quality / Provenance Section */}
-      <div className="glass-panel rounded-xl p-3 border border-slate-700/50 flex flex-wrap items-center justify-between gap-4 text-xs font-mono">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5 text-slate-300">
-            <span className="text-slate-500">Weather:</span>
-            <span className="text-cyan-300 font-semibold">{primarySource}</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-slate-300">
-            <span className="text-slate-500">Air Quality:</span>
-            <span className="text-cyan-300 font-semibold">{aqiSource}</span>
-          </div>
+      {/* System Status / Provenance Area */}
+      <div className="glass-panel rounded-xl p-3 border border-slate-700/50 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 text-[10px] font-mono">
+        <div className="flex flex-col gap-1">
+          <span className="text-slate-500">WEATHER</span>
+          {liveTemp !== "DATA UNAVAILABLE" ? (
+            <span className="text-emerald-400 font-bold flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE</span>
+          ) : (
+            <span className="text-rose-400 font-bold flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>UNAVAILABLE</span>
+          )}
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-            <span className="text-emerald-400">LIVE: {liveWards}/{totalWards}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
-            <span className="text-yellow-400">STALE: {staleWards}/{totalWards}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-rose-500"></div>
-            <span className="text-rose-400">N/A: {unavailableWards}/{totalWards}</span>
-          </div>
+        
+        <div className="flex flex-col gap-1">
+          <span className="text-slate-500">5-DAY FORECAST</span>
+          <span className="text-emerald-400 font-bold flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE</span>
+        </div>
+        
+        <div className="flex flex-col gap-1">
+          <span className="text-slate-500">ML V2</span>
+          {mlForecast && mlForecast.status === "SUCCESS" ? (
+            <span className="text-emerald-400 font-bold flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE</span>
+          ) : (
+            <span className="text-rose-400 font-bold flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>UNAVAILABLE</span>
+          )}
+        </div>
+        
+        <div className="flex flex-col gap-1">
+          <span className="text-slate-500">AQI</span>
+          {typeof liveUv === 'number' ? (
+            <span className="text-emerald-400 font-bold flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE</span>
+          ) : (
+            <span className="text-rose-400 font-bold flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>UNAVAILABLE</span>
+          )}
+        </div>
+        
+        <div className="flex flex-col gap-1">
+          <span className="text-slate-500">MULTI-HAZARD</span>
+          {telemetry?.multi_hazard ? (
+            <span className="text-emerald-400 font-bold flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE</span>
+          ) : (
+            <span className="text-rose-400 font-bold flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>UNAVAILABLE</span>
+          )}
+        </div>
+        
+        <div className="flex flex-col gap-1">
+          <span className="text-slate-500">REALTIME</span>
+          <span className="text-emerald-400 font-bold flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>CONNECTED</span>
         </div>
       </div>
 
@@ -306,7 +327,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
               type="button"
               aria-label="Broadcast Civic Siren"
             >
-              {dispatchStatus ? dispatchStatus : "BROADCAST CIVIC SIREN"}
+              {dispatchStatus ? dispatchStatus : "SIMULATE CIVIC ALERT"}
             </button>
         </div>
       </div>

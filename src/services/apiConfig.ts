@@ -17,7 +17,7 @@ export const PRODUCTION_API_URL = '';
 const envBase = typeof import.meta !== 'undefined' ? (import.meta as any).env?.VITE_API_BASE_URL : '';
 const isProd = typeof import.meta !== 'undefined' && (import.meta as any).env?.PROD;
 
-export const API_BASE_URL = envBase || (isProd ? PRODUCTION_API_URL : '');
+export const API_BASE_URL = envBase || (isProd ? PRODUCTION_API_URL : 'http://localhost:8000');
 
 /**
  * Resolves full URL for any API endpoint path.
