@@ -92,7 +92,7 @@ def get_system_status():
         "features": [
             "FastAPI Automatic Swagger UI (/docs)",
             "Live NewsAPI Extreme Weather Wire (/api/v1/news)",
-            "2-Stage DLNM + XGBoost Hospital Surge Engine",
+            "Hospital Surge Risk — EXPERIMENTAL / NOT VALIDATED",
             "H-THERM Biotech / Physiotherapy Strain Model",
             "Statewide Odisha 30-District Command Center (/dashboard/odisha)",
             "Bhubaneswar Municipal Ward Dashboard (/dashboard/bhubaneswar)"
@@ -671,7 +671,7 @@ def get_bhubaneswar_wards():
                     "wind_speed_ms": wind,
                     "uv_index": w_data.uv_index,
                     "source": w_data.source,
-                    "status": "LIVE" if not w_data.is_stale else "STALE",
+                    "status": "LIVE" if w_data.is_live else ("STALE" if w_data.is_stale else "UNAVAILABLE"),
                     "observed_at": w_data.observed_at,
                     "fetched_at": w_data.fetched_at,
                     "data_age_minutes": w_data.data_age_minutes
@@ -679,7 +679,7 @@ def get_bhubaneswar_wards():
                 "air_quality": cpcb_ctx,
                 "imd_context": imd_ctx,
                 "data_quality": {
-                    "weather": "LIVE" if not w_data.is_stale else "STALE",
+                    "weather": "LIVE" if w_data.is_live else ("STALE" if w_data.is_stale else "UNAVAILABLE"),
                     "air_quality": cpcb_ctx.get("status", "UNAVAILABLE"),
                     "imd": imd_ctx.get("status", "UNAVAILABLE")
                 },

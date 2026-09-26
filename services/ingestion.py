@@ -300,7 +300,7 @@ def calculate_freshness(r: WeatherReading, stale_thresh: int):
     age_min = max(0, age_min)
     
     r.data_age_minutes = age_min
-    r.is_live = age_min <= 10
+    r.is_live = age_min <= stale_thresh
     r.is_stale = age_min > stale_thresh
 
 def fetch_weather_data(lat: float, lon: float, ward_id: str = "") -> Optional[WeatherReading]:
