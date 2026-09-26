@@ -69,7 +69,9 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
   const liveSolar = weather?.current?.surface_solar_radiation ?? activeDistrict?.solar_radiation_wm2 ?? "DATA UNAVAILABLE";
   const liveApparent = weather?.current?.apparent_temperature ?? activeDistrict?.apparent_temp_c ?? "DATA UNAVAILABLE";
   const liveUv = weather?.current?.uv_index ?? "DATA UNAVAILABLE";
-  const liveAqi = wards?.find(w => typeof w.aqi === 'number')?.aqi;
+  const aqiWard = wards?.find(w => typeof w.aqi === 'number');
+  const liveAqi = aqiWard?.aqi;
+  const liveAqiStandard = aqiWard?.aqi_standard || "US_AQI";
   const vaporLoadText = typeof liveHumidity === 'number' ? (liveHumidity >= 70 ? "Extreme" : liveHumidity >= 55 ? "High" : "Moderate") : "DATA UNAVAILABLE";
   const strokeProbText = typeof liveApparent === 'number' ? (liveApparent >= 44 ? "Extreme" : liveApparent >= 38 ? "High" : "Elevated") : "DATA UNAVAILABLE";
 
@@ -129,10 +131,19 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
         
         <div className="flex flex-col gap-1">
           <span className="text-slate-500">AQI</span>
-          {typeof liveUv === 'number' ? (
+          {typeof liveAqi === 'number' ? (
             <span className="text-emerald-400 font-bold flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE</span>
           ) : (
             <span className="text-rose-400 font-bold flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>UNAVAILABLE</span>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <span className="text-slate-500">CPCB</span>
+          {telemetry?.data_quality?.air_quality === "CREDENTIALS_NOT_CONFIGURED" || telemetry?.air_quality?.status === "CREDENTIALS_NOT_CONFIGURED" ? (
+            <span className="text-amber-400 font-bold flex items-center gap-1.5 text-[9px]"><div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>NO_CREDS</span>
+          ) : (
+            <span className="text-slate-400 font-bold flex items-center gap-1.5">UNKNOWN</span>
           )}
         </div>
         
@@ -227,7 +238,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
           title="AQI & UV INDEX"
           value={typeof liveAqi === 'number' ? Math.round(liveAqi).toString() : "24"}
           unit={typeof liveAqi === 'number' ? "" : "— GOOD"}
-          subtitle={typeof liveAqi === 'number' ? "Open-Meteo • US_AQI" : "CPCB REFERENCE (22 Sep 2026, 4 PM)"}
+          subtitle={typeof liveAqi === 'number' ? `Open-Meteo • ${liveAqiStandard}` : "CPCB REFERENCE (22 Sep 2026, 4 PM)"}
           icon={Activity}
           tier="yellow"
         >
