@@ -6,6 +6,7 @@ import { SectionHeader } from "../ui/SectionHeader";
 import { Thermometer, Droplets, Wind, Sun, AlertTriangle, Activity, Clock } from "lucide-react";
 import { LiveRadarMap } from "../ui/LiveRadarMap";
 import { fetchWithColdStart } from "../../services/apiConfig";
+import { HumanImpactForecast } from "../HumanImpactForecast";
 
 interface DistrictInfo {
   district?: string;
@@ -61,15 +62,15 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
     }
   };
 
-  const liveTemp = weather?.current?.temperature_2m ?? activeDistrict?.temperature_c ?? 39.5;
-  const liveHumidity = weather?.current?.relative_humidity_2m ?? activeDistrict?.relative_humidity_pct ?? 68;
-  const liveWind = weather?.current?.wind_speed_10m ?? activeDistrict?.wind_speed_ms ?? 2.8;
-  const liveWindDir = weather?.current?.wind_direction_10m ?? 168;
-  const liveSolar = Math.round(weather?.current?.surface_solar_radiation ?? activeDistrict?.solar_radiation_wm2 ?? (820 + Math.sin(new Date().getHours() / 24 * Math.PI) * 180));
-  const liveApparent = weather?.current?.apparent_temperature ?? activeDistrict?.apparent_temp_c ?? Math.round(Number(liveTemp) + 5.2);
-  const liveUv = weather?.current?.uv_index ?? 9.0;
-  const vaporLoadText = liveHumidity >= 70 ? "Extreme" : liveHumidity >= 55 ? "High" : "Moderate";
-  const strokeProbText = liveApparent >= 44 ? "Extreme" : liveApparent >= 38 ? "High" : "Elevated";
+  const liveTemp = weather?.current?.temperature_2m ?? activeDistrict?.temperature_c ?? "DATA UNAVAILABLE";
+  const liveHumidity = weather?.current?.relative_humidity_2m ?? activeDistrict?.relative_humidity_pct ?? "DATA UNAVAILABLE";
+  const liveWind = weather?.current?.wind_speed_10m ?? activeDistrict?.wind_speed_ms ?? "DATA UNAVAILABLE";
+  const liveWindDir = weather?.current?.wind_direction_10m ?? "DATA UNAVAILABLE";
+  const liveSolar = weather?.current?.surface_solar_radiation ?? activeDistrict?.solar_radiation_wm2 ?? "DATA UNAVAILABLE";
+  const liveApparent = weather?.current?.apparent_temperature ?? activeDistrict?.apparent_temp_c ?? "DATA UNAVAILABLE";
+  const liveUv = weather?.current?.uv_index ?? "DATA UNAVAILABLE";
+  const vaporLoadText = typeof liveHumidity === 'number' ? (liveHumidity >= 70 ? "Extreme" : liveHumidity >= 55 ? "High" : "Moderate") : "DATA UNAVAILABLE";
+  const strokeProbText = typeof liveApparent === 'number' ? (liveApparent >= 44 ? "Extreme" : liveApparent >= 38 ? "High" : "Elevated") : "DATA UNAVAILABLE";
 
   const getSolarNoonCountdown = () => {
     const now = new Date();
@@ -202,8 +203,8 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
 
         <StatCard
           title="AQI & UV INDEX"
-          value="142"
-          unit="AQI"
+          value="DATA UNAVAILABLE"
+          unit=""
           subtitle="O3 + PM2.5 Microparticle"
           icon={Activity}
           tier="yellow"
@@ -212,7 +213,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
             <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold">
               [REAL]
             </span>
-            <span className="font-mono text-purple-400 font-bold text-xs">UV {Number(liveUv).toFixed(1)} ({liveUv >= 11 ? 'Extreme' : liveUv >= 8 ? 'Very High' : 'High'})</span>
+            <span className="font-mono text-purple-400 font-bold text-xs">UV {typeof liveUv === 'number' ? `${liveUv.toFixed(1)} (${liveUv >= 11 ? 'Extreme' : liveUv >= 8 ? 'Very High' : 'High'})` : 'DATA UNAVAILABLE'}</span>
           </div>
         </StatCard>
 
@@ -285,6 +286,9 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
           <span className="text-slate-400">TEST R²: 0.91</span>
         </div>
       </div>
+
+      {/* SIH REQUIRED: 5-DAY HUMAN IMPACT FORECAST */}
+      <HumanImpactForecast districtName={activeDistrict?.district || 'Khordha'} />
 
       {/* Multi-Hazard & Directive Banner */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
