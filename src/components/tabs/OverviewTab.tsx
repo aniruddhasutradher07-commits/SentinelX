@@ -182,7 +182,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
           title="RELATIVE HUMIDITY"
           value={liveHumidity}
           unit="%"
-          subtitle={`Vapor load: ${vaporLoadText}`}
+          subtitle={`Vapor Load: ${vaporLoadText}`}
           icon={Droplets}
           trend={{ value: "Coastal moisture", direction: "neutral" }}
           tier="yellow"
@@ -196,7 +196,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
           title="WIND SPEED"
           value={liveWind}
           unit="m/s"
-          subtitle={`Direction: ${liveWindDir}° SSE`}
+          subtitle={liveWindDir !== "DATA UNAVAILABLE" ? `Direction: ${liveWindDir}° SSE` : "Direction: N/A"}
           icon={Wind}
           trend={{ value: "Convective boundary", direction: "neutral" }}
         >
@@ -253,7 +253,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
                   STATIC REFERENCE
                 </span>
               )}
-              <span className="font-mono text-purple-400 font-bold text-[11px] whitespace-nowrap mt-1">UV {typeof liveUv === 'number' ? `${liveUv.toFixed(1)} (${liveUv >= 11 ? 'Extreme' : liveUv >= 8 ? 'Very High' : 'High'})` : 'DATA UNAVAILABLE'}</span>
+              <span className="font-mono text-purple-400 font-bold text-[11px] whitespace-nowrap mt-1">UV: {typeof liveUv === 'number' ? `${liveUv.toFixed(1)} (${liveUv >= 11 ? 'Extreme' : liveUv >= 8 ? 'Very High' : 'High'})` : 'N/A'}</span>
             </div>
           </div>
         </StatCard>
