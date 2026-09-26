@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -16,6 +16,26 @@ function MapResizer() {
 export function WardRiskMap({ wards = [], activeDistrict = null, onWardSelect }: { wards?: any[], activeDistrict?: any, onWardSelect?: any }) {
   const [geoData, setGeoData] = useState(null);
   
+  // Normalize ward ID from GeoJSON
+  const normalizeWardId = (properties: any) => {
+    if (!properties) return null;
+    let raw = properties.wardno || properties.WARD_NO || properties.ward_no || properties.sno || properties.SNO;
+    if (!raw) return null;
+    raw = String(raw).trim().toUpperCase();
+    return raw.startsWith('W') ? raw : `W${raw}`;
+  };
+
+  // Build a lookup map of backend wards
+  const wardDataById = useMemo(() => {
+    const map = new Map();
+    if (wards) {
+      wards.forEach(w => {
+        if (w.ward_no) map.set(w.ward_no.toUpperCase(), w);
+      });
+    }
+    return map;
+  }, [wards]);
+
   useEffect(() => {
     fetch('/wards_bhubaneswar.geojson')
       .then(res => res.json())
@@ -28,7 +48,7 @@ export function WardRiskMap({ wards = [], activeDistrict = null, onWardSelect }:
   }, []);
 
   const getWardRiskColor = (wardNo: string) => {
-    const ward = wards.find((w: any) => w.ward_no === wardNo);
+    const ward = wardDataById.get(wardNo);
     if (!ward) return '#334155'; // Unknown/slate
     
     // Use actual backend data risk state
@@ -40,20 +60,20 @@ export function WardRiskMap({ wards = [], activeDistrict = null, onWardSelect }:
   };
 
   const styleGeoJson = (feature: any) => {
-    const wardNo = feature.properties?.WARD_NO || feature.properties?.ward_no;
+    const wardNo = normalizeWardId(feature.properties);
     return {
-      fillColor: getWardRiskColor(wardNo),
+      fillColor: wardNo ? getWardRiskColor(wardNo) : '#334155',
       weight: 1,
       opacity: 1,
       color: '#0f172a',
-      dashArray: '3',
+      dashArray: '',
       fillOpacity: 0.6
     };
   };
 
   const onEachFeature = (feature: any, layer: any) => {
-    const wardNo = feature.properties?.WARD_NO || feature.properties?.ward_no;
-    const ward = wards.find((w: any) => w.ward_no === wardNo);
+    const wardNo = normalizeWardId(feature.properties);
+    const ward = wardNo ? wardDataById.get(wardNo) : null;
     
     layer.on({
       mouseover: (e: any) => {
@@ -61,8 +81,7 @@ export function WardRiskMap({ wards = [], activeDistrict = null, onWardSelect }:
         layer.setStyle({
           weight: 2,
           color: '#38bdf8',
-          dashArray: '',
-          fillOpacity: 0.8
+          fillOpacity: 0.9
         });
         layer.bringToFront();
       },
@@ -71,16 +90,27 @@ export function WardRiskMap({ wards = [], activeDistrict = null, onWardSelect }:
         layer.setStyle(styleGeoJson(feature));
       },
       click: () => {
-        if (onWardSelect && ward) {
+        if (ward && onWardSelect) {
           onWardSelect(ward);
         }
       }
     });
 
     if (ward) {
-      layer.bindTooltip(`Ward ${wardNo} - ${ward.telemetry?.status || 'UNKNOWN'}<br/>Temp: ${ward.temperature_c || 'N/A'}°C`, { sticky: true });
+      const tooltipContent = `
+        <div style="font-family: monospace; font-size: 11px;">
+          <strong>WARD ${wardNo}</strong><br/>
+          ${ward.zone || 'Unknown Zone'}<br/>
+          Risk Score: ${ward.WardRiskScore || 'N/A'}<br/>
+          Risk Tier: ${ward.RiskTier || 'N/A'}<br/>
+          Temperature: ${ward.temperature_c || 'N/A'} °C<br/>
+          WBGT: ${ward.WBGT_celsius || 'N/A'} °C<br/>
+          UTCI: ${ward.UTCI_celsius || 'N/A'} °C
+        </div>
+      `;
+      layer.bindTooltip(tooltipContent, { sticky: true });
     } else {
-      layer.bindTooltip(`Ward ${wardNo} - No Data`, { sticky: true });
+      layer.bindTooltip(`Ward geometry ID unavailable`, { sticky: true });
     }
   };
 
@@ -110,6 +140,19 @@ export function WardRiskMap({ wards = [], activeDistrict = null, onWardSelect }:
           />
         )}
       </MapContainer>
+      
+      {/* Status Overlay */}
+      <div className="absolute top-2 left-2 z-[400] flex gap-2">
+        <div className="bg-[#071120]/90 text-[10px] font-mono text-slate-300 border border-slate-700/50 p-2 rounded backdrop-blur shadow-xl pointer-events-none">
+          <div className="flex items-center gap-2 mb-1">
+            <div className={`w-2 h-2 rounded-full ${wardDataById.size > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}></div>
+            <span className="font-bold text-white tracking-wider">{wardDataById.size > 0 ? '67 WARDS' : 'NO WARDS'}</span>
+          </div>
+          <span className={wardDataById.size > 0 ? "text-emerald-400" : "text-rose-400"}>
+            {wardDataById.size > 0 ? 'LIVE DATA' : 'DATA UNAVAILABLE'}
+          </span>
+        </div>
+      </div>
       
       {/* Legend & Overlays */}
       <div className="absolute bottom-4 left-4 z-[1000] pointer-events-none">
