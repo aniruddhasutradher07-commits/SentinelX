@@ -76,25 +76,29 @@ export function StatCard({
       </div>
 
       {(subtitle || trend || children) && (
-        <div className="pt-2 border-t border-tactical-border/60 flex items-center justify-between text-[11px] font-mono text-slate-400">
-          {subtitle && <span>{subtitle}</span>}
+        <div className="pt-3 border-t border-tactical-border/60 flex flex-col gap-2 text-[10px] sm:text-[11px] font-mono text-slate-400">
+          {subtitle && <span className="leading-tight text-slate-300">{subtitle}</span>}
           
-          {trend && (
-            <span
-              className={cn(
-                'px-1.5 py-0.5 rounded font-semibold border',
-                trend.direction === 'up' && 'bg-red-950/50 text-red-300 border-red-800/40',
-                trend.direction === 'down' && 'bg-emerald-950/50 text-emerald-300 border-emerald-800/40',
-                trend.direction === 'neutral' && 'bg-tactical-700/80 text-cyan-300 border-cyan-800/40'
-              )}
-            >
-              {trend.direction === 'up' && '↑ '}
-              {trend.direction === 'down' && '↓ '}
-              {trend.value} {trend.label && trend.label}
-            </span>
-          )}
+          <div className="flex flex-wrap items-center gap-2 mt-auto pt-1">
+            {trend && (
+              <span
+                className={cn(
+                  'px-1.5 py-0.5 rounded font-semibold border whitespace-nowrap',
+                  trend.direction === 'up' && 'bg-red-950/50 text-red-300 border-red-800/40',
+                  trend.direction === 'down' && 'bg-emerald-950/50 text-emerald-300 border-emerald-800/40',
+                  trend.direction === 'neutral' && 'bg-tactical-700/80 text-cyan-300 border-cyan-800/40'
+                )}
+              >
+                {trend.direction === 'up' && '↑ '}
+                {trend.direction === 'down' && '↓ '}
+                {trend.value} {trend.label && trend.label}
+              </span>
+            )}
 
-          {children}
+            <div className="ml-auto flex items-center">
+              {children}
+            </div>
+          </div>
         </div>
       )}
     </article>

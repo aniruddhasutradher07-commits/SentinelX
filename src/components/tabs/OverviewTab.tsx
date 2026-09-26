@@ -163,7 +163,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
       </div>
 
       {/* Top Telemetry Grid */}
-      <section aria-label="Live Telemetry" className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3.5">
+      <section aria-label="Live Telemetry" className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7 gap-3.5">
         <StatCard
           title="DRY-BULB TEMP"
           value={liveTemp}
@@ -253,7 +253,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
                   STATIC REFERENCE
                 </span>
               )}
-              <span className="font-mono text-purple-400 font-bold text-xs">UV {typeof liveUv === 'number' ? `${liveUv.toFixed(1)} (${liveUv >= 11 ? 'Extreme' : liveUv >= 8 ? 'Very High' : 'High'})` : 'DATA UNAVAILABLE'}</span>
+              <span className="font-mono text-purple-400 font-bold text-[11px] whitespace-nowrap mt-1">UV {typeof liveUv === 'number' ? `${liveUv.toFixed(1)} (${liveUv >= 11 ? 'Extreme' : liveUv >= 8 ? 'Very High' : 'High'})` : 'DATA UNAVAILABLE'}</span>
             </div>
           </div>
         </StatCard>
