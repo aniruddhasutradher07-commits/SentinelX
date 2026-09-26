@@ -37,7 +37,7 @@ except Exception as e:
 
 def predict_hospital_surge(population, vuln_multiplier, vuln_score, risk_score_0_to_100):
     if stage1_model is None or stage2_model is None:
-        return round((population * 0.00018 * vuln_multiplier), 1)
+        return None
     
     try:
         norm_risk = risk_score_0_to_100 / 100.0
@@ -56,7 +56,7 @@ def predict_hospital_surge(population, vuln_multiplier, vuln_score, risk_score_0
         return round(float(admissions), 1)
     except Exception as e:
         print(f"ML prediction failed: {e}")
-        return round((population * 0.00018 * vuln_multiplier), 1)
+        return None
 
 # Load Real Census 2011 Data for Khordha District
 CENSUS_FILE = "data/odisha_census_khordha_2011.csv"
@@ -522,7 +522,7 @@ def ward_detail(ward_no: str):
                 predicted_wbgt = round(t_max * 0.7 + (rh_max / 100.0) * 0.3 * t_max, 1)
                 
                 # Predict admissions if model available
-                adm = 0.0
+                adm = None
                 if stage2_model is not None:
                     # Using current lags but replacing the first one with the future risk score
                     future_risk = ts_res.environmental_score * vuln["vulnerability_multiplier"]
@@ -531,11 +531,8 @@ def ward_detail(ward_no: str):
                     vuln_norm = vuln["vulnerability_score"] / 100.0
                     X_future = np.array([lags + [pop, vuln_norm, day_of_week]])
                     adm = max(0.0, float(stage2_model.predict(X_future)[0]))
-                else:
-                    adm = pop * 0.00015 * (1 + math.sin(i)) * vuln["vulnerability_multiplier"]
-                    
-                # Apply recovery penalty
-                adm = round(adm * risk_multiplier, 1)
+                    # Apply recovery penalty
+                    adm = round(adm * risk_multiplier, 1)
                 
                 tier = 'Red' if predicted_wbgt >= 32.0 else ('Orange' if predicted_wbgt >= 30.0 else ('Yellow' if predicted_wbgt >= 28.0 else 'Green'))
                 
@@ -554,24 +551,8 @@ def ward_detail(ward_no: str):
             raise Exception("Open-Meteo failed")
     except Exception as e:
         print(f"Forecast API error: {e}")
-        # Fallback to synthetic
-        for i in range(5):
-            d = (datetime.datetime.now() + datetime.timedelta(days=i))
-            trend = math.sin(i * 0.8) * 0.5 + 1
-            adm = round(pop * 0.00015 * trend * vuln["vulnerability_multiplier"], 1)
-            wbgt = round(first["WBGT_celsius"] + (trend - 1) * 2, 1)
-            tier = 'Red' if wbgt >= 32.0 else ('Orange' if wbgt >= 30.0 else ('Yellow' if wbgt >= 28.0 else 'Green'))
-            forecast5d.append({
-                "ward_no": first["ward_no"],
-                "date": d.strftime("%Y-%m-%d"),
-                "population": pop,
-                "wbgt_max": wbgt,
-                "t_min": 25.0,
-                "recovery_good": True,
-                "streak_count": 0,
-                "predicted_admissions": adm,
-                "ImpactTier": tier
-            })
+        # Return empty forecast5d instead of fake data
+        pass
 
         
     

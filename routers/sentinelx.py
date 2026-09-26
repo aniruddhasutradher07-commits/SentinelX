@@ -701,6 +701,85 @@ def get_single_ward(ward_no: str):
     return w
 
 
+
+@router.get("/wards/{ward_no}/hospital-demand", summary="5-Day Hospital Surge Experimental Forecast")
+def get_ward_hospital_demand(ward_no: str):
+    import requests
+    import math
+    
+    all_wards = get_bhubaneswar_wards()["wards"]
+    w = next((x for x in all_wards if x["ward_no"].lower() == ward_no.lower()), None)
+    if not w:
+        raise HTTPException(status_code=404, detail=f"Ward '{ward_no}' not found.")
+    
+    lat = w.get("centroid_lat", 20.2961)
+    lon = w.get("centroid_lon", 85.8245)
+    pop = w.get("population", 13500)
+    mult = w.get("vulnerability_multiplier", 1.0)
+    
+    try:
+        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&daily=temperature_2m_max,temperature_2m_min,relative_humidity_2m_max,wind_speed_10m_max&timezone=auto&forecast_days=5"
+        resp = requests.get(url, timeout=3)
+        if resp.status_code != 200:
+            return {
+                "status": "UNAVAILABLE",
+                "message": "Open-Meteo API failed"
+            }
+        
+        data = resp.json()
+        daily = data.get("daily", {})
+        times = daily.get("time", [])
+        t_maxes = daily.get("temperature_2m_max", [])
+        t_mins = daily.get("temperature_2m_min", [])
+        rh_maxes = daily.get("relative_humidity_2m_max", [])
+        
+        forecast = []
+        streak_count = 0
+        
+        for i in range(len(times)):
+            t_max = t_maxes[i]
+            t_min = t_mins[i]
+            rh_max = rh_maxes[i]
+            
+            if t_min >= 28.0:
+                recovery_good = False
+                streak_count += 1
+            else:
+                recovery_good = True
+                streak_count = 0
+                
+            risk_multiplier = min(2.0, 1.0 + (0.15 * streak_count)) if streak_count >= 1 else 1.0
+            predicted_wbgt = round(t_max * 0.7 + (rh_max / 100.0) * 0.3 * t_max, 1)
+            
+            # Synthetic mock value explicitly removed per Data Truth mandate
+            adm = None
+            
+            tier = 'Red' if predicted_wbgt >= 32.0 else ('Orange' if predicted_wbgt >= 30.0 else ('Yellow' if predicted_wbgt >= 28.0 else 'Green'))
+            
+            forecast.append({
+                "date": times[i],
+                "wbgt_max": predicted_wbgt,
+                "t_min": t_min,
+                "recovery_good": recovery_good,
+                "streak_count": streak_count,
+                "predicted_admissions": adm,
+                "ImpactTier": tier
+            })
+            
+        return {
+            "status": "EXPERIMENTAL_NOT_VALIDATED",
+            "provenance": "EXPERIMENTAL / SYNTHETIC DEMONSTRATION DATA — NOT OPERATIONAL",
+            "source_weather": "Open-Meteo",
+            "forecast_horizon_days": 5,
+            "forecast": forecast
+        }
+    except Exception as e:
+        return {
+            "status": "UNAVAILABLE",
+            "message": str(e)
+        }
+
+
 @router.get("/odisha-geojson", summary="Odisha 30-District Sovereign GeoJSON")
 def get_odisha_geojson():
     geojson_path = "odisha_districts.geojson"

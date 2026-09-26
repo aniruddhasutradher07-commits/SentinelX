@@ -92,6 +92,7 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
 
   const activeWard = selectedWard || sortedWards[0] || (wards && wards.length > 0 ? wards[0] : fallbackWard) || fallbackWard;
   const [wardDetails, setWardDetails] = useState<any>(null);
+  const [hospitalDemandData, setHospitalDemandData] = useState<any>(null);
   const [nightRecoveryData, setNightRecoveryData] = useState<any>(null);
 
   React.useEffect(() => {
@@ -100,6 +101,14 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
       .then(res => res.json())
       .then(data => setWardDetails(data))
       .catch(err => console.error(err));
+
+    fetch(getApiUrl(`/api/v1/wards/${activeWard.ward_no}/hospital-demand`))
+      .then(res => res.json())
+      .then(data => setHospitalDemandData(data))
+      .catch(err => {
+        console.error('Error fetching hospital demand:', err);
+        setHospitalDemandData({ status: "UNAVAILABLE" });
+      });
 
     const dayTemp = activeWard.modis_lst_c || 39.5;
     const nightMinTemp = activeWard.modis_lst_night_c || 28.5;
@@ -224,8 +233,10 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
   const noRecovery = !next24h.slice(0, 6).some((d: any) => d.wbgt < 28);
 
   // Panel 4: 5-Day Forecast
-  const forecast5d = wardDetails?.hospital_demand_forecast
-    ? wardDetails.hospital_demand_forecast.map((f: any) => ({
+  const isHospitalDemandAvailable = hospitalDemandData?.status === "EXPERIMENTAL_NOT_VALIDATED" && hospitalDemandData?.forecast?.length > 0;
+  
+  const forecast5d = isHospitalDemandAvailable
+    ? hospitalDemandData.forecast.map((f: any) => ({
       date: new Date(f.date).toLocaleDateString('en-US', { weekday: 'short' }),
       admissions: f.predicted_admissions,
       tier: f.ImpactTier,
@@ -234,20 +245,8 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
       recoveryGood: f.recovery_good,
       streakCount: f.streak_count
     }))
-    : Array.from({ length: 5 }).map((_, i) => {
-      const baseAdm = (activeWard?.population || 10000) * 0.001;
-      const trend = Math.sin(i * 0.8) * 0.5 + 1;
-      const adm = Math.round(baseAdm * trend * ((activeWard?.WardRiskScore || 50) / 50));
-      let tier = 'Green';
-      if (adm > baseAdm * 1.8) tier = 'Red';
-      else if (adm > baseAdm * 1.4) tier = 'Orange';
-      else if (adm > baseAdm * 1.1) tier = 'Yellow';
-
-      const d = new Date();
-      d.setDate(d.getDate() + i);
-      return { date: d.toLocaleDateString('en-US', { weekday: 'short' }), admissions: adm, tier };
-    });
-  const maxForecast = [...forecast5d].sort((a, b) => b.admissions - a.admissions)[0];
+    : [];
+  const maxForecast = forecast5d.length > 0 ? [...forecast5d].sort((a, b) => b.admissions - a.admissions)[0] : null;
 
   return (
     <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden bg-tactical-900 text-slate-200">
@@ -844,89 +843,98 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
               </span>
             </div>
           </h3>
-          <div className="h-32 w-full mb-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={forecast5d} margin={{ top: 5, right: -5, left: -25, bottom: 20 }}>
-                {/* Background color bands for WBGT danger zones */}
-                <ReferenceArea y1={32} y2={40} yAxisId="left" fill="#C0392B" fillOpacity={0.1} />
-                <ReferenceArea y1={30} y2={32} yAxisId="left" fill="#D9772E" fillOpacity={0.1} />
-                <ReferenceArea y1={28} y2={30} yAxisId="left" fill="#C9A227" fillOpacity={0.1} />
-                <ReferenceArea y1={0} y2={28} yAxisId="left" fill="#3A7D5C" fillOpacity={0.1} />
+          
+          {isHospitalDemandAvailable ? (
+            <>
+              <div className="h-32 w-full mb-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={forecast5d} margin={{ top: 5, right: -5, left: -25, bottom: 20 }}>
+                    {/* Background color bands for WBGT danger zones */}
+                    <ReferenceArea y1={32} y2={40} yAxisId="left" fill="#C0392B" fillOpacity={0.1} />
+                    <ReferenceArea y1={30} y2={32} yAxisId="left" fill="#D9772E" fillOpacity={0.1} />
+                    <ReferenceArea y1={28} y2={30} yAxisId="left" fill="#C9A227" fillOpacity={0.1} />
+                    <ReferenceArea y1={0} y2={28} yAxisId="left" fill="#3A7D5C" fillOpacity={0.1} />
 
-                <XAxis 
-                  dataKey="date" 
-                  axisLine={false} 
-                  tickLine={false}
-                  tick={(props: any) => {
-                    const { x, y, payload, index } = props;
-                    const data = forecast5d[index];
-                    if (!data) return <g></g>;
-                    return (
-                      <g transform={`translate(${x},${y})`}>
-                        <text x={0} y={0} dy={12} textAnchor="middle" fill="#8B9096" fontSize={9}>
-                          {payload.value}
-                        </text>
-                        {data.streakCount >= 2 ? (
-                          <text x={0} y={0} dy={26} textAnchor="middle" fill="#C0392B" fontSize={10} fontWeight="bold">
-                            🔥x{data.streakCount}
-                          </text>
-                        ) : (
-                          <circle cx={0} cy={22} r={3} fill={data.recoveryGood ? "#3A7D5C" : "#C0392B"} />
-                        )}
-                      </g>
-                    );
-                  }} 
-                />
-                
-                {/* Left Y Axis for WBGT */}
-                <YAxis yAxisId="left" domain={[24, 40]} tick={{ fill: '#8B9096', fontSize: 9 }} axisLine={false} tickLine={false} hide />
-                
-                {/* Right Y Axis for Admissions */}
-                <YAxis yAxisId="right" orientation="right" tick={{ fill: '#8B9096', fontSize: 9 }} axisLine={false} tickLine={false} />
+                    <XAxis 
+                      dataKey="date" 
+                      axisLine={false} 
+                      tickLine={false}
+                      tick={(props: any) => {
+                        const { x, y, payload, index } = props;
+                        const data = forecast5d[index];
+                        if (!data) return <g></g>;
+                        return (
+                          <g transform={`translate(${x},${y})`}>
+                            <text x={0} y={0} dy={12} textAnchor="middle" fill="#8B9096" fontSize={9}>
+                              {payload.value}
+                            </text>
+                            {data.streakCount >= 2 ? (
+                              <text x={0} y={0} dy={26} textAnchor="middle" fill="#C0392B" fontSize={10} fontWeight="bold">
+                                🔥x{data.streakCount}
+                              </text>
+                            ) : (
+                              <circle cx={0} cy={22} r={3} fill={data.recoveryGood ? "#3A7D5C" : "#C0392B"} />
+                            )}
+                          </g>
+                        );
+                      }} 
+                    />
+                    
+                    {/* Left Y Axis for WBGT */}
+                    <YAxis yAxisId="left" domain={[24, 40]} tick={{ fill: '#8B9096', fontSize: 9 }} axisLine={false} tickLine={false} hide />
+                    
+                    {/* Right Y Axis for Admissions */}
+                    <YAxis yAxisId="right" orientation="right" tick={{ fill: '#8B9096', fontSize: 9 }} axisLine={false} tickLine={false} />
 
-                <Tooltip
-                  cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                  content={({ active, payload, label }: any) => {
-                    if (active && payload && payload.length) {
-                      const data = payload[0].payload;
-                      return (
-                        <div className="bg-tactical-900 border border-tactical-border rounded-lg p-2 text-[10px] text-white">
-                          <p className="font-bold mb-1">{label}</p>
-                          <p>Max WBGT: {data.wbgt}°C</p>
-                          <p>Night Min: {data.tMin}°C</p>
-                          <p>Admissions: {data.admissions}</p>
-                          <p className={data.recoveryGood ? "text-[#3A7D5C]" : "text-[#C0392B]"}>
-                            Recovery: {data.recoveryGood ? 'Good' : 'Poor'} {data.streakCount >= 2 && `(🔥x${data.streakCount})`}
-                          </p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
+                    <Tooltip
+                      cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                      content={({ active, payload, label }: any) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div className="bg-tactical-900 border border-tactical-border rounded-lg p-2 text-[10px] text-white">
+                              <p className="font-bold mb-1">{label}</p>
+                              <p>Max WBGT: {data.wbgt}°C</p>
+                              <p>Night Min: {data.tMin}°C</p>
+                              <p>Admissions: {data.admissions ?? 'N/A'}</p>
+                              <p className={data.recoveryGood ? "text-[#3A7D5C]" : "text-[#C0392B]"}>
+                                Recovery: {data.recoveryGood ? 'Good' : 'Poor'} {data.streakCount >= 2 && `(🔥x${data.streakCount})`}
+                              </p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
 
-                {/* Admissions Bar */}
-                <Bar yAxisId="right" dataKey="admissions" radius={[2, 2, 0, 0]} barSize={12} name="Admissions">
-                  {forecast5d.map((entry: any, index: number) => {
-                    const color = entry.tier === 'Red' ? '#C0392B' : entry.tier === 'Orange' ? '#D9772E' : entry.tier === 'Yellow' ? '#C9A227' : '#3A7D5C';
-                    return <Cell key={`cell-${index}`} fill={color} />;
-                  })}
-                </Bar>
+                    {/* Admissions Bar */}
+                    <Bar yAxisId="right" dataKey="admissions" radius={[2, 2, 0, 0]} barSize={12} name="Admissions">
+                      {forecast5d.map((entry: any, index: number) => {
+                        const color = entry.tier === 'Red' ? '#C0392B' : entry.tier === 'Orange' ? '#D9772E' : entry.tier === 'Yellow' ? '#C9A227' : '#3A7D5C';
+                        return <Cell key={`cell-${index}`} fill={color} />;
+                      })}
+                    </Bar>
 
-                {/* WBGT Line */}
-                <Line yAxisId="left" type="monotone" dataKey="wbgt" stroke="#ffffff" strokeWidth={2} dot={{ r: 3, fill: '#ffffff', strokeWidth: 0 }} name="Max WBGT (°C)" />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="flex justify-between items-end mt-3">
-            <p className="text-[10px] text-slate-200 font-sans">
-              Peak expected on <span className="font-bold">{maxForecast?.date}</span> ({maxForecast?.admissions} admissions).
-            </p>
-            <div className="flex gap-3 text-[9px] font-mono text-slate-400">
-               <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-white"></div> WBGT</span>
-               <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded bg-[#C0392B]"></div> Surge</span>
+                    {/* WBGT Line */}
+                    <Line yAxisId="left" type="monotone" dataKey="wbgt" stroke="#ffffff" strokeWidth={2} dot={{ r: 3, fill: '#ffffff', strokeWidth: 0 }} name="Max WBGT (°C)" />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex justify-between items-end mt-3">
+                <p className="text-[10px] text-slate-200 font-sans">
+                  Peak expected on <span className="font-bold">{maxForecast?.date}</span> ({maxForecast?.admissions ?? 'N/A'} admissions).
+                </p>
+                <div className="flex gap-3 text-[9px] font-mono text-slate-400">
+                  <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-white"></div> WBGT</span>
+                  <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded bg-[#C0392B]"></div> Surge</span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="h-32 w-full flex items-center justify-center text-rose-500 font-mono text-xs border border-dashed border-rose-500/30 rounded-lg bg-rose-500/5 mt-2">
+              EXPERIMENTAL DATA UNAVAILABLE
             </div>
-          </div>
+          )}
         </div>
 
         {/* Drivers Zone (Section 3.3): Exactly three plain-language driver lines, ranked */}

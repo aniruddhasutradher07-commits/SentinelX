@@ -47,7 +47,7 @@ export interface DistrictImpactRecord {
   date: string;
   population: number;
   wbgt_max: number;
-  predicted_admissions: number;
+  predicted_admissions: number | null;
   ImpactTier: 'Green' | 'Yellow' | 'Orange' | 'Red';
 }
 
@@ -213,7 +213,7 @@ export interface WardImpactRecord {
   date: string;
   population: number;
   wbgt_max: number;
-  predicted_admissions: number;
+  predicted_admissions: number | null;
   ImpactTier: 'Green' | 'Yellow' | 'Orange' | 'Red';
 }
 
