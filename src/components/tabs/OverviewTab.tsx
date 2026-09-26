@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 // @ts-ignore
 import OtherHazardsCard from "../OtherHazardsCard";
 import { StatCard } from "../ui/StatCard";
-import { SectionHeader } from "../ui/SectionHeader";
-import { Thermometer, Droplets, Wind, Sun, AlertTriangle, Activity, Clock } from "lucide-react";
+import { Thermometer, Droplets, Wind, AlertTriangle, Activity } from "lucide-react";
 import { fetchWithColdStart } from "../../services/apiConfig";
 import { HumanImpactForecast } from "../HumanImpactForecast";
 import { ThermalStressChart } from "../ThermalStressChart";
@@ -31,7 +30,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
   const [mlForecast, setMlForecast] = useState<any>(null);
   const [selectedWard, setSelectedWard] = useState<any>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     let isMounted = true;
     async function fetchForecast() {
       try {
@@ -47,6 +46,14 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
     fetchForecast();
     return () => { isMounted = false; };
   }, [activeDistrict]);
+
+  useEffect(() => {
+    if (!selectedWard && wards && wards.length > 0) {
+      const w1 = wards.find(w => w.ward_no === "W1");
+      if (w1) setSelectedWard(w1);
+      else setSelectedWard(wards[0]);
+    }
+  }, [wards, selectedWard]);
 
   const handleSiren = async () => {
     setDispatchStatus("Simulating dispatch...");
@@ -71,12 +78,14 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
   const liveHumidity = weather?.current?.relative_humidity_2m ?? activeDistrict?.relative_humidity_pct ?? "DATA UNAVAILABLE";
   const liveWind = weather?.current?.wind_speed_10m ?? activeDistrict?.wind_speed_ms ?? "DATA UNAVAILABLE";
   const liveWindDir = weather?.current?.wind_direction_10m ?? "DATA UNAVAILABLE";
-  const liveSolar = weather?.current?.surface_solar_radiation ?? activeDistrict?.solar_radiation_wm2 ?? "DATA UNAVAILABLE";
   const liveApparent = weather?.current?.apparent_temperature ?? activeDistrict?.apparent_temp_c ?? "DATA UNAVAILABLE";
   const liveUv = weather?.current?.uv_index ?? "DATA UNAVAILABLE";
+  
+  // AQI Handling
   const aqiWard = wards?.find(w => typeof w.aqi === 'number');
   const liveAqi = aqiWard?.aqi;
   const liveAqiStandard = aqiWard?.aqi_standard || "US_AQI";
+  
   const vaporLoadText = typeof liveHumidity === 'number' ? (liveHumidity >= 70 ? "Extreme" : liveHumidity >= 55 ? "High" : "Moderate") : "DATA UNAVAILABLE";
   const strokeProbText = typeof liveApparent === 'number' ? (liveApparent >= 44 ? "Extreme" : liveApparent >= 38 ? "High" : "Elevated") : "DATA UNAVAILABLE";
 
@@ -87,7 +96,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
         <div className="flex gap-4 flex-wrap">
           <div className="flex gap-1.5 items-center">
             <span className="text-slate-500">WEATHER</span>
-            <span className="text-emerald-400 font-bold flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE</span>
+            <span className="text-emerald-400 font-bold flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>{telemetry?.data_quality?.weather === 'LIVE' ? 'LIVE' : 'UNAVAILABLE'}</span>
           </div>
           <div className="flex gap-1.5 items-center">
             <span className="text-slate-500">FORECAST</span>
@@ -100,23 +109,20 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
           <div className="flex gap-1.5 items-center">
             <span className="text-slate-500">AQI</span>
             {typeof liveAqi === 'number' ? (
-              <span className="text-emerald-400 font-bold flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE</span>
+               <span className="text-emerald-400 font-bold flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE</span>
             ) : (
-              <span className="text-amber-400 font-bold flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>STATIC REF</span>
+               <span className="text-amber-400 font-bold">CREDENTIALS_NOT_CONFIGURED</span>
             )}
           </div>
           <div className="flex gap-1.5 items-center">
-            <span className="text-slate-500">MULTI-HAZARD</span>
+            <span className="text-slate-500">HAZARD ENGINE</span>
             <span className="text-emerald-400 font-bold flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE</span>
           </div>
         </div>
-        <div className="flex gap-1.5 items-center bg-emerald-950/20 px-2 py-0.5 rounded border border-emerald-900/50">
-          <span className="text-slate-500">REALTIME</span>
-          <span className="text-emerald-400 font-bold flex items-center gap-1">CONNECTED</span>
-        </div>
+        <div className="text-slate-500">{telemetry?.sync_time_display || 'NO SYNC DATA'}</div>
       </div>
 
-      {/* 1. EXECUTIVE KPI ROW */}
+      {/* 1. EXECUTIVE KPIs (Current live conditions) */}
       <section aria-label="Executive KPIs" className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5">
         <StatCard
           title="DRY-BULB TEMP"
@@ -191,9 +197,9 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
 
         <StatCard
           title="AQI & UV INDEX"
-          value={typeof liveAqi === 'number' ? Math.round(liveAqi).toString() : "24"}
-          unit={typeof liveAqi === 'number' ? "" : "— GOOD"}
-          subtitle={typeof liveAqi === 'number' ? `Open-Meteo • ${liveAqiStandard}` : "CPCB REFERENCE (22 Sep 2026, 4 PM)"}
+          value={typeof liveAqi === 'number' ? Math.round(liveAqi).toString() : "N/A"}
+          unit=""
+          subtitle={typeof liveAqi === 'number' ? `Open-Meteo • ${liveAqiStandard}` : "CPCB CREDENTIALS_NOT_CONFIGURED"}
           icon={Activity}
           tier="yellow"
         >
@@ -204,8 +210,8 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE
                 </span>
               ) : (
-                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-yellow-500/30 bg-yellow-950/50 text-yellow-300 uppercase tracking-widest font-semibold flex items-center gap-1.5 whitespace-nowrap">
-                  STATIC REF
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-rose-500/30 bg-rose-950/50 text-rose-300 uppercase tracking-widest font-semibold flex items-center gap-1.5 whitespace-nowrap">
+                  NO CREDS
                 </span>
               )}
               <span className="font-mono text-purple-400 font-bold text-[10px] sm:text-[11px] whitespace-nowrap">UV: {typeof liveUv === 'number' ? `${liveUv.toFixed(1)}` : 'N/A'}</span>
@@ -214,7 +220,12 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
         </StatCard>
       </section>
 
-      {/* 2. 24H THERMAL STRESS CHART */}
+      {/* 2. 5-DAY THERMAL RISK OUTLOOK (Human Impact Forecast) */}
+      <section aria-label="5-Day Forecast">
+        <HumanImpactForecast districtName={activeDistrict?.district || 'Khordha'} />
+      </section>
+
+      {/* 24H THERMAL STRESS CHART (Compacted if unavailable) */}
       <section aria-label="Thermal Stress History">
         <ThermalStressChart weather={weather} />
       </section>
@@ -228,9 +239,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
               LIVE PLUME
             </span>
           </h3>
-          <div className="flex-1 min-h-0">
-            <WardRiskMap wards={wards} activeDistrict={activeDistrict} onWardSelect={setSelectedWard} />
-          </div>
+          <WardRiskMap wards={wards} activeDistrict={activeDistrict} onWardSelect={setSelectedWard} />
         </div>
         <div className="lg:col-span-4 h-[400px] lg:h-full flex flex-col">
           <h3 className="text-sm font-tech font-bold text-white uppercase tracking-wider mb-2">
@@ -242,13 +251,13 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
         </div>
       </section>
 
-      {/* 4. 5-DAY HUMAN IMPACT FORECAST */}
-      <section aria-label="5-Day Forecast">
-        <HumanImpactForecast districtName={activeDistrict?.district || 'Khordha'} />
-      </section>
-
-      {/* 5. ML V2 & MULTI-HAZARD */}
+      {/* 4 & 5. MULTI-HAZARD & ML V2 */}
       <section aria-label="ML Models and Multi-Hazard" className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Multi-Hazard */}
+        <div className="flex flex-col">
+           <OtherHazardsCard telemetry={telemetry} />
+        </div>
+
         {/* ML V2 FORECAST PANEL */}
         <div className="glass-panel rounded-xl p-4 border border-fuchsia-500/30 bg-gradient-to-r from-fuchsia-950/20 via-slate-900/60 to-slate-900/40 relative overflow-hidden flex flex-col justify-between">
           <div className="flex flex-col mb-4">
@@ -288,20 +297,6 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
               <span className="text-rose-300">NOT EXACT</span>
             </div>
           </div>
-          
-          <div className="mt-3 pt-2 border-t border-slate-700/50 flex flex-wrap justify-between text-[9px] font-mono text-slate-500">
-            <span>TRAINING: 21-23</span>
-            <span>VAL: 24</span>
-            <span>TEST: 25</span>
-            <span className="text-slate-400">MAE: 1.08°C</span>
-            <span className="text-slate-400">RMSE: 1.39°C</span>
-            <span className="text-slate-400">R²: 0.91</span>
-          </div>
-        </div>
-
-        {/* Multi-Hazard */}
-        <div className="flex flex-col">
-           <OtherHazardsCard telemetry={telemetry} />
         </div>
       </section>
 
@@ -312,7 +307,6 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
 
       {/* 7. RESPONSE / COMMAND CENTER & DATA PROVENANCE */}
       <section aria-label="Command Center and Provenance" className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        
         {/* Command Center Simulator */}
         <div className="lg:col-span-4 glass-panel rounded-xl p-4 border-l-4 border-l-rose-500 bg-gradient-to-r from-rose-950/30 via-slate-900/60 to-slate-900/40 relative flex flex-col justify-between">
             <div>
@@ -327,18 +321,20 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
               </p>
             </div>
             
-            <button
+            <button 
               onClick={handleSiren}
-              className="w-full py-2.5 rounded-lg bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-tech font-bold text-xs shadow-lg shadow-rose-900/40 transition-all active:scale-[0.98] outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
-              type="button"
-              aria-label="Broadcast Civic Siren"
+              disabled={!!dispatchStatus}
+              className={`w-full py-2.5 rounded font-tech font-bold text-xs tracking-wider transition-colors border
+                ${dispatchStatus 
+                  ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' 
+                  : 'bg-rose-500/20 border-rose-500/50 text-rose-300 hover:bg-rose-500/30 hover:border-rose-400 active:bg-rose-500/40'}`}
             >
-              {dispatchStatus ? dispatchStatus : "SIMULATE DISPATCH"}
+              {dispatchStatus || "DISPATCH REGIONAL CIVIC SIREN (SIMULATION)"}
             </button>
         </div>
 
         {/* Data Provenance Panel */}
-        <div className="lg:col-span-8 flex flex-col">
+        <div className="lg:col-span-8 flex flex-col h-full">
           <DataProvenancePanel telemetry={telemetry} />
         </div>
       </section>

@@ -8,8 +8,12 @@ interface ThermalStressChartProps {
 export function ThermalStressChart({ weather }: ThermalStressChartProps) {
   if (!weather || !weather.hourly || !weather.hourly.time || weather.hourly.time.length < 24) {
     return (
-      <div className="glass-panel rounded-xl p-4 border border-slate-700/50 w-full h-64 flex items-center justify-center">
-        <span className="text-slate-400 font-mono text-sm tracking-widest">24-HOUR OBSERVATION HISTORY UNAVAILABLE</span>
+      <div className="glass-panel rounded-xl p-4 border border-slate-700/50 w-full h-[180px] flex flex-col items-center justify-center text-center">
+        <span className="text-rose-400 font-mono text-sm tracking-widest font-bold mb-2">24-HOUR OBSERVATION HISTORY UNAVAILABLE</span>
+        <p className="text-slate-400 text-xs font-sans mb-3">Hourly observation series is not available from the current ward API.</p>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300">
+          Current ward telemetry: LIVE
+        </span>
       </div>
     );
   }
