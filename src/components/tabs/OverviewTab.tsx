@@ -5,11 +5,9 @@ import { StatCard } from "../ui/StatCard";
 import { Thermometer, Droplets, Wind, AlertTriangle, Activity } from "lucide-react";
 import { fetchWithColdStart } from "../../services/apiConfig";
 import { HumanImpactForecast } from "../HumanImpactForecast";
-import { ThermalStressChart } from "../ThermalStressChart";
 import { WardRiskMap } from "../WardRiskMap";
 import { WardDetailPanel } from "../WardDetailPanel";
 import { DataProvenancePanel } from "../DataProvenancePanel";
-import { HospitalSurgeView } from "../HospitalSurgeView";
 
 interface DistrictInfo {
   district?: string;
@@ -225,11 +223,6 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
         <HumanImpactForecast districtName={activeDistrict?.district || 'Khordha'} />
       </section>
 
-      {/* 24H THERMAL STRESS CHART (Compacted if unavailable) */}
-      <section aria-label="Thermal Stress History">
-        <ThermalStressChart weather={weather} />
-      </section>
-
       {/* 3. WARD RISK MAP & WARD DETAILS */}
       <section aria-label="Ward Map and Details" className="grid grid-cols-1 lg:grid-cols-12 gap-5 h-auto lg:h-[500px]">
         <div className="lg:col-span-8 h-[400px] lg:h-full flex flex-col">
@@ -300,12 +293,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
         </div>
       </section>
 
-      {/* 6. HOSPITAL IMPACT (EXPERIMENTAL) */}
-      <section aria-label="Hospital Impact">
-        <HospitalSurgeView summary={telemetry?.system_summary || null} />
-      </section>
-
-      {/* 7. RESPONSE / COMMAND CENTER & DATA PROVENANCE */}
+      {/* 6. RESPONSE / COMMAND CENTER & DATA PROVENANCE */}
       <section aria-label="Command Center and Provenance" className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Command Center Simulator */}
         <div className="lg:col-span-4 glass-panel rounded-xl p-4 border-l-4 border-l-rose-500 bg-gradient-to-r from-rose-950/30 via-slate-900/60 to-slate-900/40 relative flex flex-col justify-between">
