@@ -210,21 +210,23 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
       </section>
 
       {/* 4. WARD RISK MAP & WARD DETAILS */}
-      <section aria-label="Ward Map and Details" className="grid grid-cols-1 lg:grid-cols-12 gap-5 h-auto lg:h-[500px]">
-        <div className="lg:col-span-8 h-[400px] lg:h-full flex flex-col">
+      <section aria-label="Ward Map and Details" className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div className="lg:col-span-8 flex flex-col">
           <h3 className="text-sm font-tech font-bold text-white uppercase tracking-wider mb-2 flex items-center gap-2">
             BHUBANESWAR 67-WARD THERMAL RISK MAP
             <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">
               LIVE PLUME
             </span>
           </h3>
-          <WardRiskMap wards={wards} activeDistrict={activeDistrict} onWardSelect={setSelectedWard} />
+          <div className="h-[400px] lg:h-[500px] w-full">
+            <WardRiskMap wards={wards} activeDistrict={activeDistrict} onWardSelect={setSelectedWard} />
+          </div>
         </div>
-        <div className="lg:col-span-4 h-[400px] lg:h-full flex flex-col">
+        <div className="lg:col-span-4 flex flex-col">
           <h3 className="text-sm font-tech font-bold text-white uppercase tracking-wider mb-2">
             SELECTED WARD DETAILS
           </h3>
-          <div className="flex-1 min-h-0">
+          <div className="h-[400px] lg:h-[500px] w-full">
             <WardDetailPanel ward={selectedWard} />
           </div>
         </div>
