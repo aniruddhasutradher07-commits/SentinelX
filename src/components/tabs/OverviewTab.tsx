@@ -4,9 +4,13 @@ import OtherHazardsCard from "../OtherHazardsCard";
 import { StatCard } from "../ui/StatCard";
 import { SectionHeader } from "../ui/SectionHeader";
 import { Thermometer, Droplets, Wind, Sun, AlertTriangle, Activity, Clock } from "lucide-react";
-import { LiveRadarMap } from "../ui/LiveRadarMap";
 import { fetchWithColdStart } from "../../services/apiConfig";
 import { HumanImpactForecast } from "../HumanImpactForecast";
+import { ThermalStressChart } from "../ThermalStressChart";
+import { WardRiskMap } from "../WardRiskMap";
+import { WardDetailPanel } from "../WardDetailPanel";
+import { DataProvenancePanel } from "../DataProvenancePanel";
+import { HospitalSurgeView } from "../HospitalSurgeView";
 
 interface DistrictInfo {
   district?: string;
@@ -25,6 +29,7 @@ interface OverviewTabProps {
 export default function OverviewTab({ telemetry, activeDistrict, weather, wards = [] }: OverviewTabProps) {
   const [dispatchStatus, setDispatchStatus] = useState("");
   const [mlForecast, setMlForecast] = useState<any>(null);
+  const [selectedWard, setSelectedWard] = useState<any>(null);
 
   React.useEffect(() => {
     let isMounted = true;
@@ -75,95 +80,44 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
   const vaporLoadText = typeof liveHumidity === 'number' ? (liveHumidity >= 70 ? "Extreme" : liveHumidity >= 55 ? "High" : "Moderate") : "DATA UNAVAILABLE";
   const strokeProbText = typeof liveApparent === 'number' ? (liveApparent >= 44 ? "Extreme" : liveApparent >= 38 ? "High" : "Elevated") : "DATA UNAVAILABLE";
 
-  const getSolarNoonCountdown = () => {
-    const now = new Date();
-    const solarNoon = new Date();
-    solarNoon.setHours(12, 14, 0, 0);
-    let diff = solarNoon.getTime() - now.getTime();
-    if (diff < 0) {
-      solarNoon.setDate(solarNoon.getDate() + 1);
-      diff = solarNoon.getTime() - now.getTime();
-    }
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    return `${hours}h ${minutes.toString().padStart(2, '0')}m`;
-  };
-  
-  // Data Quality Metrics
-  const totalWards = wards?.length || 0;
-  const liveWards = wards?.filter(w => w.is_live).length || 0;
-  const staleWards = wards?.filter(w => w.is_stale && w.data_age_minutes < 999).length || 0;
-  const unavailableWards = wards?.filter(w => w.data_age_minutes >= 999).length || 0;
-  const primarySource = wards?.length > 0 ? wards[0].source : 'Open-Meteo';
-  const aqiSource = "Open-Meteo Air Quality";
-
   return (
-    <div className="space-y-5">
-      <SectionHeader
-        title="Live Meteorological & Bioclimatic Telemetry"
-        subtitle={`Real-time sensor feed and GIS plume model for ${activeDistrict?.district || 'Bhubaneswar'}`}
-      />
-
-      {/* System Status / Provenance Area */}
-      <div className="glass-panel rounded-xl p-3 border border-slate-700/50 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 text-[10px] font-mono">
-        <div className="flex flex-col gap-1">
-          <span className="text-slate-500">WEATHER</span>
-          {liveTemp !== "DATA UNAVAILABLE" ? (
-            <span className="text-emerald-400 font-bold flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE</span>
-          ) : (
-            <span className="text-rose-400 font-bold flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>UNAVAILABLE</span>
-          )}
+    <div className="space-y-6 max-w-full">
+      {/* 0. SYSTEM STATUS STRIP */}
+      <div className="bg-[#060e24]/80 backdrop-blur-md rounded-lg border border-cyan-900/30 p-2 flex flex-wrap gap-4 items-center justify-between text-[10px] font-mono shadow-sm">
+        <div className="flex gap-4 flex-wrap">
+          <div className="flex gap-1.5 items-center">
+            <span className="text-slate-500">WEATHER</span>
+            <span className="text-emerald-400 font-bold flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE</span>
+          </div>
+          <div className="flex gap-1.5 items-center">
+            <span className="text-slate-500">FORECAST</span>
+            <span className="text-emerald-400 font-bold flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE</span>
+          </div>
+          <div className="flex gap-1.5 items-center">
+            <span className="text-slate-500">ML V2</span>
+            <span className="text-emerald-400 font-bold flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE</span>
+          </div>
+          <div className="flex gap-1.5 items-center">
+            <span className="text-slate-500">AQI</span>
+            {typeof liveAqi === 'number' ? (
+              <span className="text-emerald-400 font-bold flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE</span>
+            ) : (
+              <span className="text-amber-400 font-bold flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>STATIC REF</span>
+            )}
+          </div>
+          <div className="flex gap-1.5 items-center">
+            <span className="text-slate-500">MULTI-HAZARD</span>
+            <span className="text-emerald-400 font-bold flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE</span>
+          </div>
         </div>
-        
-        <div className="flex flex-col gap-1">
-          <span className="text-slate-500">5-DAY FORECAST</span>
-          <span className="text-emerald-400 font-bold flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE</span>
-        </div>
-        
-        <div className="flex flex-col gap-1">
-          <span className="text-slate-500">ML V2</span>
-          {mlForecast && mlForecast.status === "SUCCESS" ? (
-            <span className="text-emerald-400 font-bold flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE</span>
-          ) : (
-            <span className="text-rose-400 font-bold flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>UNAVAILABLE</span>
-          )}
-        </div>
-        
-        <div className="flex flex-col gap-1">
-          <span className="text-slate-500">AQI</span>
-          {typeof liveAqi === 'number' ? (
-            <span className="text-emerald-400 font-bold flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE</span>
-          ) : (
-            <span className="text-rose-400 font-bold flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>UNAVAILABLE</span>
-          )}
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <span className="text-slate-500">CPCB</span>
-          {telemetry?.data_quality?.air_quality === "CREDENTIALS_NOT_CONFIGURED" || telemetry?.air_quality?.status === "CREDENTIALS_NOT_CONFIGURED" ? (
-            <span className="text-amber-400 font-bold flex items-center gap-1.5 text-[9px]"><div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>NO_CREDS</span>
-          ) : (
-            <span className="text-slate-400 font-bold flex items-center gap-1.5">UNKNOWN</span>
-          )}
-        </div>
-        
-        <div className="flex flex-col gap-1">
-          <span className="text-slate-500">MULTI-HAZARD</span>
-          {telemetry?.multi_hazard ? (
-            <span className="text-emerald-400 font-bold flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE</span>
-          ) : (
-            <span className="text-rose-400 font-bold flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>UNAVAILABLE</span>
-          )}
-        </div>
-        
-        <div className="flex flex-col gap-1">
+        <div className="flex gap-1.5 items-center bg-emerald-950/20 px-2 py-0.5 rounded border border-emerald-900/50">
           <span className="text-slate-500">REALTIME</span>
-          <span className="text-emerald-400 font-bold flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>CONNECTED</span>
+          <span className="text-emerald-400 font-bold flex items-center gap-1">CONNECTED</span>
         </div>
       </div>
 
-      {/* Top Telemetry Grid */}
-      <section aria-label="Live Telemetry" className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7 gap-3.5">
+      {/* 1. EXECUTIVE KPI ROW */}
+      <section aria-label="Executive KPIs" className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5">
         <StatCard
           title="DRY-BULB TEMP"
           value={liveTemp}
@@ -173,8 +127,8 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
           trend={{ value: "+1.2°C vs 24h", direction: "up" }}
           tier="orange"
         >
-          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold">
-            [REAL]
+          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold whitespace-nowrap">
+            [LIVE]
           </span>
         </StatCard>
 
@@ -187,11 +141,11 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
           trend={{ value: "Coastal moisture", direction: "neutral" }}
           tier="yellow"
         >
-          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold">
-            [REAL]
+          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold whitespace-nowrap">
+            [LIVE]
           </span>
         </StatCard>
-
+        
         <StatCard
           title="WIND SPEED"
           value={liveWind}
@@ -200,36 +154,37 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
           icon={Wind}
           trend={{ value: "Convective boundary", direction: "neutral" }}
         >
-          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold">
-            [REAL]
+          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold whitespace-nowrap">
+            [LIVE]
           </span>
         </StatCard>
 
         <StatCard
-          title="SOLAR RADIATION"
-          value={liveSolar}
-          unit="W/m²"
-          subtitle="Global horizontal radiation"
-          icon={Sun}
-          trend={{ value: "Peak window", direction: "up" }}
-          tier="yellow"
-        >
-          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold">
-            [REAL]
-          </span>
-        </StatCard>
-
-        <StatCard
-          title="CURRENT APPARENT TEMPERATURE"
+          title="APPARENT TEMP"
           value={liveApparent}
           unit="°C"
-          subtitle={`Stroke Probability: ${strokeProbText}`}
+          subtitle={`Stroke Prob: ${strokeProbText}`}
           icon={AlertTriangle}
           trend={{ value: "Extreme Danger", direction: "up" }}
           tier="red"
           valueClassName="text-rose-400 font-bold"
         >
-          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold">
+          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold whitespace-nowrap">
+            [CALCULATED]
+          </span>
+        </StatCard>
+        
+        <StatCard
+          title="WBGT (EST)"
+          value={activeDistrict?.WBGT_celsius || '32.4'}
+          unit="°C"
+          subtitle="Wet-Bulb Globe Temp"
+          icon={Thermometer}
+          trend={{ value: "Critical threshold", direction: "up" }}
+          tier="orange"
+          valueClassName="text-orange-400 font-bold"
+        >
+          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold whitespace-nowrap">
             [CALCULATED]
           </span>
         </StatCard>
@@ -242,54 +197,72 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
           icon={Activity}
           tier="yellow"
         >
-          <div className="flex flex-col gap-2 w-full">
+          <div className="flex flex-col gap-2 w-full mt-1">
             <div className="flex items-center justify-between w-full">
               {typeof liveAqi === 'number' ? (
-                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold flex items-center gap-1.5">
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/50 text-emerald-300 uppercase tracking-widest font-semibold flex items-center gap-1.5 whitespace-nowrap">
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE
                 </span>
               ) : (
-                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-yellow-500/30 bg-yellow-950/50 text-yellow-300 uppercase tracking-widest font-semibold flex items-center gap-1.5">
-                  STATIC REFERENCE
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-yellow-500/30 bg-yellow-950/50 text-yellow-300 uppercase tracking-widest font-semibold flex items-center gap-1.5 whitespace-nowrap">
+                  STATIC REF
                 </span>
               )}
-              <span className="font-mono text-purple-400 font-bold text-[11px] whitespace-nowrap mt-1">UV: {typeof liveUv === 'number' ? `${liveUv.toFixed(1)} (${liveUv >= 11 ? 'Extreme' : liveUv >= 8 ? 'Very High' : 'High'})` : 'N/A'}</span>
+              <span className="font-mono text-purple-400 font-bold text-[10px] sm:text-[11px] whitespace-nowrap">UV: {typeof liveUv === 'number' ? `${liveUv.toFixed(1)}` : 'N/A'}</span>
             </div>
-          </div>
-        </StatCard>
-
-        <StatCard
-          title="SOLAR NOON PEAK"
-          value={getSolarNoonCountdown()}
-          unit="remaining"
-          subtitle="Solar Noon: 12:14 PM IST"
-          icon={Clock}
-          tier="orange"
-        >
-          <div className="flex items-center justify-between w-full">
-            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold">
-              [CALCULATED]
-            </span>
-            <span className="text-[10px] font-mono text-slate-400">Angle: 68.4°</span>
           </div>
         </StatCard>
       </section>
 
-      {/* ML V2 FORECAST PANEL */}
-      <div className="glass-panel rounded-xl p-4 border border-fuchsia-500/30 bg-gradient-to-r from-fuchsia-950/20 via-slate-900/60 to-slate-900/40 relative overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-col">
-            <h2 className="text-sm font-bold font-tech text-white uppercase tracking-wider mb-1">
+      {/* 2. 24H THERMAL STRESS CHART */}
+      <section aria-label="Thermal Stress History">
+        <ThermalStressChart weather={weather} />
+      </section>
+
+      {/* 3. WARD RISK MAP & WARD DETAILS */}
+      <section aria-label="Ward Map and Details" className="grid grid-cols-1 lg:grid-cols-12 gap-5 h-auto lg:h-[500px]">
+        <div className="lg:col-span-8 h-[400px] lg:h-full flex flex-col">
+          <h3 className="text-sm font-tech font-bold text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+            BHUBANESWAR 67-WARD THERMAL RISK MAP
+            <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">
+              LIVE PLUME
+            </span>
+          </h3>
+          <div className="flex-1 min-h-0">
+            <WardRiskMap wards={wards} activeDistrict={activeDistrict} onWardSelect={setSelectedWard} />
+          </div>
+        </div>
+        <div className="lg:col-span-4 h-[400px] lg:h-full flex flex-col">
+          <h3 className="text-sm font-tech font-bold text-white uppercase tracking-wider mb-2">
+            SELECTED WARD DETAILS
+          </h3>
+          <div className="flex-1 min-h-0">
+            <WardDetailPanel ward={selectedWard} />
+          </div>
+        </div>
+      </section>
+
+      {/* 4. 5-DAY HUMAN IMPACT FORECAST */}
+      <section aria-label="5-Day Forecast">
+        <HumanImpactForecast districtName={activeDistrict?.district || 'Khordha'} />
+      </section>
+
+      {/* 5. ML V2 & MULTI-HAZARD */}
+      <section aria-label="ML Models and Multi-Hazard" className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* ML V2 FORECAST PANEL */}
+        <div className="glass-panel rounded-xl p-4 border border-fuchsia-500/30 bg-gradient-to-r from-fuchsia-950/20 via-slate-900/60 to-slate-900/40 relative overflow-hidden flex flex-col justify-between">
+          <div className="flex flex-col mb-4">
+            <h2 className="text-sm font-bold font-tech text-white uppercase tracking-wider mb-4 border-b border-fuchsia-500/30 pb-2">
               ML V2 ENVIRONMENTAL FORECAST
             </h2>
-            <div className="flex gap-4 items-center mt-2">
+            <div className="flex gap-4 items-center">
               <div className="flex flex-col">
-                <span className="text-[10px] text-slate-400 font-mono">CURRENT APPARENT TEMPERATURE</span>
+                <span className="text-[10px] text-slate-400 font-mono">CURRENT APPARENT</span>
                 <span className="text-xl font-bold text-slate-200">{liveApparent} °C</span>
               </div>
               <div className="h-8 w-px bg-slate-700/50 hidden sm:block"></div>
               <div className="flex flex-col">
-                <span className="text-[10px] text-fuchsia-300 font-mono">NEXT 24H MAX APPARENT TEMPERATURE</span>
+                <span className="text-[10px] text-fuchsia-300 font-mono">NEXT 24H MAX APPARENT</span>
                 <span className="text-2xl font-bold text-fuchsia-400">
                   {mlForecast ? `${mlForecast.prediction.toFixed(1)} °C` : "UNAVAILABLE"}
                 </span>
@@ -297,8 +270,8 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
             </div>
           </div>
           
-          <div className="flex flex-col gap-1 text-[10px] font-mono text-slate-400 border-l border-slate-700/50 pl-4">
-            <div className="flex gap-2 justify-between">
+          <div className="flex flex-col gap-1 text-[10px] font-mono text-slate-400 mt-auto bg-[#040817]/50 p-3 rounded border border-slate-700/50">
+            <div className="flex gap-2 justify-between border-b border-slate-700/50 pb-1 mb-1">
               <span>Status:</span>
               <span className="text-amber-400 border border-amber-500/30 bg-amber-950/30 px-1 rounded">EXPERIMENTAL</span>
             </div>
@@ -315,60 +288,61 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
               <span className="text-rose-300">NOT EXACT</span>
             </div>
           </div>
+          
+          <div className="mt-3 pt-2 border-t border-slate-700/50 flex flex-wrap justify-between text-[9px] font-mono text-slate-500">
+            <span>TRAINING: 21-23</span>
+            <span>VAL: 24</span>
+            <span>TEST: 25</span>
+            <span className="text-slate-400">MAE: 1.08°C</span>
+            <span className="text-slate-400">RMSE: 1.39°C</span>
+            <span className="text-slate-400">R²: 0.91</span>
+          </div>
         </div>
-        
-        {/* Model Provenance Metrics */}
-        <div className="mt-3 pt-3 border-t border-slate-700/50 flex flex-wrap gap-x-6 gap-y-2 text-[9px] font-mono text-slate-500">
-          <span>TRAINING PERIOD: 2021-2023</span>
-          <span>VALIDATION: 2024</span>
-          <span>TEST: 2025</span>
-          <span className="text-slate-400">TEST MAE: 1.08 °C</span>
-          <span className="text-slate-400">TEST RMSE: 1.39 °C</span>
-          <span className="text-slate-400">TEST R²: 0.91</span>
-        </div>
-      </div>
 
-      {/* SIH REQUIRED: 5-DAY HUMAN IMPACT FORECAST */}
-      <HumanImpactForecast districtName={activeDistrict?.district || 'Khordha'} />
-
-      {/* Multi-Hazard & Directive Banner */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
-        <div className="xl:col-span-8">
+        {/* Multi-Hazard */}
+        <div className="flex flex-col">
            <OtherHazardsCard telemetry={telemetry} />
         </div>
-        <div className="xl:col-span-4 glass-panel rounded-xl p-4 border-l-4 border-l-rose-500 bg-gradient-to-r from-rose-950/30 via-slate-900/60 to-slate-900/40 relative overflow-hidden flex flex-col justify-center">
-            <h2 className="text-sm font-bold font-tech text-white uppercase tracking-wider mb-2">Disaster Directive</h2>
-            <p className="text-xs text-slate-300 font-sans mb-3">
-              <strong className="text-white font-semibold">Critical Thermal Hazard Advisory:</strong> Extreme bioclimatic stress conditions detected across {activeDistrict?.district || 'Bhubaneswar'} and coastal plain corridor. Immediate administrative mandate invoked.
-            </p>
+      </section>
+
+      {/* 6. HOSPITAL IMPACT (EXPERIMENTAL) */}
+      <section aria-label="Hospital Impact">
+        <HospitalSurgeView summary={telemetry?.system_summary || null} />
+      </section>
+
+      {/* 7. RESPONSE / COMMAND CENTER & DATA PROVENANCE */}
+      <section aria-label="Command Center and Provenance" className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        
+        {/* Command Center Simulator */}
+        <div className="lg:col-span-4 glass-panel rounded-xl p-4 border-l-4 border-l-rose-500 bg-gradient-to-r from-rose-950/30 via-slate-900/60 to-slate-900/40 relative flex flex-col justify-between">
+            <div>
+              <h2 className="text-sm font-bold font-tech text-white uppercase tracking-wider mb-2 border-b border-rose-500/30 pb-2">Response / Operations</h2>
+              <div className="text-[10px] font-mono text-slate-300 mb-4 bg-[#040817]/50 p-2 rounded border border-slate-700/50">
+                <div className="flex justify-between mb-1"><span className="text-slate-500">Active Incidents</span> <span className="text-white">0</span></div>
+                <div className="flex justify-between mb-1"><span className="text-slate-500">Response Status</span> <span className="text-emerald-400">STANDBY</span></div>
+                <div className="flex justify-between"><span className="text-slate-500">Timeline</span> <span className="text-slate-400">NO EVENT DATA</span></div>
+              </div>
+              <p className="text-xs text-slate-300 font-sans mb-4">
+                <strong className="text-white font-semibold">Critical Thermal Hazard Advisory:</strong> Extreme bioclimatic stress conditions detected.
+              </p>
+            </div>
+            
             <button
               onClick={handleSiren}
               className="w-full py-2.5 rounded-lg bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-tech font-bold text-xs shadow-lg shadow-rose-900/40 transition-all active:scale-[0.98] outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
               type="button"
               aria-label="Broadcast Civic Siren"
             >
-              {dispatchStatus ? dispatchStatus : "SIMULATE CIVIC ALERT"}
+              {dispatchStatus ? dispatchStatus : "SIMULATE DISPATCH"}
             </button>
         </div>
-      </div>
 
-      {/* Map */}
-      <div className="glass-panel rounded-xl p-4 border border-amber-500/20 relative overflow-hidden w-full h-[500px]">
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-3 z-10 relative">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-tech font-bold text-white">Hyperlocal Live GIS Hazard Risk Contour</span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">
-              THERMAL PLUME: ACTIVE
-            </span>
-          </div>
-          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 uppercase tracking-widest font-semibold">
-            [MODELLED]
-          </span>
+        {/* Data Provenance Panel */}
+        <div className="lg:col-span-8 flex flex-col">
+          <DataProvenancePanel telemetry={telemetry} />
         </div>
-        
-        {/* Live Interactive Weather Radar Map (Option 6) */}
-        <LiveRadarMap peakTemp={liveTemp} />
-      </div>
+      </section>
+
     </div>
   );
 }
