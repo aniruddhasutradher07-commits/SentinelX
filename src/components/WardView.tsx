@@ -62,38 +62,19 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
     return (b.WardRiskScore || 0) - (a.WardRiskScore || 0);
   });
 
-  const fallbackWard: WardRiskRecord = {
-    ward_no: 'W21',
-    zone: 'North Zone',
-    population: 14500,
-    centroid_lat: 20.29,
-    centroid_lon: 85.82,
-    timestamp: new Date().toISOString(),
-    temperature_c: 39.5,
-    relative_humidity_pct: 68,
-    wind_speed_ms: 2.1,
-    solar_radiation_wm2: 907.5,
-    apparent_temp_c: 43.3,
-    uhi_offset_c: 0.5,
-    adjusted_temp_c: 39.5,
-    HI_celsius: 44.3,
-    WBGT_celsius: 32.4,
-    UTCI_celsius: 42.7,
-    thermal_hazard_score: 75,
-    WardRiskScore: 82,
-    RiskTier: 'Orange',
-    elderly_pct: 9.5,
-    outdoor_worker_pct: 24.0,
-    tree_cover_pct: 18.0,
-    high_heat_roof_pct: 32.0,
-    vulnerability_score: 48,
-    vulnerability_multiplier: 1.15,
-  };
+  const activeWard = selectedWard || (sortedWards.length > 0 ? sortedWards[0] : null);
 
-  const activeWard = selectedWard || sortedWards[0] || (wards && wards.length > 0 ? wards[0] : fallbackWard) || fallbackWard;
   const [wardDetails, setWardDetails] = useState<any>(null);
   const [hospitalDemandData, setHospitalDemandData] = useState<any>(null);
   const [nightRecoveryData, setNightRecoveryData] = useState<any>(null);
+
+  if (!activeWard) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center h-full bg-tactical-900 text-slate-400 font-mono text-sm">
+        DATA UNAVAILABLE
+      </div>
+    );
+  }
 
   React.useEffect(() => {
     if (!activeWard) return;
@@ -225,12 +206,8 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
       hour: new Date(w.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       wbgt: w.WBGT_celsius
     }))
-    : Array.from({ length: 24 }).map((_, i) => {
-      const cycle = Math.sin((i - 8) * Math.PI / 12);
-      const w = (activeWard?.WBGT_celsius || 32) - 3 + cycle * 4;
-      return { hour: `${i.toString().padStart(2, '0')}:00`, wbgt: Number(w.toFixed(1)) };
-    });
-  const noRecovery = !next24h.slice(0, 6).some((d: any) => d.wbgt < 28);
+    : [];
+  const noRecovery = next24h.length > 0 ? !next24h.slice(0, 6).some((d: any) => d.wbgt < 28) : false;
 
   // Panel 4: 5-Day Forecast
   const isHospitalDemandAvailable = hospitalDemandData?.status === "EXPERIMENTAL_NOT_VALIDATED" && hospitalDemandData?.forecast?.length > 0;
@@ -978,29 +955,7 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
 
           {/* Inline Persistence Sparkline */}
           <div className="flex items-end justify-between gap-1 h-12 pt-2 px-1">
-            {[-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5].map((dayOffset) => {
-              const baseScore = activeWard?.WardRiskScore || 75;
-              const simulatedVal = Math.min(100, Math.max(30, Math.round(baseScore + Math.sin(dayOffset * 0.8) * 15)));
-              const barColor = simulatedVal > 85 ? '#C0392B' : simulatedVal > 65 ? '#D9772E' : simulatedVal > 45 ? '#C9A227' : '#3A7D5C';
-              const isToday = dayOffset === 0;
-
-              return (
-                <div key={dayOffset} className="flex-1 flex flex-col items-center gap-1">
-                  <div
-                    className="w-full rounded-t-sm transition-all"
-                    style={{
-                      height: `${(simulatedVal / 100) * 36}px`,
-                      backgroundColor: barColor,
-                      outline: isToday ? '1px solid #F2F1EC' : 'none'
-                    }}
-                    title={`Day ${dayOffset >= 0 ? '+' : ''}${dayOffset}: Risk Score ${simulatedVal}`}
-                  />
-                  <span className={`text-[8px] font-mono ${isToday ? 'text-white font-bold' : 'text-slate-400'}`}>
-                    {dayOffset === 0 ? 'T' : dayOffset > 0 ? `+${dayOffset}` : dayOffset}
-                  </span>
-                </div>
-              );
-            })}
+            <div className="text-xs text-slate-400 font-mono flex items-center justify-center w-full h-full">DATA UNAVAILABLE</div>
           </div>
           <p className="text-[10px] text-slate-400 mt-2 font-mono">
             Persistence: Multi-day cumulative heat stress triggers higher clinical hospital surge risk.

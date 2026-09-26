@@ -1,3 +1,4 @@
+from core.thermal_stress import classify_risk_tier
 import datetime
 import requests
 from fastapi import APIRouter, Query, HTTPException
@@ -129,7 +130,7 @@ def get_forecast_risk(district: str = Query(..., description="District or city n
             },
             "risk": {
                 "risk_score": round(risk_result.get("risk_score", 0), 1),
-                "risk_tier": risk_result.get("risk_tier", "Unknown")
+                "risk_tier": classify_risk_tier(risk_result.get("risk_score", 0))
             }
         })
 

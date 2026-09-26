@@ -11,14 +11,13 @@
  *  - Automatic retry with exponential backoff for 502/503/timeouts
  */
 
-// Point to the same origin if served by FastAPI, or localhost:8000 for local dev
-export const PRODUCTION_API_URL = 'https://sentinelx-pi9j.onrender.com';
+export const PRODUCTION_API_URL = '';
 
 // Read environment variable or fallback to production URL
 const envBase = typeof import.meta !== 'undefined' ? (import.meta as any).env?.VITE_API_BASE_URL : '';
 const isProd = typeof import.meta !== 'undefined' && (import.meta as any).env?.PROD;
 
-export const API_BASE_URL = envBase || (isProd ? PRODUCTION_API_URL : 'http://localhost:8000');
+export const API_BASE_URL = envBase || (isProd ? PRODUCTION_API_URL : '');
 
 /**
  * Resolves full URL for any API endpoint path.
