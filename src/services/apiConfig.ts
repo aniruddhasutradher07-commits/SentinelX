@@ -2,16 +2,16 @@
  * src/services/apiConfig.ts
  * ==========================
  * Centralized API configuration connecting SentinelX Frontend to the
- * live FastAPI Master Backend deployed on Render:
- * https://sentinelx-pi9j.onrender.com
+ * live FastAPI Master Backend deployed on Railway:
+ * https://sentinelx-thermal-api-production-aa42.up.railway.app
  *
  * Supports:
- *  - Production Render cloud endpoint with VITE_API_BASE_URL override
- *  - Graceful handling of Render free-tier cold starts (spinning up ~30-50s)
+ *  - Production Railway cloud endpoint with VITE_API_BASE_URL override
+ *  - Graceful handling of cold starts
  *  - Automatic retry with exponential backoff for 502/503/timeouts
  */
 
-export const PRODUCTION_API_URL = '';
+export const PRODUCTION_API_URL = 'https://sentinelx-thermal-api-production-aa42.up.railway.app';
 
 // Read environment variable or fallback to production URL
 const envBase = typeof import.meta !== 'undefined' ? (import.meta as any).env?.VITE_API_BASE_URL : '';
@@ -21,7 +21,7 @@ export const API_BASE_URL = envBase || (isProd ? PRODUCTION_API_URL : 'http://lo
 
 /**
  * Resolves full URL for any API endpoint path.
- * Example: getApiUrl('/api/v1/summary') -> 'https://sentinelx-pi9j.onrender.com/api/v1/summary'
+ * Example: getApiUrl('/api/v1/summary') -> 'https://sentinelx-thermal-api-production-aa42.up.railway.app/api/v1/summary'
  */
 export function getApiUrl(path: string): string {
   if (!path) return API_BASE_URL;

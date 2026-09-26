@@ -10,6 +10,7 @@ interface HumanImpactForecastProps {
 export const HumanImpactForecast: React.FC<HumanImpactForecastProps> = ({ districtName = 'Khordha' }) => {
   const [forecast, setForecast] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -26,10 +27,20 @@ export const HumanImpactForecast: React.FC<HumanImpactForecastProps> = ({ distri
         const data = await res.json();
         
         if (isMounted) {
-          setForecast(Array.isArray(data) ? data : []);
+          if (Array.isArray(data)) {
+            setForecast(data);
+          } else if (data && Array.isArray(data.data)) {
+            setForecast(data.data);
+          } else if (data && Array.isArray(data.forecast)) {
+            setForecast(data.forecast);
+          } else {
+            setForecast([]);
+          }
         }
-      } catch (err) {
-        console.error(err);
+      } catch (err: any) {
+        if (isMounted) {
+          setErrorMsg(err.message || 'Error fetching forecast');
+        }
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -70,7 +81,7 @@ export const HumanImpactForecast: React.FC<HumanImpactForecastProps> = ({ distri
         <div>
           <h2 className="text-sm font-bold font-tech text-white uppercase flex items-center gap-2">
             <Activity className="w-4 h-4 text-rose-400" />
-            5-DAY HUMAN IMPACT FORECAST
+            {districtName.toUpperCase()} 5-DAY ENVIRONMENTAL OUTLOOK
           </h2>
           <p className="text-xs text-slate-400 mt-1">Environmental thermal stress and impact indicators</p>
         </div>
@@ -86,6 +97,11 @@ export const HumanImpactForecast: React.FC<HumanImpactForecastProps> = ({ distri
 
       {loading ? (
         <div className="text-xs text-slate-400 py-10 text-center font-mono">Loading 5-day horizon...</div>
+      ) : errorMsg ? (
+        <div className="text-xs text-slate-400 py-10 text-center font-mono">
+          5-DAY FORECAST TEMPORARILY UNAVAILABLE
+          {process.env.NODE_ENV === 'development' && <div className="text-[9px] opacity-50 mt-2">{errorMsg}</div>}
+        </div>
       ) : forecast.length === 0 ? (
         <div className="text-xs text-slate-400 py-10 text-center font-mono">DATA UNAVAILABLE</div>
       ) : (

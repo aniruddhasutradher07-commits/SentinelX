@@ -7,7 +7,6 @@ import { fetchWithColdStart } from "../../services/apiConfig";
 import { HumanImpactForecast } from "../HumanImpactForecast";
 import { WardRiskMap } from "../WardRiskMap";
 import { WardDetailPanel } from "../WardDetailPanel";
-import { DataProvenancePanel } from "../DataProvenancePanel";
 
 interface DistrictInfo {
   district?: string;
@@ -24,7 +23,6 @@ interface OverviewTabProps {
 }
 
 export default function OverviewTab({ telemetry, activeDistrict, weather, wards = [] }: OverviewTabProps) {
-  const [dispatchStatus, setDispatchStatus] = useState("");
   const [mlForecast, setMlForecast] = useState<any>(null);
   const [selectedWard, setSelectedWard] = useState<any>(null);
 
@@ -53,25 +51,11 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
     }
   }, [wards, selectedWard]);
 
-  const handleSiren = async () => {
-    setDispatchStatus("Simulating dispatch...");
-    try {
-      await fetchWithColdStart("/api/v1/alerts/dispatch", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ward_no: "ALL",
-          advisory_text: `Civic Siren Initiated for ${activeDistrict?.district || 'Region'}`
-        })
-      });
-      setTimeout(() => setDispatchStatus("SIMULATION DISPATCH SUCCESS"), 800);
-      setTimeout(() => setDispatchStatus(""), 4000);
-    } catch {
-      setDispatchStatus("FAILED");
-      setTimeout(() => setDispatchStatus(""), 3000);
-    }
-  };
+  // Weather Status Resolution
+  const rawWeatherStatus = selectedWard?.telemetry?.status || selectedWard?.data_quality?.weather || telemetry?.data_quality?.weather || (selectedWard?.is_live ? 'LIVE' : selectedWard?.is_stale ? 'STALE' : 'UNAVAILABLE');
+  const weatherStatus = rawWeatherStatus === 'LIVE' ? 'LIVE' : (rawWeatherStatus === 'STALE' ? 'STALE' : 'UNAVAILABLE');
 
+  // Executive KPI Data
   const liveTemp = weather?.current?.temperature_2m ?? activeDistrict?.temperature_c ?? "DATA UNAVAILABLE";
   const liveHumidity = weather?.current?.relative_humidity_2m ?? activeDistrict?.relative_humidity_pct ?? "DATA UNAVAILABLE";
   const liveWind = weather?.current?.wind_speed_10m ?? activeDistrict?.wind_speed_ms ?? "DATA UNAVAILABLE";
@@ -79,22 +63,24 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
   const liveApparent = weather?.current?.apparent_temperature ?? activeDistrict?.apparent_temp_c ?? "DATA UNAVAILABLE";
   const liveUv = weather?.current?.uv_index ?? "DATA UNAVAILABLE";
   
-  // AQI Handling
-  const aqiWard = wards?.find(w => typeof w.aqi === 'number');
-  const liveAqi = aqiWard?.aqi;
-  const liveAqiStandard = aqiWard?.aqi_standard || "US_AQI";
+  // AQI Handling (Using selected ward strictly)
+  const liveAqi = selectedWard?.aqi;
+  const liveAqiStandard = selectedWard?.aqi_standard || "US_AQI";
   
   const vaporLoadText = typeof liveHumidity === 'number' ? (liveHumidity >= 70 ? "Extreme" : liveHumidity >= 55 ? "High" : "Moderate") : "DATA UNAVAILABLE";
   const strokeProbText = typeof liveApparent === 'number' ? (liveApparent >= 44 ? "Extreme" : liveApparent >= 38 ? "High" : "Elevated") : "DATA UNAVAILABLE";
 
   return (
     <div className="space-y-6 max-w-full">
-      {/* 0. SYSTEM STATUS STRIP */}
+      {/* 1. HEADER / LIVE TELEMETRY STATUS STRIP */}
       <div className="bg-[#060e24]/80 backdrop-blur-md rounded-lg border border-cyan-900/30 p-2 flex flex-wrap gap-4 items-center justify-between text-[10px] font-mono shadow-sm">
         <div className="flex gap-4 flex-wrap">
           <div className="flex gap-1.5 items-center">
             <span className="text-slate-500">WEATHER</span>
-            <span className="text-emerald-400 font-bold flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>{telemetry?.data_quality?.weather === 'LIVE' ? 'LIVE' : 'UNAVAILABLE'}</span>
+            <span className={`font-bold flex items-center gap-1 ${weatherStatus === 'LIVE' ? 'text-emerald-400' : weatherStatus === 'STALE' ? 'text-amber-400' : 'text-rose-400'}`}>
+              {weatherStatus === 'LIVE' && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>}
+              {weatherStatus}
+            </span>
           </div>
           <div className="flex gap-1.5 items-center">
             <span className="text-slate-500">FORECAST</span>
@@ -120,7 +106,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
         <div className="text-slate-500">{telemetry?.sync_time_display || 'NO SYNC DATA'}</div>
       </div>
 
-      {/* 1. EXECUTIVE KPIs (Current live conditions) */}
+      {/* 2. EXECUTIVE KPIs (Current live conditions) */}
       <section aria-label="Executive KPIs" className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5">
         <StatCard
           title="DRY-BULB TEMP"
@@ -208,7 +194,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE
                 </span>
               ) : (
-                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-rose-500/30 bg-rose-950/50 text-rose-300 uppercase tracking-widest font-semibold flex items-center gap-1.5 whitespace-nowrap">
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-amber-500/30 bg-amber-950/50 text-amber-300 uppercase tracking-widest font-semibold flex items-center gap-1.5 whitespace-nowrap">
                   NO CREDS
                 </span>
               )}
@@ -218,12 +204,12 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
         </StatCard>
       </section>
 
-      {/* 2. 5-DAY THERMAL RISK OUTLOOK (Human Impact Forecast) */}
+      {/* 3. 5-DAY THERMAL RISK OUTLOOK (Human Impact Forecast) */}
       <section aria-label="5-Day Forecast">
         <HumanImpactForecast districtName={activeDistrict?.district || 'Khordha'} />
       </section>
 
-      {/* 3. WARD RISK MAP & WARD DETAILS */}
+      {/* 4. WARD RISK MAP & WARD DETAILS */}
       <section aria-label="Ward Map and Details" className="grid grid-cols-1 lg:grid-cols-12 gap-5 h-auto lg:h-[500px]">
         <div className="lg:col-span-8 h-[400px] lg:h-full flex flex-col">
           <h3 className="text-sm font-tech font-bold text-white uppercase tracking-wider mb-2 flex items-center gap-2">
@@ -244,7 +230,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
         </div>
       </section>
 
-      {/* 4 & 5. MULTI-HAZARD & ML V2 */}
+      {/* 5 & 6. MULTI-HAZARD & ML V2 */}
       <section aria-label="ML Models and Multi-Hazard" className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Multi-Hazard */}
         <div className="flex flex-col">
@@ -290,40 +276,6 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
               <span className="text-rose-300">NOT EXACT</span>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* 6. RESPONSE / COMMAND CENTER & DATA PROVENANCE */}
-      <section aria-label="Command Center and Provenance" className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Command Center Simulator */}
-        <div className="lg:col-span-4 glass-panel rounded-xl p-4 border-l-4 border-l-rose-500 bg-gradient-to-r from-rose-950/30 via-slate-900/60 to-slate-900/40 relative flex flex-col justify-between">
-            <div>
-              <h2 className="text-sm font-bold font-tech text-white uppercase tracking-wider mb-2 border-b border-rose-500/30 pb-2">Response / Operations</h2>
-              <div className="text-[10px] font-mono text-slate-300 mb-4 bg-[#040817]/50 p-2 rounded border border-slate-700/50">
-                <div className="flex justify-between mb-1"><span className="text-slate-500">Active Incidents</span> <span className="text-white">0</span></div>
-                <div className="flex justify-between mb-1"><span className="text-slate-500">Response Status</span> <span className="text-emerald-400">STANDBY</span></div>
-                <div className="flex justify-between"><span className="text-slate-500">Timeline</span> <span className="text-slate-400">NO EVENT DATA</span></div>
-              </div>
-              <p className="text-xs text-slate-300 font-sans mb-4">
-                <strong className="text-white font-semibold">Critical Thermal Hazard Advisory:</strong> Extreme bioclimatic stress conditions detected.
-              </p>
-            </div>
-            
-            <button 
-              onClick={handleSiren}
-              disabled={!!dispatchStatus}
-              className={`w-full py-2.5 rounded font-tech font-bold text-xs tracking-wider transition-colors border
-                ${dispatchStatus 
-                  ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' 
-                  : 'bg-rose-500/20 border-rose-500/50 text-rose-300 hover:bg-rose-500/30 hover:border-rose-400 active:bg-rose-500/40'}`}
-            >
-              {dispatchStatus || "DISPATCH REGIONAL CIVIC SIREN (SIMULATION)"}
-            </button>
-        </div>
-
-        {/* Data Provenance Panel */}
-        <div className="lg:col-span-8 flex flex-col h-full">
-          <DataProvenancePanel telemetry={telemetry} />
         </div>
       </section>
 
