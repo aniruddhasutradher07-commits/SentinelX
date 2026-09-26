@@ -65,9 +65,9 @@ curl http://localhost:8000/health
    - **Build Command:** `pip install -r requirements.txt`
    - **Start Command:** `uvicorn main:app --host 0.0.0.0 --port $PORT`
 5. Under **Environment Variables**, add:
-   - `GEMINI_API_KEY`: `AIzaSyDR9BlDJxO2z4RQEUcqGH4W9sE2E28S5d4`
-   - `NEWS_API_KEY`: `ae6b26e8512d4fb8a6d5a917923908f6`
-   - `WEATHERAPI_KEY`: `34b0083b19ed408b8ad65436263008`
+   - `GEMINI_API_KEY`: `YOUR_GEMINI_API_KEY`
+   - `NEWS_API_KEY`: `YOUR_NEWS_API_KEY`
+   - `WEATHERAPI_KEY`: `YOUR_WEATHERAPI_KEY`
 6. Click **Deploy Web Service** — Your API and Dashboards will be live on a public `https://sentinelx.onrender.com` URL!
 
 ---
@@ -88,7 +88,7 @@ gcloud run deploy sentinelx \
   --region asia-south1 \
   --allow-unauthenticated \
   --port 8000 \
-  --set-env-vars="NEWS_API_KEY=ae6b26e8512d4fb8a6d5a917923908f6,WEATHERAPI_KEY=34b0083b19ed408b8ad65436263008"
+  --set-env-vars="NEWS_API_KEY=YOUR_NEWS_API_KEY,WEATHERAPI_KEY=YOUR_WEATHERAPI_KEY"
 ```
 
 ---
