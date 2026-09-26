@@ -1,27 +1,12 @@
 import React from 'react';
 import { 
   ShieldAlert, 
-  Radio, 
   Bot, 
   Send, 
   Download, 
-  MapPin, 
-  Building2, 
-  Activity, 
-  Calculator, 
-  Sparkles, 
-  Database, 
-  Code,
   Zap,
-  Users,
-  Cpu,
-  HardHat,
-  GraduationCap,
-  LifeBuoy,
-  History
 } from 'lucide-react';
 import { LiveTelemetry } from '../types';
-import { TabNav } from './ui/TabNav';
 
 interface HeaderProps {
   activeTab: string;
@@ -50,26 +35,9 @@ export const Header: React.FC<HeaderProps> = ({
   onSimulateSensorPulse,
   isSimulatingPulse,
 }) => {
-  const tabs = [
-    { id: 'command', label: 'Command Center', icon: ShieldAlert, badge: 'Stitch/Figma' },
-    { id: 'odisha', label: 'Odisha Statewide', icon: MapPin, badge: 'Overview 3.1' },
-    { id: 'wards', label: 'Bhubaneswar Core', icon: Building2, badge: 'Operations 3.2' },
-    { id: 'citizen', label: 'Citizen Advisory', icon: Users, badge: 'Public 3.4' },
-    { id: 'simulator', label: 'What-If Simulator', icon: Calculator, badge: 'Planning 3.5' },
-    { id: 'worker_safety', label: 'Worker Safety', icon: HardHat, badge: 'Occupational' },
-    { id: 'school_safety', label: 'School Safety', icon: GraduationCap, badge: 'Pediatric' },
-    { id: 'resource_allocation', label: 'Resource Allocation', icon: LifeBuoy, badge: 'Spatial AI' },
-    { id: 'historical_replay', label: 'Historical Replay', icon: History, badge: '1998-2019' },
-    { id: 'hospital', label: 'Hospital Surge ML', icon: Activity, badge: 'DLNM + XGB' },
-    { id: 'htherm', label: 'H-THERM Calc', icon: Sparkles, badge: 'Physiology' },
-    { id: 'copilot', label: 'AI Copilot', icon: Bot, badge: 'Gemini' },
-    { id: 'benchmarks', label: 'NDMA Validation', icon: Database, badge: '1998-2024' },
-    { id: 'validation', label: 'Model Validation', icon: Cpu, badge: 'Audit ML' },
-    { id: 'api', label: 'API Explorer', icon: Code, badge: 'REST' },
-  ];
 
   return (
-    <header className="bg-tactical-850/95 border-b border-tactical-border/80 backdrop-blur-md px-4 py-2.5 flex flex-col lg:flex-row items-center justify-between gap-3 shrink-0 z-30">
+    <header className="bg-tactical-850/95 border-b border-tactical-border/80 backdrop-blur-md px-4 py-2 flex items-center justify-between gap-3 shrink-0 z-30">
       {/* Brand & Live Pulse */}
       <div className="flex items-center justify-between w-full lg:w-auto gap-4">
         <div className="flex items-center gap-3">
@@ -133,16 +101,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <TabNav
-        tabs={tabs}
-        activeTab={activeTab}
-        onChange={setActiveTab}
-        orientation="horizontal"
-        variant="glass"
-        ariaLabel="Main Dashboard Views"
-        className="max-w-full"
-      />
+      {/* Navigation moved to sidebar */}
 
       {/* Quick Trigger Action Buttons */}
       <div className="flex items-center space-x-2 font-mono text-[11px]">

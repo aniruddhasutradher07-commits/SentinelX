@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header.tsx';
+import AppSidebar from './components/AppSidebar';
 import { OdishaMap } from './components/OdishaMap';
 import { WardView } from './components/WardView';
 import { HospitalSurgeView } from './components/HospitalSurgeView';
@@ -255,35 +256,40 @@ function CommandCenter() {
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-slate-950 text-slate-100 font-sans overflow-hidden">
-      {/* Top Application Header */}
-      <Header
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        telemetry={telemetry}
-        onOpenCopilot={() => setActiveTab('copilot')}
-        onOpenDispatcher={() => handleOpenDispatcher('Khordha')}
-        onExportSitRep={handleExportSitRep}
-        realtimeStatus={realtimeStatus}
-        onSimulateSensorPulse={handleSimulatePulse}
-        isSimulatingPulse={isSimulatingPulse}
-      />
+    <div className="flex h-screen w-screen bg-slate-950 text-slate-100 font-sans overflow-hidden">
+      {/* Left Sidebar Navigation */}
+      <AppSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
-      {/* Fallback Data Warning Banner */}
-      {isUsingFallbackData && (
-        <div className="bg-amber-950/80 border-b border-amber-500/50 px-4 py-2 flex justify-center items-center gap-3 z-40 relative shadow-[0_0_15px_rgba(245,158,11,0.15)]">
-          <AlertCircle className="w-4 h-4 text-amber-400 animate-pulse" />
-          <span className="text-amber-200 text-xs font-mono">
-            Reconnecting to live backend — showing cached reference data
-          </span>
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded border border-amber-500/40 bg-amber-900/60 text-amber-300 uppercase tracking-widest font-semibold shadow-sm">
-            [SYNTHETIC]
-          </span>
-        </div>
-      )}
+      {/* Right: Header + Content stacked vertically */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Top Application Header */}
+        <Header
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          telemetry={telemetry}
+          onOpenCopilot={() => setActiveTab('copilot')}
+          onOpenDispatcher={() => handleOpenDispatcher('Khordha')}
+          onExportSitRep={handleExportSitRep}
+          realtimeStatus={realtimeStatus}
+          onSimulateSensorPulse={handleSimulatePulse}
+          isSimulatingPulse={isSimulatingPulse}
+        />
 
-      {/* Main View Container */}
-      <main className="flex-1 flex overflow-hidden relative">
+        {/* Fallback Data Warning Banner */}
+        {isUsingFallbackData && (
+          <div className="bg-amber-950/80 border-b border-amber-500/50 px-4 py-2 flex justify-center items-center gap-3 z-40 relative shadow-[0_0_15px_rgba(245,158,11,0.15)]">
+            <AlertCircle className="w-4 h-4 text-amber-400 animate-pulse" />
+            <span className="text-amber-200 text-xs font-mono">
+              Reconnecting to live backend — showing cached reference data
+            </span>
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded border border-amber-500/40 bg-amber-900/60 text-amber-300 uppercase tracking-widest font-semibold shadow-sm">
+              [SYNTHETIC]
+            </span>
+          </div>
+        )}
+
+        {/* Main View Container */}
+        <main className="flex-1 flex overflow-hidden relative">
         {loading ? (
           <div className="flex-1 flex flex-col items-center justify-center space-y-3 px-4 text-center">
             <div className="w-8 h-8 rounded-full border-2 border-sky-500 border-t-transparent animate-spin" />
@@ -391,6 +397,7 @@ function CommandCenter() {
           </>
         )}
       </main>
+      </div>{/* end right column */}
 
       {/* Emergency Dispatch Dialog */}
       <AlertDispatchModal
