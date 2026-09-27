@@ -1,4 +1,5 @@
 import React from 'react';
+import heatguardLogo from '../assets/heatguard-logo.png';
 
 interface HeaderProps {
   activeTab?: string;
@@ -23,7 +24,7 @@ export const Header: React.FC<HeaderProps> = () => {
       <div className="flex items-center gap-3.5">
         <div className="relative group">
           <img 
-            src="/heatguard-logo.png" 
+            src={heatguardLogo} 
             alt="HeatGuard AI Logo" 
             className="w-10 h-10 rounded-xl object-contain bg-white/5 p-1 border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.25)] transition-transform group-hover:scale-105" 
           />

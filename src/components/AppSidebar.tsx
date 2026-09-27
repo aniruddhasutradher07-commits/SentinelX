@@ -19,6 +19,7 @@ import {
   ChevronLeft
 } from 'lucide-react';
 import { cn } from '../utils/cn';
+import heatguardLogo from '../assets/heatguard-logo.png';
 
 interface AppSidebarProps {
   activeTab: string;
@@ -99,7 +100,7 @@ export default function AppSidebar({ activeTab, setActiveTab }: AppSidebarProps)
       <div className="h-14 border-b border-white/5 flex items-center justify-between px-3 shrink-0">
         <div className="flex items-center gap-2.5 min-w-0">
           <img 
-            src="/heatguard-logo.png" 
+            src={heatguardLogo} 
             alt="HeatGuard AI" 
             className="w-7 h-7 rounded-lg object-contain bg-white/5 p-0.5 border border-amber-500/30 shrink-0" 
           />
