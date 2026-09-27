@@ -250,7 +250,7 @@ function CommandCenter() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `SentinelX_SitRep_${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `HeatGuard_SitRep_${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -293,7 +293,7 @@ function CommandCenter() {
         {loading ? (
           <div className="flex-1 flex flex-col items-center justify-center space-y-3 px-4 text-center">
             <div className="w-8 h-8 rounded-full border-2 border-sky-500 border-t-transparent animate-spin" />
-            <p className="text-xs font-mono text-slate-400">Booting SentinelX Telemetry &amp; Spatial Models...</p>
+            <p className="text-xs font-mono text-slate-400">Booting HeatGuard Telemetry &amp; Spatial Models...</p>
             {isCloudWakingUp && (
               <div className="mt-2 px-3 py-1.5 rounded-lg bg-sky-950/80 border border-sky-500/30 text-[11px] font-mono text-sky-300 animate-pulse max-w-md">
                 ☁️ Connecting to live Render cloud backend (https://sentinelx-pi9j.onrender.com)... Initial spin-up may take ~30s on free instance.
