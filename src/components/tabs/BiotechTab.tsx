@@ -4,6 +4,7 @@ import { HThermCalculator } from "../../components/HThermCalculator";
 import { HeatBalanceChart } from "../../components/HeatBalanceChart";
 import { PhysiologyReplay } from "../../components/PhysiologyReplay";
 import { SectionHeader } from "../ui/SectionHeader";
+import { OrganStrainHologram } from "../../components/OrganStrainHologram";
 import { Activity } from "lucide-react";
 
 interface BiotechTabProps {
@@ -69,6 +70,11 @@ export default function BiotechTab({ activeDistrict, telemetry, weather, hourlyF
 
         <div className="lg:col-span-5 space-y-6 flex flex-col">
           <HeatBalanceChart />
+        </div>
+        <div className="lg:col-span-12 mt-6">
+          <OrganStrainHologram />
+        </div>
+        <div className="lg:col-span-5 space-y-6 flex flex-col">
         </div>
       </div>
 

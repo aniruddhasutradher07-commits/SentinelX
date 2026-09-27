@@ -6,7 +6,7 @@ interface OrganMetric {
   name: string;
   shortName: string;
   icon: any;
-  status: 'Normal' | 'Elevated Strain' | 'Critical Stress';
+  status: 'Normal' | 'Elevated Strain' | 'Critical Stress' | 'Experimental';
   primaryValue: string;
   primaryLabel: string;
   secondaryValue: string;
@@ -35,7 +35,7 @@ export const OrganStrainHologram: React.FC<OrganStrainHologramProps> = ({ score 
       name: 'Central Nervous System',
       shortName: 'BRAIN',
       icon: Brain,
-      status: 'Normal',
+      status: 'Experimental',
       primaryValue: 'NOT AVAILABLE',
       primaryLabel: 'Thermoregulatory Response',
       secondaryValue: 'NOT AVAILABLE',
@@ -51,7 +51,7 @@ export const OrganStrainHologram: React.FC<OrganStrainHologramProps> = ({ score 
       name: 'Cardiovascular System',
       shortName: 'HEART',
       icon: Heart,
-      status: isCritical ? 'Critical Stress' : isElevated ? 'Elevated Strain' : 'Normal',
+      status: 'Experimental',
       primaryValue: 'CALCULATED',
       primaryLabel: 'Estimated Tachycardia Elevation',
       secondaryValue: 'NOT AVAILABLE',
@@ -67,7 +67,7 @@ export const OrganStrainHologram: React.FC<OrganStrainHologramProps> = ({ score 
       name: 'Respiratory System',
       shortName: 'LUNGS',
       icon: Activity,
-      status: 'Normal',
+      status: 'Experimental',
       primaryValue: 'NOT AVAILABLE',
       primaryLabel: 'Estimated Tachypnea Rate',
       secondaryValue: 'NOT AVAILABLE',
@@ -83,7 +83,7 @@ export const OrganStrainHologram: React.FC<OrganStrainHologramProps> = ({ score 
       name: 'Renal Function',
       shortName: 'RENAL',
       icon: Shield,
-      status: 'Normal',
+      status: 'Experimental',
       primaryValue: 'NOT AVAILABLE',
       primaryLabel: 'Estimated Renal Perfusion Load',
       secondaryValue: 'NOT AVAILABLE',
@@ -99,7 +99,7 @@ export const OrganStrainHologram: React.FC<OrganStrainHologramProps> = ({ score 
       name: 'Dermal & Sweat Glands',
       shortName: 'SKIN',
       icon: Droplets,
-      status: isCritical ? 'Critical Stress' : 'Elevated Strain',
+      status: 'Experimental',
       primaryValue: 'CALCULATED',
       primaryLabel: 'Thermoregulatory Load',
       secondaryValue: 'NOT AVAILABLE',
@@ -115,31 +115,15 @@ export const OrganStrainHologram: React.FC<OrganStrainHologramProps> = ({ score 
   const activeOrgan = organs.find(o => o.id === selectedOrganId) || organs[4];
 
   const statusConfig: Record<string, { label: string; color: string; bg: string; ring: string }> = {
-    'Critical Stress': { label: 'CRITICAL STRESS', color: '#f43f5e', bg: 'bg-rose-500/10', ring: 'border-rose-500/50' },
-    'Elevated Strain': { label: 'ELEVATED STRAIN', color: '#fb923c', bg: 'bg-orange-500/10', ring: 'border-orange-500/50' },
-    'Normal': { label: 'NORMAL', color: '#34d399', bg: 'bg-emerald-500/10', ring: 'border-emerald-500/50' },
+    'Experimental': { label: 'EXPERIMENTAL', color: '#38bdf8', bg: 'bg-cyan-500/10', ring: 'border-cyan-500/50' },
   };
 
   const sc = statusConfig[activeOrgan.status];
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-slate-950/95 p-5 w-full">
+    <>
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-5 pb-4 border-b border-slate-800/80">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
-            <Zap className="w-4 h-4 text-cyan-400" />
-          </div>
-          <div>
-            <h2 className="text-sm font-bold text-slate-200 uppercase tracking-widest">
-              EXPERIMENTAL PHYSIOLOGY REFERENCE
-            </h2>
-            <span className="text-[10px] text-slate-500 font-mono mt-0.5 block">
-              Selected: <span className="text-slate-300 font-medium">{activeOrgan.name}</span>
-            </span>
-          </div>
-        </div>
+
         <div className="flex items-center gap-2">
           {/* Status pill */}
           <span
@@ -152,7 +136,7 @@ export const OrganStrainHologram: React.FC<OrganStrainHologramProps> = ({ score 
             EXPERIMENTAL
           </span>
         </div>
-      </div>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow min-h-0">
 
@@ -367,6 +351,6 @@ export const OrganStrainHologram: React.FC<OrganStrainHologramProps> = ({ score 
           100% { top: 100%; opacity: 0; }
         }
       `}</style>
-    </div>
+    </>
   );
 };
