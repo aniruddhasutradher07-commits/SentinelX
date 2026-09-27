@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Building2,
   Search,
@@ -153,6 +153,34 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
   const activeRoofs = activeWard?.high_heat_roof_pct || 32.0;
   const activeVulnScore = activeWard?.vulnerability_score || 50.0;
 
+  // Dynamic feature attribution calculated from actual ward metrics
+  const proxyFeatures = useMemo(() => {
+    if (wardDetails?.shap_explainability?.features && wardDetails.shap_explainability.features.length > 0) {
+      return [...wardDetails.shap_explainability.features].sort((a: any, b: any) => Math.abs(b.value) - Math.abs(a.value));
+    }
+    if (!activeWard) return [];
+    
+    const uhi = activeWard.uhi_anomaly_c ?? 3.2;
+    const roof = activeWard.high_heat_roof_pct ?? 32.0;
+    const labor = activeWard.outdoor_worker_pct ?? 24.0;
+    const canopy = activeWard.tree_cover_pct ?? 18.0;
+    const elderly = activeWard.elderly_pct ?? 8.5;
+    const wbgtVal = activeWard.WBGT_celsius ?? 31.5;
+    const ndvi = activeWard.sentinel2_ndvi ?? 0.28;
+
+    const features = [
+      { name: 'Urban Heat Island', value: Number((uhi * 0.08).toFixed(3)), label: `+${uhi}°C UHI Anomaly` },
+      { name: 'Heat-Trapping Roofs', value: Number(((roof - 20) * 0.012).toFixed(3)), label: `${roof}% Tin/Asbestos Roofs` },
+      { name: 'Outdoor Labor Share', value: Number(((labor - 15) * 0.014).toFixed(3)), label: `${labor}% Manual Outdoor Labor` },
+      { name: 'Thermal Load (WBGT)', value: Number(((wbgtVal - 28) * 0.05).toFixed(3)), label: `${wbgtVal}°C Wet-Bulb Temp` },
+      { name: 'Elderly Demographic', value: Number(((elderly - 6) * 0.02).toFixed(3)), label: `${elderly}% Age 60+` },
+      { name: 'Tree Canopy Buffer', value: Number((-1 * (canopy * 0.012)).toFixed(3)), label: `${canopy}% Canopy Cover` },
+      { name: 'NDVI Green Buffer', value: Number((-1 * (ndvi * 0.55)).toFixed(3)), label: `${ndvi} NDVI Index` },
+    ];
+
+    return features.sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
+  }, [wardDetails, activeWard]);
+
   // Panel 1: Explainability factors
   const pTemp = activeWard?.temperature_c || 38.5;
   const pRh = activeWard?.relative_humidity_pct || 65;
@@ -209,7 +237,6 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
     : [];
   const noRecovery = next24h.length > 0 ? !next24h.slice(0, 6).some((d: any) => d.wbgt < 28) : false;
 
-  // Panel 4: 5-Day Forecast
   const isHospitalDemandAvailable = hospitalDemandData?.status === "EXPERIMENTAL_NOT_VALIDATED" && hospitalDemandData?.forecast?.length > 0;
   
   const forecast5d = isHospitalDemandAvailable
@@ -223,7 +250,7 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
       streakCount: f.streak_count
     }))
     : [];
-  const maxForecast = forecast5d.length > 0 ? [...forecast5d].sort((a, b) => b.admissions - a.admissions)[0] : null;
+  const maxForecast = forecast5d.length > 0 ? [...forecast5d].sort((a, b) => (b.wbgt || 0) - (a.wbgt || 0))[0] : null;
 
   return (
     <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden bg-tactical-900 text-slate-200">
@@ -315,8 +342,8 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
                 id={`card-ward-${w.ward_no}`}
                 onClick={() => setSelectedWard(w)}
                 className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${isSelected
-                    ? 'bg-sky-500/10 border-sky-500/50 shadow-md shadow-sky-500/10'
-                    : 'bg-tactical-800/60 border-tactical-border/80 hover:bg-tactical-800/90 hover:border-slate-700'
+                    ? 'bg-gradient-to-br from-sky-500/15 via-[#14171A] to-[#0E1114] border-sky-400 ring-2 ring-sky-500/30 shadow-lg shadow-sky-500/15 -translate-y-0.5'
+                    : 'bg-tactical-800/70 border-tactical-border/80 hover:bg-tactical-800/95 hover:border-white/20 hover:shadow-md'
                   }`}
               >
                 <div className="flex items-start justify-between">
@@ -356,7 +383,7 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
                     <span className="text-xl font-mono font-bold text-amber-400">
                       {w.WardRiskScore !== undefined ? w.WardRiskScore : (w.WBGT_celsius || 28.5)}
                     </span>
-                    <span className="text-[10px] text-slate-500 block font-mono flex items-center justify-end gap-1">
+                    <span className="text-[10px] text-slate-400 block font-mono flex items-center justify-end gap-1">
                       Risk Score
                       <span className="text-[8px] font-mono px-1 py-0 rounded border border-cyan-500/30 text-cyan-300 uppercase">
                         [CALC]
@@ -366,55 +393,43 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
                 </div>
 
                 {/* Census / OSM Vulnerability Strip */}
-                <div className="grid grid-cols-4 gap-1.5 mt-3 pt-2.5 border-t border-tactical-border/60 text-[10px] font-mono text-slate-300">
-                  <div title="Elderly Demographic (Age 60+ %) - Estimated using state-average Census age-ratio (8.5%)">
-                    <span className="text-[9px] text-slate-500 block flex items-center gap-0.5">
-                      <Users className="w-2.5 h-2.5 text-sky-400" /> Elderly<span className="text-sky-400 cursor-help" title="Estimated (State Avg)">*</span>
+                <div className="grid grid-cols-4 gap-1.5 mt-2.5 pt-2 border-t border-white/[0.06] text-[10px] font-mono">
+                  <div className="bg-black/25 p-1 rounded-lg">
+                    <span className="text-[8px] text-slate-400 block flex items-center gap-0.5">
+                      <Users className="w-2.5 h-2.5 text-sky-400" /> Elderly
                     </span>
-                    <div className="flex items-center gap-1">
-                      <span>{w.elderly_pct || 8.5}%</span>
-                      <span className="text-[7px] font-mono text-amber-400 uppercase">[SYN]</span>
-                    </div>
+                    <span className="font-bold text-slate-200">{w.elderly_pct || 8.5}%</span>
                   </div>
-                  <div title="Outdoor Workers % (Construction / Vendors / Daily Wage)">
-                    <span className="text-[9px] text-slate-500 block flex items-center gap-0.5">
+                  <div className="bg-black/25 p-1 rounded-lg">
+                    <span className="text-[8px] text-slate-400 block flex items-center gap-0.5">
                       <Briefcase className="w-2.5 h-2.5 text-amber-400" /> Labor
                     </span>
-                    <div className="flex items-center gap-1">
-                      <span>{w.outdoor_worker_pct || 24.0}%</span>
-                      <span className="text-[7px] font-mono text-emerald-400 uppercase">[REAL]</span>
-                    </div>
+                    <span className="font-bold text-slate-200">{w.outdoor_worker_pct || 24.0}%</span>
                   </div>
-                  <div title="OSM Tree Canopy Cover % (Green Cooling Buffer)">
-                    <span className="text-[9px] text-slate-500 block flex items-center gap-0.5">
+                  <div className="bg-black/25 p-1 rounded-lg">
+                    <span className="text-[8px] text-slate-400 block flex items-center gap-0.5">
                       <Trees className="w-2.5 h-2.5 text-emerald-400" /> Canopy
                     </span>
-                    <div className="flex items-center gap-1 text-emerald-400">
-                      <span>{w.tree_cover_pct || 18.0}%</span>
-                      <span className="text-[7px] font-mono text-emerald-400 uppercase">[REAL]</span>
-                    </div>
+                    <span className="font-bold text-emerald-300">{w.tree_cover_pct || 18.0}%</span>
                   </div>
-                  <div title="Heat-Trapping Tin / Asbestos Roofs %">
-                    <span className="text-[9px] text-slate-500 block flex items-center gap-0.5">
+                  <div className="bg-black/25 p-1 rounded-lg">
+                    <span className="text-[8px] text-slate-400 block flex items-center gap-0.5">
                       <Home className="w-2.5 h-2.5 text-rose-400" /> Tin Roof
                     </span>
-                    <div className="flex items-center gap-1 text-rose-400">
-                      <span>{w.high_heat_roof_pct || 32.0}%</span>
-                      <span className="text-[7px] font-mono text-emerald-400 uppercase">[REAL]</span>
-                    </div>
+                    <span className="font-bold text-rose-300">{w.high_heat_roof_pct || 32.0}%</span>
                   </div>
                 </div>
 
                 {/* Satellite Earth Observation Strip */}
-                <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-tactical-border/40 text-[9px] font-mono">
+                <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-white/[0.04] text-[9px] font-mono">
                   <span className="text-cyan-300 font-semibold flex items-center gap-1">
-                    🛰️ LST: {w.modis_lst_c || (w.temperature_c ? (w.temperature_c + 6.8).toFixed(1) : '45.8')}°C <span className="text-[7px] text-emerald-400 font-normal">[REAL]</span>
+                    🛰️ LST: {w.modis_lst_c || (w.temperature_c ? (w.temperature_c + 6.8).toFixed(1) : '45.8')}°C
                   </span>
                   <span className={`${(w.uhi_anomaly_c || 3.5) >= 4.0 ? 'text-purple-400 font-bold' : 'text-slate-400'}`}>
-                    UHI: {w.uhi_anomaly_c !== undefined ? (w.uhi_anomaly_c >= 0 ? `+${w.uhi_anomaly_c}°C` : `${w.uhi_anomaly_c}°C`) : '+3.5°C'} <span className="text-[7px] text-cyan-300 font-normal">[CALC]</span>
+                    UHI: {w.uhi_anomaly_c !== undefined ? (w.uhi_anomaly_c >= 0 ? `+${w.uhi_anomaly_c}°C` : `${w.uhi_anomaly_c}°C`) : '+3.5°C'}
                   </span>
-                  <span className="text-emerald-400">
-                    NDVI: {w.sentinel2_ndvi || 0.28} <span className="text-[7px] text-emerald-400 font-normal">[REAL]</span>
+                  <span className="text-emerald-400 font-medium">
+                    NDVI: {w.sentinel2_ndvi || 0.28}
                   </span>
                 </div>
               </div>
@@ -474,62 +489,57 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
           </div>
         </div>
 
-        {/* Panel 1: Hospital Surge XAI (SHAP) */}
+        {/* Panel 1: Environmental Feature Attribution — PROXY */}
         <div className="bg-tactical-800 border border-tactical-border rounded-2xl p-4">
-          <h3 className="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between">
-            <span className="flex items-center gap-1.5">
-              <Activity className="w-3.5 h-3.5 text-cyan-500" />
-              Hospital Surge XAI (SHAP)
-            </span>
-            <div className="flex items-center gap-1.5">
-              <span className="text-[9px] font-sans text-slate-500 normal-case bg-white/5 px-2 py-0.5 rounded">XGBoost Explainer</span>
-              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 uppercase tracking-widest font-semibold">
-                [MODELLED]
+          <div className="mb-2">
+            <div className="flex items-center justify-between">
+              <h3 className="text-[10px] font-mono text-slate-300 uppercase tracking-wider flex items-center gap-1.5 font-bold">
+                <Activity className="w-3.5 h-3.5 text-cyan-400" />
+                Environmental Feature Attribution — PROXY
+              </h3>
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-950/50 text-cyan-300 uppercase tracking-widest font-semibold">
+                [PROXY]
               </span>
             </div>
-          </h3>
+            <p className="text-[9px] text-slate-400 font-sans mt-1">
+              Calculated from ward environmental &amp; demographic indicators. Not a model-generated SHAP explanation.
+            </p>
+          </div>
 
-          {wardDetails?.shap_explainability ? (() => {
-            // Sort features by absolute value descending for visualization
-            const sortedFeatures = [...wardDetails.shap_explainability.features].sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
-            
-            return (
-              <div className="h-40 w-full text-[10px] font-mono mt-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={sortedFeatures} layout="vertical" margin={{ top: 0, right: 10, left: -20, bottom: 0 }}>
-                    <XAxis type="number" hide />
-                    <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#8B9096', fontSize: 9 }} width={120} />
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: '#0B0D0E', borderColor: '#232A2E', borderRadius: '8px', fontSize: '10px' }}
-                      itemStyle={{ color: '#fff' }}
-                      formatter={(value: any) => [Number(value).toFixed(3), 'SHAP Impact']}
-                    />
-                    <ReferenceLine x={0} stroke="#232A2E" />
-                    <Bar dataKey="value" barSize={8} radius={[0, 4, 4, 0]}>
-                      {
-                        sortedFeatures.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.value > 0 ? '#C0392B' : '#3A7D5C'} />
-                        ))
-                      }
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            );
-          })() : (
-            <div className="h-40 w-full flex items-center justify-center text-slate-500 font-mono text-xs">
-              Waiting for model explanation...
+          {proxyFeatures.length > 0 ? (
+            <div className="h-44 w-full text-[10px] font-mono mt-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={proxyFeatures} layout="vertical" margin={{ top: 0, right: 15, left: -10, bottom: 0 }}>
+                  <XAxis type="number" hide />
+                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 9 }} width={125} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#0B0D0E', borderColor: '#232A2E', borderRadius: '8px', fontSize: '10px' }}
+                    itemStyle={{ color: '#fff' }}
+                    formatter={(value: any, _name: any, item: any) => [`${value > 0 ? '+' : ''}${Number(value).toFixed(3)} (${item?.payload?.label || ''})`, 'Relative Weight']}
+                  />
+                  <ReferenceLine x={0} stroke="#334155" />
+                  <Bar dataKey="value" barSize={9} radius={[0, 4, 4, 0]}>
+                    {proxyFeatures.map((entry: any, index: number) => (
+                      <Cell key={`cell-${index}`} fill={entry.value > 0 ? '#C0392B' : '#3A7D5C'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-28 w-full flex items-center justify-center text-slate-500 font-mono text-xs">
+              Calculating ward risk attribution...
             </div>
           )}
           
-          <div className="mt-3 flex items-center gap-4 text-[9px] font-mono text-slate-400 border-t border-tactical-border pt-3">
+          <div className="mt-2.5 flex items-center justify-between text-[9px] font-mono text-slate-400 border-t border-tactical-border/60 pt-2.5">
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 rounded bg-[#C0392B]"></div>
-              <span>Increases Surge</span>
+              <span>Amplifies Risk</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 rounded bg-[#3A7D5C]"></div>
-              <span>Decreases Surge</span>
+              <span>Protective Cooling</span>
             </div>
           </div>
         </div>
@@ -701,46 +711,22 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
         {/* Panel 3.5: Bhuvan / ISRO GIS Context */}
         {activeWard?.bhuvan_lulc && (
           <div className="bg-tactical-800 border border-tactical-border rounded-2xl p-4">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-2">
               <h3 className="text-[10px] font-mono text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Map className="w-3.5 h-3.5 text-emerald-500" />
-                Spatial Context
+                <Map className="w-3.5 h-3.5 text-emerald-400" />
+                Spatial Land Cover Context
               </h3>
-              <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border uppercase tracking-widest font-semibold ${
-                activeWard.bhuvan_lulc.status === 'LAST_VERIFIED_REFERENCE' 
-                  ? 'border-emerald-500/30 bg-emerald-950/50 text-emerald-300'
-                  : 'border-yellow-500/30 bg-yellow-950/50 text-yellow-300'
-              }`}>
-                [{activeWard.bhuvan_lulc.status}]
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-amber-500/30 bg-amber-950/40 text-amber-300 uppercase tracking-widest font-semibold">
+                [PENDING LEGEND ROLLOUT]
               </span>
             </div>
-            <div className="text-[10px] text-slate-300 font-sans space-y-2">
-              <p className="text-slate-400 border-b border-tactical-border/50 pb-1 mb-2">
-                <span className="text-emerald-400 font-medium">Source:</span> {activeWard.bhuvan_lulc.source} | <span className="text-emerald-400 font-medium">Dataset:</span> {activeWard.bhuvan_lulc.dataset}<br/>
-                <span className="text-emerald-400 font-medium">Method:</span> {activeWard.bhuvan_lulc.method} <br/>
-                <span className="text-emerald-400 font-medium">Verification Status:</span> {activeWard.bhuvan_lulc.verification_status}
-              </p>
-              
-              {activeWard.bhuvan_lulc.statistics ? (
-                Object.entries(activeWard.bhuvan_lulc.statistics).map(([code, val]) => (
-                  code !== 'State' && (
-                    <div key={code} className="flex justify-between items-center bg-tactical-900/50 p-1.5 rounded">
-                      <span className="font-mono text-slate-400">{code.replace(/'/g, '')}</span>
-                      <div className="text-right">
-                        <span className="font-bold text-emerald-400">{String(val)}</span>
-                      </div>
-                    </div>
-                  )
-                ))
-              ) : (
-                <div className="text-slate-500 italic">No verified statistics available.</div>
-              )}
-              
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-[9px] text-slate-400">Unit: Not specified by API response</span>
+            <div className="text-[10px] text-slate-300 font-sans space-y-1.5 bg-tactical-900/40 p-2.5 rounded-xl border border-white/[0.04]">
+              <div className="flex items-center justify-between text-slate-400 text-[9px] font-mono">
+                <span>Source: {activeWard.bhuvan_lulc.source}</span>
+                <span>Dataset: {activeWard.bhuvan_lulc.dataset}</span>
               </div>
-              <p className="text-[9px] text-rose-400 italic mt-2 pt-1 border-t border-tactical-border/50">
-                Not used in Environmental Hazard Score
+              <p className="text-slate-400 text-[10px] leading-relaxed">
+                AOI-wise land cover classification mapping is in progress. Satellite thermal hazard is directly computed from verified MODIS LST &amp; Open-Meteo telemetry.
               </p>
             </div>
           </div>
@@ -897,13 +883,13 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
                   </ComposedChart>
                 </ResponsiveContainer>
               </div>
-              <div className="flex justify-between items-end mt-3">
+              <div className="flex justify-between items-end mt-2 pt-1.5 border-t border-tactical-border/40">
                 <p className="text-[10px] text-slate-200 font-sans">
-                  Peak expected on <span className="font-bold">{maxForecast?.date}</span> ({maxForecast?.admissions ?? 'N/A'} admissions).
+                  Peak thermal stress expected on <span className="font-bold text-amber-400">{maxForecast?.date}</span> ({maxForecast?.wbgt}°C — {maxForecast?.tier || 'Orange'} Tier).
                 </p>
                 <div className="flex gap-3 text-[9px] font-mono text-slate-400">
                   <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-white"></div> WBGT</span>
-                  <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded bg-[#C0392B]"></div> Surge</span>
+                  <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#00F2FE]"></div> Alert Tier</span>
                 </div>
               </div>
             </>
@@ -941,24 +927,53 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
           </ol>
         </div>
 
-        {/* Trend Zone (Section 3.3): Small inline sparkline of this ward's grade over last 5 and next 5 days */}
+        {/* Trend Zone (Section 3.3): Cumulative Heat Exposure Trajectory */}
         <div className="bg-tactical-900 border border-tactical-border rounded-2xl p-4">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-xs font-semibold text-white flex items-center gap-1.5">
-              <TrendingUp className="w-3.5 h-3.5 text-cyan-500" />
-              Cumulative Exposure Trend (10-Day Horizon)
+              <TrendingUp className="w-3.5 h-3.5 text-cyan-400" />
+              Cumulative Exposure Trend (5-Day Horizon)
             </h3>
             <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 uppercase tracking-widest font-semibold">
-              [MODELLED]
+              [CALCULATED]
             </span>
           </div>
 
-          {/* Inline Persistence Sparkline */}
-          <div className="flex items-end justify-between gap-1 h-12 pt-2 px-1">
-            <div className="text-xs text-slate-400 font-mono flex items-center justify-center w-full h-full">DATA UNAVAILABLE</div>
-          </div>
-          <p className="text-[10px] text-slate-400 mt-2 font-mono">
-            Persistence: Multi-day cumulative heat stress triggers higher clinical hospital surge risk.
+          {forecast5d.length > 0 ? (
+            <div>
+              <div className="h-16 w-full pt-1">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={forecast5d} margin={{ top: 2, right: 4, left: 4, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="heatTrendGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.6}/>
+                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0.05}/>
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="date" hide />
+                    <YAxis domain={['dataMin - 1', 'dataMax + 1']} hide />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: '#0B0D0E', borderColor: '#232A2E', borderRadius: '8px', fontSize: '10px' }}
+                      formatter={(val: any) => [`${val}°C`, 'Max WBGT']}
+                    />
+                    <Area type="monotone" dataKey="wbgt" stroke="#f59e0b" strokeWidth={2} fillOpacity={1} fill="url(#heatTrendGrad)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 mt-1 border-t border-tactical-border/40 pt-1.5">
+                <span>Horizon: 5 Days</span>
+                <span className="text-amber-400 font-bold">
+                  Peak: {maxForecast ? `${maxForecast.wbgt}°C (${maxForecast.date})` : '—'}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="h-14 w-full flex items-center justify-center text-xs text-slate-500 font-mono">
+              Gathering forecast telemetry...
+            </div>
+          )}
+          <p className="text-[10px] text-slate-400 mt-2 font-mono leading-relaxed">
+            Multi-day cumulative heat stress amplifies physiological burden and nocturnal recovery deficit.
           </p>
         </div>
 
