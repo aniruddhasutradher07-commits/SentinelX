@@ -3,6 +3,9 @@ import { Sliders, Activity, CheckCircle2, AlertTriangle, ShieldAlert, MapPin, Cl
 import { fetchWithColdStart } from "../../services/apiConfig";
 import { SectionHeader } from "../ui/SectionHeader";
 import { CommandIncidentMap } from '../ui/CommandIncidentMap';
+import { RegionalAlertTrigger } from "../RegionalAlertTrigger";
+import { IMDContextCard } from "../IMDContextCard";
+import { CPCBContextCard } from "../CPCBContextCard";
 
 interface CommandTabProps {
   activeDistrict?: {
@@ -270,8 +273,8 @@ export default function CommandTab({ activeDistrict, liveTemp, telemetry }: Comm
               <Clock className="w-4 h-4 text-cyan-400" />
               Response Flow
             </h4>
-            <span className="text-[9px] font-mono px-1 py-0.5 rounded border border-purple-500/30 bg-purple-950/40 text-purple-300 uppercase tracking-widest font-semibold">
-              SIMULATED
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/40 text-purple-300 uppercase tracking-widest font-semibold">
+              SIMULATED RESPONSE FLOW
             </span>
           </div>
           <div className="text-[10px] font-mono text-slate-400 mb-3 border-b border-white/5 pb-2">
@@ -466,6 +469,17 @@ export default function CommandTab({ activeDistrict, liveTemp, telemetry }: Comm
               </button>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* 8. REGIONAL ALERT TRIGGER & OFFICIAL GOVERNMENT INGESTION CONTEXT */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-6">
+          <RegionalAlertTrigger initialWard="W14" />
+        </div>
+        <div className="lg:col-span-6 space-y-6">
+          <IMDContextCard district={activeDistrict?.district || 'Khordha'} />
+          <CPCBContextCard wardNo="W14" />
         </div>
       </div>
     </div>

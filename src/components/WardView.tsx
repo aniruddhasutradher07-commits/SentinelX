@@ -26,6 +26,7 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, 
 import { WardRiskRecord } from '../types';
 import { getApiUrl } from '../services/apiConfig';
 import { NightRecoveryCard } from './NightRecoveryCard';
+import { MortalityImpactCard } from './MortalityImpactCard';
 
 interface WardViewProps {
   wards: WardRiskRecord[];
@@ -467,24 +468,46 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 mt-3 text-xs font-mono">
-            <div className="bg-tactical-800 p-2 rounded-xl border border-tactical-border">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] text-slate-400">Population</span>
-                <span className="text-[8px] font-mono px-1 py-0.2 rounded border border-emerald-500/30 text-emerald-300">
-                  [REAL]
-                </span>
-              </div>
-              <span className="font-bold text-white tabular-nums">{(activeWard?.population || 14500).toLocaleString()}</span>
+          {/* Section A: Environmental Risk */}
+          <div className="mt-3 pt-2.5 border-t border-tactical-border/60">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-mono text-cyan-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                <ThermometerSun className="w-3 h-3" />
+                SECTION A: ENVIRONMENTAL RISK
+              </span>
+              <span className="text-[8px] font-mono px-1 py-0.2 rounded border border-cyan-500/30 text-cyan-300">
+                [OBSERVED / CALC]
+              </span>
             </div>
-            <div className="bg-tactical-800 p-2 rounded-xl border border-tactical-border">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] text-slate-400">WBGT Stress</span>
-                <span className="text-[8px] font-mono px-1 py-0.2 rounded border border-cyan-500/30 text-cyan-300">
-                  [CALC]
-                </span>
+            <div className="grid grid-cols-3 gap-1.5 text-xs font-mono">
+              <div className="bg-tactical-800 p-2 rounded-xl border border-tactical-border">
+                <span className="text-[9px] text-slate-400 block">Air Temp</span>
+                <span className="font-bold text-amber-400">{activeWard?.temperature_c || 38.0}°C</span>
               </div>
-              <span className="font-bold text-slate-200 tabular-nums">{activeWard?.WBGT_celsius || 32.8}°C</span>
+              <div className="bg-tactical-800 p-2 rounded-xl border border-tactical-border">
+                <span className="text-[9px] text-slate-400 block">Rel Humidity</span>
+                <span className="font-bold text-sky-300">{activeWard?.relative_humidity_pct || 68}%</span>
+              </div>
+              <div className="bg-tactical-800 p-2 rounded-xl border border-tactical-border">
+                <span className="text-[9px] text-slate-400 block">Wind Speed</span>
+                <span className="font-bold text-slate-200">{activeWard?.wind_speed_ms || 2.1} m/s</span>
+              </div>
+              <div className="bg-tactical-800 p-2 rounded-xl border border-tactical-border">
+                <span className="text-[9px] text-slate-400 block">WBGT (ISO)</span>
+                <span className="font-bold text-rose-400">{activeWard?.WBGT_celsius || 32.8}°C</span>
+              </div>
+              <div className="bg-tactical-800 p-2 rounded-xl border border-tactical-border">
+                <span className="text-[9px] text-slate-400 block">UTCI</span>
+                <span className="font-bold text-purple-400">{activeWard?.UTCI_celsius || (activeWard?.temperature_c ? (activeWard.temperature_c + 3.2).toFixed(1) : '41.2')}°C</span>
+              </div>
+              <div className="bg-tactical-800 p-2 rounded-xl border border-tactical-border">
+                <span className="text-[9px] text-slate-400 block">Heat Index</span>
+                <span className="font-bold text-rose-400">{activeWard?.HI_celsius || (activeWard?.temperature_c ? (activeWard.temperature_c + 4.8).toFixed(1) : '46.5')}°C</span>
+              </div>
+            </div>
+            <div className="flex justify-between items-center bg-tactical-800/80 p-2 rounded-xl border border-tactical-border mt-1.5 text-xs font-mono">
+              <span className="text-slate-400 text-[10px]">Population: {(activeWard?.population || 14500).toLocaleString()}</span>
+              <span className="text-[10px] font-bold" style={{ color: tierColor }}>Risk Tier: {currentTier} ({activeWard?.WardRiskScore || 97}/100)</span>
             </div>
           </div>
         </div>
@@ -792,112 +815,113 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
           </div>
         )}
 
-        {/* Panel 4: 5-day forecast horizon */}
-        <div className="bg-tactical-800 border border-tactical-border rounded-2xl p-4">
-          <h3 className="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-2 flex items-center justify-between">
-            <span className="flex items-center gap-1.5">
-              <TrendingUp className="w-3.5 h-3.5 text-cyan-500" />
-              5-day forecast horizon
+        {/* SECTION B: HEALTH IMPACT RESEARCH */}
+        <div className="border-t border-tactical-border/80 pt-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-mono text-amber-400 font-bold uppercase tracking-wider flex items-center gap-1">
+              <Activity className="w-3.5 h-3.5" />
+              SECTION B: HEALTH IMPACT RESEARCH
             </span>
-            <div className="flex items-center gap-1.5">
-              <span className="text-[9px] font-sans text-slate-500 normal-case bg-white/5 px-2 py-0.5 rounded">Open-Meteo</span>
-              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 uppercase tracking-widest font-semibold">
-                [MODELLED]
+            <span className="text-[8px] font-mono px-1.5 py-0.5 rounded border border-amber-500/30 bg-amber-950/40 text-amber-300 uppercase tracking-widest font-semibold">
+              [EXPERIMENTAL]
+            </span>
+          </div>
+
+          {/* Hospital Impact — Experimental */}
+          <div className="bg-tactical-800 border border-tactical-border rounded-2xl p-4 mb-3">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-bold text-white font-sans flex items-center gap-1.5">
+                <TrendingUp className="w-3.5 h-3.5 text-cyan-400" />
+                Hospital Impact — Experimental
+              </h3>
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-amber-500/30 bg-amber-950/50 text-amber-300 uppercase tracking-widest font-semibold">
+                EXPERIMENTAL_NOT_VALIDATED
               </span>
             </div>
-          </h3>
-          
-          {isHospitalDemandAvailable ? (
-            <>
-              <div className="h-32 w-full mb-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={forecast5d} margin={{ top: 5, right: -5, left: -25, bottom: 20 }}>
-                    {/* Background color bands for WBGT danger zones */}
-                    <ReferenceArea y1={32} y2={40} yAxisId="left" fill="#C0392B" fillOpacity={0.1} />
-                    <ReferenceArea y1={30} y2={32} yAxisId="left" fill="#D9772E" fillOpacity={0.1} />
-                    <ReferenceArea y1={28} y2={30} yAxisId="left" fill="#C9A227" fillOpacity={0.1} />
-                    <ReferenceArea y1={0} y2={28} yAxisId="left" fill="#3A7D5C" fillOpacity={0.1} />
 
-                    <XAxis 
-                      dataKey="date" 
-                      axisLine={false} 
-                      tickLine={false}
-                      tick={(props: any) => {
-                        const { x, y, payload, index } = props;
-                        const data = forecast5d[index];
-                        if (!data) return <g></g>;
-                        return (
-                          <g transform={`translate(${x},${y})`}>
-                            <text x={0} y={0} dy={12} textAnchor="middle" fill="#8B9096" fontSize={9}>
-                              {payload.value}
-                            </text>
-                            {data.streakCount >= 2 ? (
-                              <text x={0} y={0} dy={26} textAnchor="middle" fill="#C0392B" fontSize={10} fontWeight="bold">
-                                🔥x{data.streakCount}
-                              </text>
-                            ) : (
-                              <circle cx={0} cy={22} r={3} fill={data.recoveryGood ? "#3A7D5C" : "#C0392B"} />
-                            )}
-                          </g>
-                        );
-                      }} 
-                    />
-                    
-                    {/* Left Y Axis for WBGT */}
-                    <YAxis yAxisId="left" domain={[24, 40]} tick={{ fill: '#8B9096', fontSize: 9 }} axisLine={false} tickLine={false} hide />
-                    
-                    {/* Right Y Axis for Admissions */}
-                    <YAxis yAxisId="right" orientation="right" tick={{ fill: '#8B9096', fontSize: 9 }} axisLine={false} tickLine={false} />
-
-                    <Tooltip
-                      cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                      content={({ active, payload, label }: any) => {
-                        if (active && payload && payload.length) {
-                          const data = payload[0].payload;
-                          return (
-                            <div className="bg-tactical-900 border border-tactical-border rounded-lg p-2 text-[10px] text-white">
-                              <p className="font-bold mb-1">{label}</p>
-                              <p>Max WBGT: {data.wbgt}°C</p>
-                              <p>Night Min: {data.tMin}°C</p>
-                              <p>Admissions: {data.admissions ?? 'N/A'}</p>
-                              <p className={data.recoveryGood ? "text-[#3A7D5C]" : "text-[#C0392B]"}>
-                                Recovery: {data.recoveryGood ? 'Good' : 'Poor'} {data.streakCount >= 2 && `(🔥x${data.streakCount})`}
-                              </p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-
-                    {/* Admissions Bar */}
-                    <Bar yAxisId="right" dataKey="admissions" radius={[2, 2, 0, 0]} barSize={12} name="Admissions">
-                      {forecast5d.map((entry: any, index: number) => {
-                        const color = entry.tier === 'Red' ? '#C0392B' : entry.tier === 'Orange' ? '#D9772E' : entry.tier === 'Yellow' ? '#C9A227' : '#3A7D5C';
-                        return <Cell key={`cell-${index}`} fill={color} />;
-                      })}
-                    </Bar>
-
-                    {/* WBGT Line */}
-                    <Line yAxisId="left" type="monotone" dataKey="wbgt" stroke="#ffffff" strokeWidth={2} dot={{ r: 3, fill: '#ffffff', strokeWidth: 0 }} name="Max WBGT (°C)" />
-                  </ComposedChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="flex justify-between items-end mt-2 pt-1.5 border-t border-tactical-border/40">
-                <p className="text-[10px] text-slate-200 font-sans">
-                  Peak thermal stress expected on <span className="font-bold text-amber-400">{maxForecast?.date}</span> ({maxForecast?.wbgt}°C — {maxForecast?.tier || 'Orange'} Tier).
-                </p>
-                <div className="flex gap-3 text-[9px] font-mono text-slate-400">
-                  <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-white"></div> WBGT</span>
-                  <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#00F2FE]"></div> Alert Tier</span>
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="h-32 w-full flex items-center justify-center text-rose-500 font-mono text-xs border border-dashed border-rose-500/30 rounded-lg bg-rose-500/5 mt-2">
-              EXPERIMENTAL DATA UNAVAILABLE
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-2.5 mb-3 text-xs">
+              <p className="font-bold text-amber-300 font-mono text-[11px]">
+                Admissions prediction: NOT AVAILABLE
+              </p>
+              <p className="text-[10px] text-amber-200/80 font-sans mt-0.5 leading-relaxed">
+                Health outcome records are not connected. Displayed metrics represent ambient thermal exposure and demographic vulnerability only, not clinical outcome predictions.
+              </p>
             </div>
-          )}
+
+            {/* Environmental Exposure Metrics Strip */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mb-3 text-[10px] font-mono">
+              <div className="bg-tactical-900/80 p-2 rounded-xl border border-tactical-border">
+                <span className="text-[8px] text-slate-400 block">VULN MULTIPLIER</span>
+                <span className="font-bold text-cyan-300">×{activeWard?.vulnerability_multiplier?.toFixed(2) || '1.13'}</span>
+              </div>
+              <div className="bg-tactical-900/80 p-2 rounded-xl border border-tactical-border">
+                <span className="text-[8px] text-slate-400 block">ELDERLY DEMO</span>
+                <span className="font-bold text-amber-300">{activeWard?.elderly_pct || 8.5}%</span>
+              </div>
+              <div className="bg-tactical-900/80 p-2 rounded-xl border border-tactical-border">
+                <span className="text-[8px] text-slate-400 block">OUTDOOR LABOR</span>
+                <span className="font-bold text-rose-300">{activeWard?.outdoor_worker_pct || 24.0}%</span>
+              </div>
+              <div className="bg-tactical-900/80 p-2 rounded-xl border border-tactical-border">
+                <span className="text-[8px] text-slate-400 block">CANOPY DEFICIT</span>
+                <span className="font-bold text-emerald-300">{activeWard?.tree_cover_pct ? `${(100 - activeWard.tree_cover_pct).toFixed(0)}%` : '82%'}</span>
+              </div>
+            </div>
+
+            {/* 5-Day Exposure Trajectory Chart */}
+            {isHospitalDemandAvailable ? (
+              <>
+                <div className="h-28 w-full mb-1">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={forecast5d} margin={{ top: 5, right: 5, left: -25, bottom: 5 }}>
+                      <ReferenceArea y1={32} y2={40} fill="#C0392B" fillOpacity={0.1} />
+                      <ReferenceArea y1={30} y2={32} fill="#D9772E" fillOpacity={0.1} />
+                      <ReferenceArea y1={28} y2={30} fill="#C9A227" fillOpacity={0.1} />
+                      <ReferenceArea y1={0} y2={28} fill="#3A7D5C" fillOpacity={0.1} />
+                      <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#8B9096', fontSize: 9 }} />
+                      <YAxis domain={[24, 40]} tick={{ fill: '#8B9096', fontSize: 9 }} axisLine={false} tickLine={false} hide />
+                      <Tooltip
+                        cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                        content={({ active, payload, label }: any) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload;
+                            return (
+                              <div className="bg-tactical-900 border border-tactical-border rounded-lg p-2 text-[10px] text-white">
+                                <p className="font-bold mb-1">{label}</p>
+                                <p>Peak WBGT: {data.wbgt}°C</p>
+                                <p>Night Min: {data.tMin}°C</p>
+                                <p className="text-amber-400">Admissions Prediction: NOT AVAILABLE</p>
+                                <p className={data.recoveryGood ? "text-[#3A7D5C]" : "text-[#C0392B]"}>
+                                  Recovery: {data.recoveryGood ? 'Adequate' : 'Deficit'} {data.streakCount >= 2 && `(🔥x${data.streakCount})`}
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Line type="monotone" dataKey="wbgt" stroke="#00F2FE" strokeWidth={2} dot={{ r: 3, fill: '#00F2FE', strokeWidth: 0 }} name="Peak WBGT (°C)" />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex justify-between items-center text-[9px] font-mono text-slate-400 border-t border-tactical-border/40 pt-1.5">
+                  <span>Horizon: 5-Day Ambient Exposure</span>
+                  <span className="text-amber-300 font-bold">Peak: {maxForecast ? `${maxForecast.wbgt}°C (${maxForecast.date})` : '—'}</span>
+                </div>
+              </>
+            ) : (
+              <div className="h-20 w-full flex items-center justify-center text-slate-500 font-mono text-xs border border-dashed border-tactical-border rounded-lg">
+                EXPERIMENTAL PIPELINE STANDBY
+              </div>
+            )}
+
+            <div className="text-[9px] font-mono text-slate-400 text-center mt-2 border-t border-tactical-border/40 pt-1">
+              Provenance: Experimental research model — not clinically validated
+            </div>
+          </div>
+
+          {/* Mortality Impact Research — EXPERIMENTAL */}
+          <MortalityImpactCard districtOrWard={activeWard?.ward_no || 'W14'} className="mb-3" />
         </div>
 
         {/* Drivers Zone (Section 3.3): Exactly three plain-language driver lines, ranked */}
@@ -977,39 +1001,75 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
           </p>
         </div>
 
-        {/* Advisory Zone (Section 3.3): The exact text being sent to citizens in this ward */}
-        <div className="bg-tactical-900 border border-tactical-border rounded-2xl p-4">
-          <div className="flex items-center justify-between mb-1.5">
-            <h3 className="text-xs font-semibold text-white flex items-center gap-1.5">
-              <AlertCircle className="w-3.5 h-3.5 text-sky-400" />
-              Citizen Public Health Advisory
+        {/* SECTION C: ACTION DIRECTIVES & DISPATCH */}
+        <div className="border-t border-tactical-border/80 pt-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1">
+              <Building2 className="w-3.5 h-3.5" />
+              SECTION C: ACTION DIRECTIVES &amp; DISPATCH
+            </span>
+            <span className="text-[8px] font-mono px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/40 text-emerald-300 uppercase tracking-widest font-semibold">
+              [ACTION PROTOCOLS]
+            </span>
+          </div>
+
+          {/* Public Health Advisory */}
+          <div className="bg-tactical-900 border border-tactical-border rounded-2xl p-4 mb-3">
+            <div className="flex items-center justify-between mb-1.5">
+              <h3 className="text-xs font-semibold text-white flex items-center gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5 text-sky-400" />
+                Citizen Public Health Advisory
+              </h3>
+              <span className="text-[9px] font-mono text-sky-400">Live Broadcast Text</span>
+            </div>
+
+            <div className="bg-tactical-800 p-2.5 rounded-xl border border-tactical-border text-xs text-slate-200 leading-relaxed font-sans">
+              &ldquo;🚨 [OSDMA/BMC ALERT] {activeWard?.ward_no}: Extreme thermal stress (WBGT {activeWard?.WBGT_celsius || 32.8}°C). Recommended heat-safety control: pause heavy unshaded labor 11:00-15:30. Hydrate with ORS. Emergency cooling center open at nearest ward community center.&rdquo;
+            </div>
+          </div>
+
+          {/* Action Directives Matrix */}
+          <div className="bg-tactical-900 border border-tactical-border rounded-2xl p-4 mb-3 space-y-2 text-xs font-sans">
+            <h3 className="text-xs font-semibold text-white mb-2 flex items-center gap-1.5">
+              <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+              Sectoral Action Matrix
             </h3>
-            <span className="text-[9px] font-mono text-sky-400">Live Broadcast Text</span>
+
+            <div className="bg-tactical-800/80 p-2 rounded-xl border border-tactical-border">
+              <span className="text-[10px] font-mono font-bold text-amber-300 block mb-0.5">👷 WORKER SAFETY CONTROL</span>
+              <p className="text-slate-300 text-[11px]">Advise shift staggering. Recommended control: 30-min work / 15-min shaded rest rotation during peak solar hours.</p>
+            </div>
+
+            <div className="bg-tactical-800/80 p-2 rounded-xl border border-tactical-border">
+              <span className="text-[10px] font-mono font-bold text-cyan-300 block mb-0.5">🏫 SCHOOL SAFETY DIRECTIVE</span>
+              <p className="text-slate-300 text-[11px]">Advance school hours to morning schedule (06:30–10:30 AM). Restrict outdoor sports &amp; midday playground exposure.</p>
+            </div>
+
+            <div className="bg-tactical-800/80 p-2 rounded-xl border border-tactical-border">
+              <span className="text-[10px] font-mono font-bold text-emerald-300 block mb-0.5">💧 COOLING INTERVENTIONS</span>
+              <p className="text-slate-300 text-[11px]">Deploy municipal water tankers (Jal Sanjeevani) to high-density markets and transit points in {activeWard?.ward_no}.</p>
+            </div>
           </div>
 
-          <div className="bg-tactical-800 p-2.5 rounded-xl border border-tactical-border text-xs text-slate-200 leading-relaxed font-sans">
-            &ldquo;🚨 [OSDMA/BMC ALERT] {activeWard?.ward_no}: Extreme thermal stress (WBGT {activeWard?.WBGT_celsius || 32.8}°C). Mandatory rest intervals for outdoor laborers. Cooling center open at nearest ward Kalyan Mandap.&rdquo;
+          {/* Administrative Trigger Button */}
+          <div className="bg-tactical-900 border border-tactical-border rounded-2xl p-4">
+            <h3 className="text-xs font-semibold text-white mb-1 flex items-center gap-1.5">
+              <Building2 className="w-3.5 h-3.5 text-cyan-500" />
+              Administrative Alert Trigger
+            </h3>
+            <p className="text-[10px] text-slate-400 mb-3 font-sans">
+              Open emergency notification trigger with SMS / WhatsApp dry-run and audit logging:
+            </p>
+
+            <button
+              id={`btn-ward-dispatch-${activeWard?.ward_no}`}
+              onClick={() => onDispatchAlert(activeWard?.ward_no || 'W21')}
+              className="w-full py-2.5 bg-cyan-950 hover:bg-teal-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition font-sans shadow-md"
+            >
+              <Send className="w-3.5 h-3.5" />
+              Open Regional Alert Console ({activeWard?.ward_no})
+            </button>
           </div>
-        </div>
-
-        {/* Actions Zone (Section 3.3): Available administrative triggers */}
-        <div className="bg-tactical-900 border border-tactical-border rounded-2xl p-4">
-          <h3 className="text-xs font-semibold text-white mb-2 flex items-center gap-1.5">
-            <Building2 className="w-3.5 h-3.5 text-cyan-500" />
-            Administrative Heat Action Triggers
-          </h3>
-          <p className="text-[10px] text-slate-400 mb-3 font-sans">
-            Directly executes municipal heat action plan interventions with audit logging:
-          </p>
-
-          <button
-            id={`btn-ward-dispatch-${activeWard?.ward_no}`}
-            onClick={() => onDispatchAlert(activeWard?.ward_no || 'W21')}
-            className="w-full py-2.5 bg-cyan-950 hover:bg-teal-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition font-sans shadow-md"
-          >
-            <Send className="w-3.5 h-3.5" />
-            Open Alert &amp; Administrative Action Console
-          </button>
         </div>
 
       </div>

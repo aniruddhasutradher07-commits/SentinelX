@@ -62,7 +62,7 @@ export const ApiExplorer: React.FC = () => {
     {
       method: 'GET',
       path: '/api/v1/wards/W21',
-      desc: 'Single ward deep-dive profile (24h hourly series + DLNM/XGBoost hospital demand).',
+      desc: 'Single ward deep-dive profile (24h hourly series + hospital demand).',
     },
     {
       method: 'GET',
@@ -100,19 +100,41 @@ export const ApiExplorer: React.FC = () => {
       },
     },
     {
+      method: 'GET',
+      path: '/api/v1/mortality-risk?district=Khordha&horizon=5',
+      desc: 'Experimental mortality research module (5-day horizon). Returns environmental hazard proxy; clinical predictions remain null.',
+    },
+    {
+      method: 'GET',
+      path: '/api/v1/wards/W21/hospital-demand',
+      desc: 'Ward-specific experimental hospital demand pipeline (11 environmental & demographic indicators).',
+    },
+    {
+      method: 'GET',
+      path: '/api/v1/cpcb/status',
+      desc: 'Official Central Pollution Control Board (CPCB) ingestion status and station registry.',
+    },
+    {
+      method: 'GET',
+      path: '/api/v1/imd/status?district=Khordha',
+      desc: 'Official India Meteorological Department (IMD) warning context and status.',
+    },
+    {
       method: 'POST',
       path: '/api/v1/alerts/dispatch',
-      desc: 'Automated SMS/IVRS emergency advisory trigger simulation via OSDMA/BMC gateway.',
+      desc: 'Multi-channel notification dispatcher (SMS / WhatsApp). Dry run default on; exposes DEMO ACTION or CREDENTIALS_NOT_CONFIGURED.',
       sampleBody: {
         ward_no: 'W21',
-        recipient_phone: '+91-9437012345',
-        advisory_text: '🚨 [BMC SENTINELX EMERGENCY ADVISORY] Ward: W21 - Severe thermal strain alert.',
+        channel: 'SMS',
+        alert_tier: 'Orange',
+        dry_run: true,
+        advisory_text: '🚨 [HeatGuard AI Emergency Alert] Ward W21: Severe thermal strain. Recommended heat-safety control: pause heavy unshaded labor.',
       },
     },
     {
       method: 'GET',
       path: '/api/v1/benchmarks',
-      desc: 'Historical NDMA / OSDMA heatwave mortality and hospital surge calibration datasets.',
+      desc: 'Historical NDMA / OSDMA heatwave benchmarks and calibration datasets.',
     },
   ];
 

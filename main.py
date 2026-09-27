@@ -42,9 +42,8 @@ if os.path.exists(".env"):
                     os.environ[k.strip()] = v.strip()
     except Exception:
         pass
-
 from database import SessionLocal, engine, Base
-from routers import weather, wards, risk, thermal, alerts, dashboard, live, news, sentinelx, copilot, model_validation, worker_safety, school_safety, resource_allocation, historical_replay, forecast
+from routers import weather, wards, risk, thermal, alerts, dashboard, live, news, sentinelx, copilot, model_validation, worker_safety, school_safety, resource_allocation, historical_replay, forecast, health_research
 
 
 # Initialize database tables
@@ -149,6 +148,7 @@ app.include_router(school_safety.router)
 app.include_router(resource_allocation.router)
 app.include_router(historical_replay.router)
 app.include_router(forecast.router)
+app.include_router(health_research.router)
 
 
 # ---------------------------------------------------------------------------

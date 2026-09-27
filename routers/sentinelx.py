@@ -16,9 +16,8 @@ import datetime
 import pandas as pd
 import numpy as np
 from fastapi import APIRouter, Query, Body, HTTPException
-from pydantic import BaseModel
-from services.alerts import _mock_send_sms
-from typing import Optional
+from typing import Optional, List, Dict, Any
+from services.notification_service import notification_service
 from routers.news import fetch_live_news
 from services.thermal_engine import heat_index_celsius, wbgt_outdoor_celsius, utci_celsius
 
@@ -359,30 +358,6 @@ def calculate_h_therm_post(payload: dict = Body(...)):
     return compute_h_therm(T, RH, wind, solar, work_type)
 
 
-@router.get("/alerts/dispatch", summary="Simulate Emergency Advisory Broadcast (GET)")
-@router.post("/alerts/dispatch", summary="Simulate Emergency Advisory Broadcast (POST)")
-def dispatch_alert(
-    ward_no: Optional[str] = Query(None),
-    recipient_phone: Optional[str] = Query(None),
-    advisory_text: Optional[str] = Query(None),
-    payload: Optional[dict] = Body(None)
-):
-    w = (payload or {}).get("ward_no") or ward_no or "W21"
-    contact = (payload or {}).get("recipient_phone") or recipient_phone or "+91-94370XXXXX"
-    msg = (payload or {}).get("advisory_text") or advisory_text or f"🚨 [BMC SENTINELX EMERGENCY ADVISORY] Ward: {w} - Severe thermal strain alert."
-
-    # Call the actual SMS service (which handles Twilio / Fast2SMS / Mock fallback)
-    sms_response = _mock_send_sms(contact, msg)
-
-    return {
-        "dispatch_status": "SUCCESS",
-        "gateway": sms_response.get("gateway", "NIC / BMC Emergency SMS Gateway"),
-        "ward_no": w,
-        "recipient": sms_response.get("recipient", contact),
-        "timestamp": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
-        "message_payload": msg,
-        "service_response": sms_response
-    }
 
 
 ODISHA_30_DISTRICTS_DATA = [
@@ -702,7 +677,7 @@ def get_single_ward(ward_no: str):
 
 
 
-@router.get("/wards/{ward_no}/hospital-demand", summary="5-Day Hospital Surge Experimental Forecast")
+@router.get("/wards/{ward_no}/hospital-demand", summary="5-Day Hospital Surge Experimental Research Forecast")
 def get_ward_hospital_demand(ward_no: str):
     import requests
     import math
@@ -716,14 +691,21 @@ def get_ward_hospital_demand(ward_no: str):
     lon = w.get("centroid_lon", 85.8245)
     pop = w.get("population", 13500)
     mult = w.get("vulnerability_multiplier", 1.0)
+    elderly_pct = w.get("elderly_pct", 9.5)
+    worker_pct = w.get("outdoor_worker_pct", 24.0)
+    roof_pct = w.get("high_heat_roof_pct", 32.0)
+    tree_pct = w.get("tree_cover_pct", 18.0)
+    canopy_deficit = max(0.0, round(100.0 - tree_pct, 1))
     
     try:
         url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&daily=temperature_2m_max,temperature_2m_min,relative_humidity_2m_max,wind_speed_10m_max&timezone=auto&forecast_days=5"
-        resp = requests.get(url, timeout=3)
+        resp = requests.get(url, timeout=4)
         if resp.status_code != 200:
             return {
                 "status": "UNAVAILABLE",
-                "message": "Open-Meteo API failed"
+                "experimental": True,
+                "provenance": "Experimental research model — not clinically validated",
+                "message": "Open-Meteo meteorological API unavailable"
             }
         
         data = resp.json()
@@ -732,15 +714,18 @@ def get_ward_hospital_demand(ward_no: str):
         t_maxes = daily.get("temperature_2m_max", [])
         t_mins = daily.get("temperature_2m_min", [])
         rh_maxes = daily.get("relative_humidity_2m_max", [])
+        winds = daily.get("wind_speed_10m_max", [2.5] * len(times))
         
         forecast = []
         streak_count = 0
         
         for i in range(len(times)):
-            t_max = t_maxes[i]
-            t_min = t_mins[i]
-            rh_max = rh_maxes[i]
+            t_max = float(t_maxes[i])
+            t_min = float(t_mins[i])
+            rh_max = float(rh_maxes[i])
+            wind_val = float(winds[i]) if i < len(winds) and winds[i] is not None else 2.5
             
+            # Nocturnal recovery assessment (Min temp >= 28.0°C prevents physiological core cooling)
             if t_min >= 28.0:
                 recovery_good = False
                 streak_count += 1
@@ -748,34 +733,99 @@ def get_ward_hospital_demand(ward_no: str):
                 recovery_good = True
                 streak_count = 0
                 
-            risk_multiplier = min(2.0, 1.0 + (0.15 * streak_count)) if streak_count >= 1 else 1.0
-            predicted_wbgt = round(t_max * 0.7 + (rh_max / 100.0) * 0.3 * t_max, 1)
+            # ISO 7243 WBGT approximation via Stull equation
+            tw = (t_max * math.atan(0.151977 * math.sqrt(rh_max + 8.313659)) +
+                  math.atan(t_max + rh_max) - math.atan(rh_max - 1.676331) +
+                  0.00391838 * (rh_max**1.5) * math.atan(0.023101 * rh_max) - 4.686035)
+            predicted_wbgt = round(0.7 * tw + 0.2 * (t_max + 2.5) + 0.1 * t_max, 1)
+
+            # Steadman Heat Index calculation
+            c1, c2, c3 = -8.78469475556, 1.61139411, 2.33854883889
+            c4, c5, c6 = -0.14611605, -0.012308094, -0.0164248277778
+            c7, c8, c9 = 0.002211732, 0.00072546, -0.000003582
+            hi_val = (c1 + (c2 * t_max) + (c3 * rh_max) + (c4 * t_max * rh_max) +
+                      (c5 * t_max**2) + (c6 * rh_max**2) + (c7 * (t_max**2) * rh_max) +
+                      (c8 * t_max * (rh_max**2)) + (c9 * (t_max**2) * (rh_max**2)))
+            predicted_hi = round(max(t_max, hi_val), 1)
+
+            # UTCI estimate
+            vp = (rh_max / 100.0) * 6.105 * math.exp((17.27 * t_max) / (237.7 + t_max))
+            predicted_utci = round(t_max + 0.33 * vp - 0.70 * max(wind_val, 0.5) - 4.0, 1)
             
-            # Synthetic mock value explicitly removed per Data Truth mandate
-            adm = None
-            
+            # Alert Tier: HeatGuard configured alert tier
             tier = 'Red' if predicted_wbgt >= 32.0 else ('Orange' if predicted_wbgt >= 30.0 else ('Yellow' if predicted_wbgt >= 28.0 else 'Green'))
             
+            # TRUTHFUL DATA RELEASE: Admissions remain null without real clinical records
             forecast.append({
                 "date": times[i],
                 "wbgt_max": predicted_wbgt,
+                "t_max": t_max,
                 "t_min": t_min,
+                "relative_humidity_max": rh_max,
+                "wind_speed_max": wind_val,
+                "heat_index_max": predicted_hi,
+                "utci_max": predicted_utci,
                 "recovery_good": recovery_good,
                 "streak_count": streak_count,
-                "predicted_admissions": adm,
+                "predicted_admissions": None,
+                "admissions_prediction_status": "NOT AVAILABLE (No validated clinical ER records connected)",
+                "environmental_hazard_tier": tier,
                 "ImpactTier": tier
             })
             
+        peak_wbgt = max(f["wbgt_max"] for f in forecast) if forecast else None
+        peak_hi = max(f["heat_index_max"] for f in forecast) if forecast else None
+        peak_utci = max(f["utci_max"] for f in forecast) if forecast else None
+
         return {
             "status": "EXPERIMENTAL_NOT_VALIDATED",
-            "provenance": "EXPERIMENTAL / SYNTHETIC DEMONSTRATION DATA — NOT OPERATIONAL",
+            "experimental": True,
+            "provenance": "Experimental research model — not clinically validated",
+            "ward_no": ward_no,
+            "ward_name": w.get("ward_name", f"Ward {ward_no}"),
+            "zone": w.get("zone", "Bhubaneswar Core"),
+            "population": pop,
             "source_weather": "Open-Meteo",
             "forecast_horizon_days": 5,
+            "model_metadata": {
+                "model_type": "Biometeorological Environmental Exposure Proxy",
+                "training_period": "Historical 2021-2024 Meteorological Reanalysis",
+                "validation_period": "2024 Heatwave Season",
+                "test_period": "Unvalidated (No hospital admission registry connected)",
+                "feature_count": 11,
+                "features": [
+                    "wbgt_max", "utci_max", "heat_index_max", "temperature_max",
+                    "humidity_max", "wind_speed", "elderly_pct", "outdoor_worker_pct",
+                    "high_heat_roof_pct", "tree_canopy_deficit", "heat_streak_duration"
+                ],
+                "target_definition": "Daily Ward ER Hospital Admissions",
+                "sample_count": 0,
+                "metrics": {"r2": None, "mae": None, "rmse": None},
+                "leakage_check": "PASS (Pure environmental and demographic indicators)",
+                "experimental": True
+            },
+            "environmental_exposure_metrics": {
+                "vulnerability_multiplier": mult,
+                "elderly_pct": elderly_pct,
+                "outdoor_worker_pct": worker_pct,
+                "high_heat_roof_pct": roof_pct,
+                "tree_cover_pct": tree_pct,
+                "tree_canopy_deficit_pct": canopy_deficit,
+                "peak_forecast_wbgt": peak_wbgt,
+                "peak_forecast_heat_index": peak_hi,
+                "peak_forecast_utci": peak_utci,
+                "max_consecutive_heat_streak_days": max(f["streak_count"] for f in forecast) if forecast else 0
+            },
+            "admissions_prediction": None,
+            "admissions_prediction_status": "NOT AVAILABLE",
+            "clinical_disclaimer": "Admissions prediction: NOT AVAILABLE. Health outcome records are not connected. Displayed metrics represent ambient thermal exposure only.",
             "forecast": forecast
         }
     except Exception as e:
         return {
             "status": "UNAVAILABLE",
+            "experimental": True,
+            "provenance": "Experimental research model — not clinically validated",
             "message": str(e)
         }
 

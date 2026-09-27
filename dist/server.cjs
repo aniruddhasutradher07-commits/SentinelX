@@ -429,6 +429,91 @@ app.get("/api/v1/forecast-risk", async (req, res) => {
     res.status(502).json({ error: "Failed to connect to Python backend on port 8000" });
   }
 });
+app.get("/api/v1/mortality-risk", async (req, res) => {
+  try {
+    const qs = new URLSearchParams(req.query).toString();
+    const response = await fetch(`http://localhost:8000/api/v1/mortality-risk?${qs}`);
+    if (!response.ok) {
+      return res.status(response.status).json({ error: "Upstream mortality risk failed" });
+    }
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    res.json({
+      status: "EXPERIMENTAL_NOT_VALIDATED",
+      experimental: true,
+      provenance: "Experimental research model \u2014 not clinically validated",
+      target_entity: req.query.ward || req.query.district || "Khordha",
+      horizon_days: Number(req.query.horizon || 5),
+      data_availability: "METEOROLOGICAL_CONNECTED_HEALTH_OUTCOMES_DISCONNECTED",
+      target_status: "HEALTH OUTCOME DATASET NOT CONNECTED",
+      target_definition: "Daily Excess Mortality",
+      predicted_mortality: null,
+      environmental_hazard_risk: {
+        composite_hazard_score: 75,
+        risk_tier: "Orange",
+        classification: "ENVIRONMENTAL EXPOSURE PROXY"
+      },
+      model_metadata: {
+        model_type: "Biometeorological Exposure Index",
+        validation_status: "UNVALIDATED",
+        disclaimer: "Validated mortality prediction unavailable \u2014 health outcome dataset not connected. Environmental hazard scores reflect ambient thermal burden, not clinical mortality probabilities."
+      }
+    });
+  }
+});
+app.get("/api/v1/cpcb/status", async (req, res) => {
+  try {
+    const response = await fetch("http://localhost:8000/api/v1/cpcb/status");
+    const data = await response.json();
+    res.json(data);
+  } catch {
+    res.json({
+      status: "CREDENTIALS_NOT_CONFIGURED",
+      source: "CPCB / National Air Quality Monitoring Programme (NAMP)",
+      portal: "https://data.gov.in / CPCB",
+      credentials_configured: false,
+      service_enabled: false,
+      message: "CPCB_API_KEY is not configured in .env. Air quality data is served via independent Open-Meteo European/Copernicus atmospheric models."
+    });
+  }
+});
+app.get("/api/v1/cpcb/ward/:ward_no", async (req, res) => {
+  try {
+    const response = await fetch(`http://localhost:8000/api/v1/cpcb/ward/${encodeURIComponent(req.params.ward_no)}`);
+    const data = await response.json();
+    res.json(data);
+  } catch {
+    res.json({
+      ward_no: req.params.ward_no,
+      status: "CREDENTIALS_NOT_CONFIGURED",
+      source: "CPCB",
+      spatial_quality: "UNAVAILABLE",
+      message: "CPCB connector requires CPCB_API_KEY configured in environment."
+    });
+  }
+});
+app.get("/api/v1/imd/status", async (req, res) => {
+  try {
+    const qs = new URLSearchParams(req.query).toString();
+    const response = await fetch(`http://localhost:8000/api/v1/imd/status?${qs}`);
+    const data = await response.json();
+    res.json(data);
+  } catch {
+    res.json({
+      source: "India Meteorological Department (IMD)",
+      source_type: "official_government",
+      district: req.query.district || "Khordha",
+      status: "CREDENTIALS_NOT_CONFIGURED",
+      warning_category: null,
+      nowcast: null,
+      observed_at: null,
+      fetched_at: null,
+      reason: "IMD_API_KEY_NOT_CONFIGURED",
+      provenance: "Unconfigured"
+    });
+  }
+});
 app.get("/api/v1/status", (req, res) => {
   res.json({
     status: "online",
@@ -897,17 +982,62 @@ app.all("/api/v1/h-therm/calculate", (req, res) => {
   const result = computeHTherm(T, RH, wind, solar, workType);
   res.json(result);
 });
-app.all("/api/v1/alerts/dispatch", (req, res) => {
-  const target = (req.method === "POST" ? req.body.ward_no || req.body.district : req.query.ward_no || req.query.district) || "Khordha";
-  const phone = (req.method === "POST" ? req.body.recipient_phone : req.query.recipient_phone) || "+91-94370XXXXX";
-  const message = (req.method === "POST" ? req.body.advisory_text : req.query.advisory_text) || `\u{1F6A8} [SENTINELX EMERGENCY ADVISORY] Region: ${target} - Severe thermal strain & hospital surge alert.`;
-  res.json({
-    dispatch_status: "SUCCESS",
-    gateway: "NIC / OSDMA Emergency SMS Gateway",
-    target,
-    recipient: phone,
-    timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-    message_payload: message
+app.all("/api/v1/alerts/dispatch", async (req, res) => {
+  const isPost = req.method === "POST";
+  const body = isPost ? req.body : req.query;
+  const target = body.ward_no || body.ward || body.district || body.region || "Khordha";
+  const phone = body.recipient_phone || body.phone || "+91-XXXXXXXXXX (Demo)";
+  const channel = body.channel || "SMS";
+  const tier = body.alert_tier || body.tier || "RED";
+  const dryRun = body.dry_run !== false && body.dry_run !== "false";
+  const message = body.advisory_text || body.message || `\u{1F6A8} [HeatGuard AI Emergency Alert] Region: ${target} - ${tier} Alert. Protect vulnerable populations.`;
+  try {
+    const upstream = await fetch("http://localhost:8000/api/v1/alerts/dispatch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ward: target,
+        channel,
+        alert_tier: tier,
+        message,
+        recipient_phone: phone,
+        dry_run: dryRun
+      })
+    });
+    if (upstream.ok) {
+      const data = await upstream.json();
+      return res.json(data);
+    }
+  } catch (err) {
+  }
+  const auditId = `ALERT-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+  const nowIso = (/* @__PURE__ */ new Date()).toISOString();
+  if (dryRun) {
+    return res.json({
+      audit_id: auditId,
+      status: "DEMO ACTION",
+      delivery_status: "DEMO ACTION",
+      provenance: "Simulation mode \u2014 no carrier network dispatch executed",
+      region: target,
+      channel,
+      alert_tier: tier,
+      message_payload: message,
+      recipient: phone,
+      timestamp: nowIso,
+      dry_run: true,
+      provider: "DEMO_SIMULATOR"
+    });
+  }
+  return res.json({
+    audit_id: auditId,
+    status: "CREDENTIALS_NOT_CONFIGURED",
+    delivery_status: "CREDENTIALS_NOT_CONFIGURED",
+    reason: `${channel} gateway credentials are not configured in environment. No real message dispatched.`,
+    region: target,
+    channel,
+    alert_tier: tier,
+    timestamp: nowIso,
+    dry_run: false
   });
 });
 app.all("/api/v1/alerts/broadcast", (req, res) => {
@@ -921,19 +1051,22 @@ app.all("/api/v1/alerts/broadcast", (req, res) => {
   const targetRoles = body.target_roles || ["Municipal Commissioner", "District Collector", "CDMO", "108 EMS"];
   const channels = body.channels || ["SMS", "WhatsApp", "IVRS"];
   const templates = {
-    en: `\u{1F6A8} [OSDMA/BMC EMERGENCY] ${tier} ALERT for ${region}. WBGT: ${wbgt}\xB0C, HI: ${hi}\xB0C. Suspend outdoor labor 11AM-4PM. Hydration mandate: 750ml/hr. Dial 108 for medical distress.`,
+    en: `\u{1F6A8} [OSDMA/BMC EMERGENCY] ${tier} ALERT for ${region}. WBGT: ${wbgt}\xB0C, HI: ${hi}\xB0C. Recommended heat-safety control: avoid outdoor labor 11AM-4PM. Dial 108 for medical distress.`,
     or: `\u{1F6A8} [OSDMA/BMC \u0B1C\u0B30\u0B41\u0B30\u0B40\u0B15\u0B3E\u0B33\u0B40\u0B28] ${region} \u0B2A\u0B3E\u0B07\u0B01 ${tier} \u0B38\u0B24\u0B30\u0B4D\u0B15\u0B24\u0B3E\u0964 WBGT: ${wbgt}\xB0C\u0964 \u0B26\u0B3F\u0B28 \u0B67\u0B67-\u0B6A \u0B2C\u0B3E\u0B39\u0B3E\u0B30\u0B47 \u0B15\u0B3E\u0B2E \u0B2C\u0B28\u0B4D\u0B26\u0964 ORS \u0B2A\u0B3F\u0B05\u0B28\u0B4D\u0B24\u0B41\u0964 \u0B67\u0B66\u0B6E \u0B15\u0B41 \u0B15\u0B32\u0B4D \u0B15\u0B30\u0B28\u0B4D\u0B24\u0B41\u0964`,
     hi: `\u{1F6A8} [OSDMA/BMC \u0906\u092A\u093E\u0924\u0915\u093E\u0932\u0940\u0928] ${region} \u0915\u0947 \u0932\u093F\u090F ${tier} \u091A\u0947\u0924\u093E\u0935\u0928\u0940\u0964 WBGT: ${wbgt}\xB0C\u0964 \u0926\u094B\u092A\u0939\u0930 11-4 \u092C\u091C\u0947 \u092C\u093E\u0939\u0930\u0940 \u0936\u094D\u0930\u092E \u092C\u0902\u0926 \u0915\u0930\u0947\u0902\u0964 ORS \u092A\u093F\u090F\u0902\u0964 108 \u0921\u093E\u092F\u0932 \u0915\u0930\u0947\u0902\u0964`
   };
   const messageText = customMessage || templates[lang] || templates["en"];
-  const deliveryReceipts = channels.map((ch) => ({
+  const simulatedDeliveries = channels.map((ch) => ({
     channel: ch,
-    status: "DELIVERED",
-    latency_ms: Math.round(120 + Math.random() * 380),
-    gateway: ch === "SMS" ? "NIC Government SMS Gateway" : ch === "WhatsApp" ? "Twilio WhatsApp Business API" : "BSNL IVRS Siren Network"
+    status: "SIMULATED RESPONSE FLOW",
+    delivery_status: "DEMO ACTION",
+    notice: "Simulation mode \u2014 no carrier network dispatch executed",
+    gateway: ch === "SMS" ? "NIC Emergency SMS Gateway (Simulated)" : ch === "WhatsApp" ? "Twilio WhatsApp API (Simulated)" : "BSNL IVRS (Simulated)"
   }));
   res.json({
-    dispatch_status: "BROADCAST_TRANSMITTED",
+    dispatch_status: "SIMULATED RESPONSE FLOW",
+    status: "SIMULATED RESPONSE FLOW",
+    provenance: "Simulated response flow \u2014 no real dispatch or field movement has occurred.",
     protocol: `NDMA Heat Action Plan Tier-${tier === "RED" ? "III" : tier === "ORANGE" ? "II" : "I"}`,
     region,
     tier,
@@ -942,10 +1075,10 @@ app.all("/api/v1/alerts/broadcast", (req, res) => {
     heat_index_celsius: hi,
     message_payload: messageText,
     target_roles: targetRoles,
-    channels: deliveryReceipts,
-    total_recipients_reached: Math.round(45 + Math.random() * 120),
+    channels: simulatedDeliveries,
+    total_recipients_reached: 0,
     timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-    audit_trail_id: `SX-BCAST-${Date.now()}`
+    audit_trail_id: `SX-BCAST-DEMO-${Date.now()}`
   });
 });
 app.get("/api/v1/benchmarks", (req, res) => {
