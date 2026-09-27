@@ -2,7 +2,7 @@ import React from "react";
 
 import { HThermCalculator } from "../../components/HThermCalculator";
 import { HeatBalanceChart } from "../../components/HeatBalanceChart";
-import { PhysiologyReplay } from "../../components/PhysiologyReplay";
+
 import { SectionHeader } from "../ui/SectionHeader";
 import { OrganStrainHologram } from "../../components/OrganStrainHologram";
 import { Activity } from "lucide-react";
@@ -78,14 +78,7 @@ export default function BiotechTab({ activeDistrict, telemetry, weather, hourlyF
         </div>
       </div>
 
-      {/* Experimental Physiology Replay Area */}
-      <div className="grid grid-cols-1 gap-6">
-        <PhysiologyReplay />
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-      </div>
     </div>
   );
 }
