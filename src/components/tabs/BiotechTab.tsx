@@ -1,7 +1,6 @@
 import React from "react";
-import { OrganStrainHologram } from "../../components/OrganStrainHologram";
+
 import { HThermCalculator } from "../../components/HThermCalculator";
-import { NightRecoveryCard, NightRecoveryData } from "../../components/NightRecoveryCard";
 import { HeatBalanceChart } from "../../components/HeatBalanceChart";
 import { PhysiologyReplay } from "../../components/PhysiologyReplay";
 import { SectionHeader } from "../ui/SectionHeader";
@@ -32,49 +31,7 @@ export default function BiotechTab({ activeDistrict, telemetry, weather, hourlyF
   const liveWind = envRisk.wind_speed_ms ?? (weather?.current?.wind_speed_10m ? weather.current.wind_speed_10m / 3.6 : undefined);
   const liveSolar = weather?.current?.surface_solar_radiation;
 
-  // Calculate Night Recovery metrics from raw hourly weather data (Open-Meteo format)
-  // weather.hourly = { time: string[], temperature_2m: number[], relative_humidity_2m: number[] }
-  let nightMinTemp: number | undefined = undefined;
-  let nightAvgRh: number | undefined = undefined;
-
-  const hourlyRaw = weather?.hourly;
-  if (hourlyRaw?.time && hourlyRaw?.temperature_2m && hourlyRaw?.relative_humidity_2m) {
-    const nightIndices: number[] = [];
-    hourlyRaw.time.forEach((isoStr: string, idx: number) => {
-      const hour = new Date(isoStr).getHours();
-      if (hour >= 22 || hour <= 5) {
-        nightIndices.push(idx);
-      }
-    });
-
-    if (nightIndices.length > 0) {
-      const nightTemps = nightIndices.map((i: number) => hourlyRaw.temperature_2m[i]).filter((v: number) => typeof v === 'number');
-      const nightRhs = nightIndices.map((i: number) => hourlyRaw.relative_humidity_2m[i]).filter((v: number) => typeof v === 'number');
-
-      if (nightTemps.length > 0) {
-        nightMinTemp = Math.round(Math.min(...nightTemps) * 10) / 10;
-      }
-      if (nightRhs.length > 0) {
-        nightAvgRh = Math.round(nightRhs.reduce((a: number, b: number) => a + b, 0) / nightRhs.length);
-      }
-    }
-  }
-
-  // Derive a rough thermal burden from daytime WBGT + night minimum temp
-  let thermalBurden: number | undefined = undefined;
-  if (nightMinTemp !== undefined) {
-    // Simplified: higher WBGT + higher night floor = higher burden
-    const dayContrib = Math.min(100, Math.round((wbgtVal / 38) * 70));
-    const nightPenalty = Math.min(30, Math.max(0, Math.round((nightMinTemp - 24) * 3)));
-    thermalBurden = Math.min(100, dayContrib + nightPenalty);
-  }
-
-  const nightRecoveryData: NightRecoveryData = {
-    night_min_temp_c: nightMinTemp,
-    night_humidity_pct: nightAvgRh,
-    thermal_burden_score: thermalBurden,
-    // recovery_score and streak remain undefined → shows "EXPERIMENTAL" label as designed
-  };
+  
 
   return (
     <div className="space-y-6">
@@ -111,7 +68,6 @@ export default function BiotechTab({ activeDistrict, telemetry, weather, hourlyF
         </div>
 
         <div className="lg:col-span-5 space-y-6 flex flex-col">
-          <NightRecoveryCard data={nightRecoveryData} className="w-full flex-1" />
           <HeatBalanceChart />
         </div>
       </div>
@@ -122,9 +78,7 @@ export default function BiotechTab({ activeDistrict, telemetry, weather, hourlyF
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-12 glass-panel rounded-xl border border-cyan-500/20 overflow-hidden relative min-h-[400px]">
-           <OrganStrainHologram score={hThermScore} />
-        </div>
+
       </div>
     </div>
   );
