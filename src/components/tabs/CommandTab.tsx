@@ -81,15 +81,15 @@ export default function CommandTab({ activeDistrict, liveTemp, telemetry }: Comm
     }
   };
 
-  // Basic linear physics model for simulator
-  const baseRisk = 87;
+  // Dynamic physics model for simulator
+  const baseRisk = activeDistrict?.DistrictRiskScore || 78;
   const newRisk = Math.max(10, Math.round(baseRisk + (simTemp * 2) - (simRoof * 0.15) - (simMist * 0.2)));
 
   return (
     <div className="space-y-6">
       <SectionHeader
         title="Command & Control Operations"
-        subtitle="Live Incident Management & Dispatch Routing"
+        subtitle="Incident Monitoring & Advisory Protocols"
         icon={ShieldAlert}
       />
 
@@ -145,23 +145,37 @@ export default function CommandTab({ activeDistrict, liveTemp, telemetry }: Comm
         </div>
 
         <div className="lg:col-span-4 glass-panel rounded-xl p-5 border border-slate-700/50 flex flex-col">
-          <h4 className="text-sm font-bold font-tech text-white flex items-center gap-1.5 uppercase mb-4">
-            <Activity className="w-4 h-4 text-cyan-400" />
-            Response Status
-          </h4>
-          <div className="flex-1 flex flex-col justify-center items-center gap-4">
-             <div className="w-full bg-slate-900/60 border border-slate-800 p-3 rounded-lg flex items-center justify-between text-xs font-mono">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-sm font-bold font-tech text-white flex items-center gap-1.5 uppercase">
+              <Activity className="w-4 h-4 text-cyan-400" />
+              Operational Readiness
+            </h4>
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-amber-500/30 bg-amber-950/40 text-amber-300 uppercase tracking-widest font-semibold">
+              DEMO / REFERENCE
+            </span>
+          </div>
+          <div className="flex-1 flex flex-col justify-center items-center gap-3">
+             <div className="w-full bg-slate-900/60 border border-slate-800 p-2.5 rounded-lg flex items-center justify-between text-xs font-mono">
                <span className="text-slate-400">Active Field Teams</span>
-               <span className="text-slate-500 font-bold">NOT AVAILABLE</span>
+               <span className="text-slate-400 font-bold">
+                 NOT AVAILABLE
+               </span>
              </div>
-             <div className="w-full bg-slate-900/60 border border-slate-800 p-3 rounded-lg flex items-center justify-between text-xs font-mono">
-               <span className="text-slate-400">Shelters Open</span>
-               <span className="text-amber-400 font-bold bg-amber-400/10 px-1 rounded">EXPERIMENTAL</span>
+             <div className="w-full bg-slate-900/60 border border-slate-800 p-2.5 rounded-lg flex items-center justify-between text-xs font-mono">
+               <span className="text-slate-400">Designated Cooling Hubs</span>
+               <span className="text-cyan-400/80 font-bold">
+                 STATIC PROTOCOL
+               </span>
              </div>
-             <div className="w-full bg-slate-900/60 border border-slate-800 p-3 rounded-lg flex items-center justify-between text-xs font-mono">
-               <span className="text-slate-400">Evacuation Orders</span>
-               <span className="text-slate-500 font-bold">0</span>
+             <div className="w-full bg-slate-900/60 border border-slate-800 p-2.5 rounded-lg flex items-center justify-between text-xs font-mono">
+               <span className="text-slate-400">Broadcast Channel</span>
+               <span className="text-slate-400 font-bold">
+                 STANDBY (DEMO TRIGGER)
+               </span>
              </div>
+          </div>
+          <div className="mt-2 text-[10px] font-mono text-slate-500 text-center">
+            Live team &amp; shelter counts not connected to real-time dispatch telematics.
           </div>
         </div>
       </div>
@@ -188,7 +202,14 @@ export default function CommandTab({ activeDistrict, liveTemp, telemetry }: Comm
               </div>
               <div>
                 <span className="text-slate-500 block mb-0.5">Location</span>
-                <span className="text-slate-300">{activeDistrict?.district || 'Regional'}</span>
+                <span className="text-slate-300">
+                  {activeDistrict?.district || 'Regional'}
+                  {(!selectedHazard?.lat || !selectedHazard?.lon) && (
+                    <span className="block text-[10px] text-amber-400/80 mt-0.5 font-sans">
+                      (Incident Coordinates Not Available — District Reference Only)
+                    </span>
+                  )}
+                </span>
               </div>
               <div>
                 <span className="text-slate-500 block mb-0.5">Source</span>
@@ -244,14 +265,46 @@ export default function CommandTab({ activeDistrict, liveTemp, telemetry }: Comm
 
         {/* TIMELINE */}
         <div className="lg:col-span-3 glass-panel rounded-xl p-5 border border-slate-700/50 flex flex-col">
-          <h4 className="text-sm font-bold font-tech text-white flex items-center gap-1.5 uppercase mb-4">
-            <Clock className="w-4 h-4 text-cyan-400" />
-            Response Timeline
-          </h4>
-          <div className="flex-1 flex items-center justify-center">
-            <span className="text-xs font-mono text-slate-500 text-center px-4">
-              NO RESPONSE EVENT DATA AVAILABLE
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-sm font-bold font-tech text-white flex items-center gap-1.5 uppercase">
+              <Clock className="w-4 h-4 text-cyan-400" />
+              Response Flow
+            </h4>
+            <span className="text-[9px] font-mono px-1 py-0.5 rounded border border-purple-500/30 bg-purple-950/40 text-purple-300 uppercase tracking-widest font-semibold">
+              SIMULATED
             </span>
+          </div>
+          <div className="text-[10px] font-mono text-slate-400 mb-3 border-b border-white/5 pb-2">
+            Demonstration workflow — not a live dispatch/event log.
+          </div>
+          <div className="flex-1 space-y-2.5 overflow-y-auto max-h-[260px] pr-1">
+            <div className="flex items-start gap-2 text-xs font-mono border-l-2 border-rose-500 pl-2.5 py-0.5">
+              <div>
+                <span className="text-rose-400 font-bold text-[10px] block">STEP 1 • TRIGGER</span>
+                <span className="text-slate-200">Hazard Signal Ingestion</span>
+              </div>
+            </div>
+            <div className="flex items-start gap-2 text-xs font-mono border-l-2 border-amber-500 pl-2.5 py-0.5">
+              <div>
+                <span className="text-amber-400 font-bold text-[10px] block">STEP 2 • CORRELATION</span>
+                <span className="text-slate-200">Threshold &amp; Heat Risk Scoring</span>
+              </div>
+            </div>
+            <div className="flex items-start gap-2 text-xs font-mono border-l-2 border-cyan-500 pl-2.5 py-0.5">
+              <div>
+                <span className="text-cyan-400 font-bold text-[10px] block">STEP 3 • DRAFT</span>
+                <span className="text-slate-200">SOP Action Plan Generation</span>
+              </div>
+            </div>
+            <div className="flex items-start gap-2 text-xs font-mono border-l-2 border-purple-500 pl-2.5 py-0.5">
+              <div>
+                <span className="text-purple-400 font-bold text-[10px] block">STEP 4 • AUTHORIZATION</span>
+                <span className="text-slate-200">Operator Review &amp; Alert Protocol</span>
+              </div>
+            </div>
+          </div>
+          <div className="mt-2 text-[9px] font-mono text-slate-500 text-center">
+            No real dispatch or field movement has occurred.
           </div>
         </div>
       </div>
@@ -259,7 +312,7 @@ export default function CommandTab({ activeDistrict, liveTemp, telemetry }: Comm
       {/* 6. POLICY SIMULATOR & 7. EMERGENCY FACILITY PANEL */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Simulator */}
-        <div className="glass-panel rounded-xl p-5 border border-cyan-500/20 opacity-80 hover:opacity-100 transition-opacity">
+        <div className="glass-panel rounded-xl p-5 border border-cyan-500/20 opacity-90 hover:opacity-100 transition-opacity">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-sm font-bold font-tech text-white flex items-center gap-1.5 uppercase">
               <Sliders className="w-4 h-4 text-cyan-400" />
@@ -267,7 +320,7 @@ export default function CommandTab({ activeDistrict, liveTemp, telemetry }: Comm
             </h4>
             <div className="flex items-center gap-1.5">
               <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 uppercase tracking-widest font-semibold">
-                [MODELLED]
+                [SIMULATION / WHAT-IF]
               </span>
             </div>
           </div>
@@ -276,7 +329,7 @@ export default function CommandTab({ activeDistrict, liveTemp, telemetry }: Comm
             <div>
               <div className="flex justify-between text-xs mb-2">
                 <span className="text-slate-300">Ambient Temperature Shift</span>
-                <span className="text-amber-400 font-bold">+2.0°C</span>
+                <span className="text-amber-400 font-bold">{simTemp > 0 ? `+${simTemp}.0°C` : `${simTemp}.0°C`}</span>
               </div>
               <input
                 type="range" min="-5" max="5" value={simTemp}
@@ -307,15 +360,20 @@ export default function CommandTab({ activeDistrict, liveTemp, telemetry }: Comm
               />
             </div>
 
-            <div className="p-3 rounded-lg bg-black/50 border border-white/10 flex items-center justify-between text-sm mt-4">
-              <span className="text-slate-300">Projected Risk Index:</span>
-              <div className="flex items-center gap-2 font-bold">
-                <span className="text-rose-400 line-through">87</span>
-                <span className="text-slate-400">➔</span>
-                <span className="text-emerald-400">{newRisk}</span>
-                <span className="text-[8px] font-mono px-1 py-0.2 rounded border border-purple-500/30 text-purple-300 uppercase">
-                  [MOD]
-                </span>
+            <div className="p-3 rounded-lg bg-black/50 border border-white/10 flex flex-col gap-1 text-sm mt-4">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-300 text-xs">Simulated Risk Index:</span>
+                <div className="flex items-center gap-2 font-bold">
+                  <span className="text-rose-400/80 line-through text-xs" title="Observed Baseline Risk">{baseRisk}</span>
+                  <span className="text-slate-400">➔</span>
+                  <span className="text-emerald-400">{newRisk}</span>
+                  <span className="text-[8px] font-mono px-1 py-0.5 rounded border border-purple-500/30 text-purple-300 uppercase">
+                    [SIMULATED]
+                  </span>
+                </div>
+              </div>
+              <div className="text-[10px] text-slate-500 font-normal">
+                Baseline District Risk: {baseRisk} (Observed). Counterfactual projection only.
               </div>
             </div>
 
@@ -330,30 +388,41 @@ export default function CommandTab({ activeDistrict, liveTemp, telemetry }: Comm
         </div>
 
         {/* Emergency Facility Panel */}
-        <div className="glass-panel rounded-xl p-5 border border-rose-500/20 opacity-80 hover:opacity-100 transition-opacity flex flex-col justify-between">
+        <div className="glass-panel rounded-xl p-5 border border-rose-500/20 opacity-90 hover:opacity-100 transition-opacity flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
               <h4 className="text-sm font-bold font-tech text-white flex items-center gap-1.5 uppercase">
                 <Activity className="w-4 h-4 text-rose-400" />
                 Emergency Facility Panel
               </h4>
-              <span className="text-[9px] font-mono text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/30">
-                EXPERIMENTAL
+              <span className="text-[9px] font-mono text-amber-300 bg-amber-950/40 px-1.5 py-0.5 rounded border border-amber-500/30 uppercase tracking-widest font-semibold">
+                STATIC REFERENCE
               </span>
             </div>
-            <div className="p-3 rounded-lg bg-black/40 border border-white/5 space-y-2 text-xs font-mono mb-4">
+            <div className="p-3 rounded-lg bg-black/40 border border-white/5 space-y-2.5 text-xs font-mono mb-4">
               <div className="flex justify-between items-center">
-                <span className="font-bold text-white">Nearest Trauma Center</span>
-                <span className="text-[10px] text-slate-500 bg-slate-800 px-2 py-0.5 rounded">NOT AVAILABLE</span>
+                <span className="text-slate-300">Designated Trauma Hub:</span>
+                <span className="text-slate-200 font-bold">
+                  AIIMS Bhubaneswar <span className="text-[9px] text-slate-500 font-normal">[STATIC REFERENCE]</span>
+                </span>
               </div>
-              <div className="flex justify-between text-slate-400 mt-2">
-                <span>ICU Beds Status:</span>
-                <span className="text-slate-500 font-bold">NOT AVAILABLE</span>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-300">District Hospital:</span>
+                <span className="text-slate-200 font-bold">
+                  Capital Hospital, Unit-6 <span className="text-[9px] text-slate-500 font-normal">[STATIC REFERENCE]</span>
+                </span>
               </div>
-              <div className="flex justify-between text-slate-400 mt-1">
-                <span>Resource Adequacy:</span>
-                <span className="text-amber-400 font-bold">EXPERIMENTAL</span>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-300">ICU / Bed Telemetry:</span>
+                <span className="text-slate-500 font-bold uppercase">NOT AVAILABLE</span>
               </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-300">Resource Stock Status:</span>
+                <span className="text-slate-500 font-bold uppercase">DATA UNAVAILABLE</span>
+              </div>
+            </div>
+            <div className="text-[10px] font-mono text-slate-500 text-center mb-3">
+              Facility inventory and real-time bed tracking are not connected to this node.
             </div>
           </div>
 

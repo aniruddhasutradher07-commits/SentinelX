@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, GeoJSON, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { getApiUrl } from '../../services/apiConfig';
@@ -8,6 +8,18 @@ const INDIA_BOUNDS = L.latLngBounds(
   L.latLng(19.0, 84.0),
   L.latLng(22.0, 88.0)
 );
+
+const incidentMarkerIcon = L.divIcon({
+  className: '',
+  html: `
+    <div style="position:relative;width:22px;height:22px;">
+      <div style="position:absolute;top:0;left:0;width:100%;height:100%;background:#ef4444;border-radius:50%;opacity:0.95;box-shadow:0 0 10px #ef4444;border:2px solid #ffffff;"></div>
+      <div style="position:absolute;top:-5px;left:-5px;width:32px;height:32px;border:2px solid #ef4444;border-radius:50%;opacity:0.75;animation:sentinelPulse 1.8s ease-out infinite;"></div>
+    </div>
+  `,
+  iconSize: [22, 22],
+  iconAnchor: [11, 11],
+});
 
 function MapResizer() {
   const map = useMap();
@@ -55,13 +67,23 @@ export function CommandIncidentMap({ activeHazards, selectedHazard }: CommandInc
     }
   }, [layerMode, era5Variable]);
 
+  const hasVerifiedCoords = Boolean(
+    typeof selectedHazard?.lat === 'number' && 
+    typeof selectedHazard?.lon === 'number' && 
+    !isNaN(selectedHazard.lat) && 
+    !isNaN(selectedHazard.lon)
+  );
+
+  const hazardLat = hasVerifiedCoords ? selectedHazard.lat : null;
+  const hazardLon = hasVerifiedCoords ? selectedHazard.lon : null;
+
   useEffect(() => {
-    if (mapRef.current && selectedHazard && selectedHazard.lat && selectedHazard.lon) {
-      mapRef.current.flyTo([selectedHazard.lat, selectedHazard.lon], 11, { duration: 1 });
+    if (mapRef.current && hasVerifiedCoords && hazardLat !== null && hazardLon !== null) {
+      mapRef.current.flyTo([hazardLat, hazardLon], 11, { duration: 0.8 });
     } else if (mapRef.current) {
-      mapRef.current.flyTo([20.296, 85.8245], 11, { duration: 1 });
+      mapRef.current.flyTo([20.296, 85.8245], 11, { duration: 0.8 });
     }
-  }, [selectedHazard]);
+  }, [selectedHazard, hasVerifiedCoords, hazardLat, hazardLon]);
 
   const onEachFeature = (feature: any, layer: L.Layer) => {
     const props = feature.properties;
@@ -147,13 +169,14 @@ export function CommandIncidentMap({ activeHazards, selectedHazard }: CommandInc
           zoom={11}
           style={{ height: '100%', width: '100%', backgroundColor: '#071120' }}
           zoomControl={false}
+          attributionControl={false}
           maxBounds={INDIA_BOUNDS}
           ref={mapRef}
         >
           <MapResizer />
           <TileLayer
-            attribution='&copy; OSM'
-            url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png"
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            className="map-tiles"
           />
 
           {wardGeoJson && (
@@ -163,6 +186,21 @@ export function CommandIncidentMap({ activeHazards, selectedHazard }: CommandInc
               onEachFeature={onEachFeature}
               key={layerMode + era5Status}
             />
+          )}
+
+          {hasVerifiedCoords && hazardLat !== null && hazardLon !== null && (
+            <Marker position={[hazardLat, hazardLon]} icon={incidentMarkerIcon}>
+              <Popup className="tactical-popup">
+                <div className="text-slate-800 font-mono text-xs p-1">
+                  <strong className="block text-sm font-bold text-rose-600 border-b pb-1 mb-1">
+                    {selectedHazard?.type || 'ACTIVE INCIDENT'}
+                  </strong>
+                  <div>Severity: <b className="text-rose-500">{selectedHazard?.severity || 'CRITICAL'}</b></div>
+                  <div>Source: {selectedHazard?.source || 'IMD'}</div>
+                  <div>Status: <b className="text-emerald-600">{selectedHazard?.status || 'ACTIVE'}</b></div>
+                </div>
+              </Popup>
+            </Marker>
           )}
 
         </MapContainer>
@@ -183,15 +221,18 @@ export function CommandIncidentMap({ activeHazards, selectedHazard }: CommandInc
                 <span className={`w-1.5 h-1.5 rounded-full ${activeHazards.length > 0 ? 'bg-amber-500 animate-pulse' : 'bg-cyan-500'}`}></span>
                 {activeHazards.length > 0 ? `${activeHazards.length} ACTIVE SIGNAL(S)` : 'NO ACTIVE HAZARD SIGNAL'}
              </div>
-             {(!selectedHazard || (!selectedHazard.lat && !selectedHazard.lon)) && selectedHazard && (
-                <div className="text-amber-500 mt-1">LOCATION DATA NOT AVAILABLE</div>
-             )}
+             <div className="text-slate-400 text-[9px] mt-0.5">
+               {hasVerifiedCoords 
+                 ? `Coords: ${hazardLat?.toFixed(3)}, ${hazardLon?.toFixed(3)}` 
+                 : 'INCIDENT LOCATION NOT AVAILABLE (DISTRICT REFERENCE ONLY)'
+               }
+             </div>
            </div>
         )}
       </div>
 
       <div className="absolute bottom-2 right-2 z-[1000] pointer-events-none">
-        <div className="bg-black/80 p-2 rounded border border-white/10 text-[9px] font-mono text-slate-400">
+        <div className="bg-black/90 p-2 rounded border border-white/10 text-[9px] font-mono text-slate-300 shadow-xl backdrop-blur-md">
           <div className="font-bold text-white mb-1 uppercase tracking-wider">
             {layerMode === 'HISTORICAL' ? era5Variable.split('_')[0] : 'Legend'}
           </div>
@@ -201,11 +242,14 @@ export function CommandIncidentMap({ activeHazards, selectedHazard }: CommandInc
                <span>{era5Variable.includes('pct') ? '%' : era5Variable.includes('c') ? '°C' : era5Variable.includes('mm') ? 'mm' : era5Variable.includes('ms') ? 'm/s' : 'hPa'}</span>
             </div>
           ) : (
-             <div className="space-y-1 mt-1">
-               <div className="flex items-center gap-1"><span className="w-2 h-2 bg-amber-500 rounded-sm inline-block"></span> Alert Zone</div>
-               <div className="flex items-center gap-1"><span className="w-2 h-2 bg-[#334155] rounded-sm inline-block"></span> Normal</div>
+             <div className="space-y-1 mt-0.5">
+               <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 bg-amber-500/80 border border-amber-400 rounded-sm inline-block"></span> Alert Zone</div>
+               <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 bg-[#0ea5e9]/40 border border-cyan-400 rounded-sm inline-block"></span> Normal</div>
              </div>
           )}
+          <div className="mt-1.5 pt-1 border-t border-white/10 text-[8px] text-slate-500">
+            Map &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" className="text-slate-400 underline pointer-events-auto">OpenStreetMap</a>
+          </div>
         </div>
       </div>
     </div>
