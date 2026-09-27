@@ -52,6 +52,10 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
   const [metricMode, setMetricMode] = useState<'wbgt' | 'risk' | 'vulnerability' | 'lst' | 'uhi' | 'admissions' | 'temp'>('wbgt');
   const [baseMapStyle, setBaseMapStyle] = useState<'dark' | 'satellite'>('dark');
   const [districtDetail, setDistrictDetail] = useState<any>(null);
+  const [hospitalDemand, setHospitalDemand] = useState<any>(null);
+  const [hospitalLoading, setHospitalLoading] = useState<boolean>(false);
+  const [forecastData, setForecastData] = useState<any[]>([]);
+  const [selectedWardNo, setSelectedWardNo] = useState<string>('');
   const [loadingDetail, setLoadingDetail] = useState<boolean>(false);
   const [wardGeoJson, setWardGeoJson] = useState<any>(null);
   const [wardData, setWardData] = useState<any[]>([]);
@@ -261,6 +265,26 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
       .catch(() => {});
   }, []);
 
+  // Fetch hospital demand for selected ward
+  useEffect(() => {
+    if (!selectedWardNo) {
+      setHospitalDemand(null);
+      setForecastData([]);
+      return;
+    }
+    setHospitalLoading(true);
+    fetch(getApiUrl(`/api/v1/wards/${encodeURIComponent(selectedWardNo)}/hospital-demand`))
+      .then(res => res.json())
+      .then(data => {
+        setHospitalDemand(data);
+        setForecastData(data.forecast || []);
+        setHospitalLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load hospital demand:', err);
+        setHospitalLoading(false);
+      });
+  }, [selectedWardNo]);
   // Render ward-level GeoJSON overlay + animated pulse markers
   useEffect(() => {
     if (!mapInstanceRef.current) return;
@@ -323,6 +347,7 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
         );
 
         layer.on({
+          click: () => setSelectedWardNo(wardNo),
           mouseover: (e: any) => {
             e.target.setStyle({ weight: 3, color: '#38bdf8', fillOpacity: 0.85 });
           },
@@ -1017,164 +1042,130 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
           </button>
         </div>
 
-        {/* Hospital Surge Forecast (5-Day DLNM+XGBoost) */}
-        <div className="bg-[#14171A]/80 border border-white/[0.08] rounded-2xl p-4 shadow-md">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
-              <Activity className="w-4 h-4 text-rose-400" />
-              5-Day Hospital Surge Projections
-            </span>
-            <div className="flex items-center gap-1.5">
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 uppercase tracking-wider">
-                Experimental
+        {/* Hospital Surge Forecast (Experimental) */}
+        {!selectedWardNo ? (
+          <div className="bg-[#14171A]/80 border border-white/[0.08] rounded-2xl p-5 text-center shadow-md">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                <Activity className="w-4 h-4 text-rose-400" />
+                HOSPITAL IMPACT — EXPERIMENTAL
               </span>
-              <span className="text-[9px] font-mono text-slate-500">DLNM + XGBoost</span>
+              <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-white/10 uppercase tracking-wider">
+                NO WARD SELECTED
+              </span>
+            </div>
+            <div className="py-4">
+              <p className="text-xs font-mono font-semibold text-slate-300">
+                SELECT A WARD TO VIEW EXPERIMENTAL HOSPITAL IMPACT
+              </p>
+              <p className="text-[11px] text-slate-500 mt-1 max-w-xs mx-auto">
+                Click any ward on the map to load ward-specific hospital demand data.
+              </p>
             </div>
           </div>
+        ) : (
+          <div className="bg-[#14171A]/80 border border-white/[0.08] rounded-2xl p-4 shadow-md space-y-3">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                <Activity className="w-4 h-4 text-rose-400" />
+                HOSPITAL IMPACT — EXPERIMENTAL
+              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded-md bg-sky-500/15 text-sky-400 border border-sky-500/30">
+                  Ward {selectedWardNo}
+                </span>
+                <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400 border border-amber-500/30 uppercase tracking-wider">
+                  EXPERIMENTAL_NOT_VALIDATED
+                </span>
+              </div>
+            </div>
 
-          {/* Model Pipeline Info */}
-          <div className="flex items-center gap-1 mb-3 text-[9px] font-mono overflow-x-auto">
-            <span className="shrink-0 px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20">WBGT</span>
-            <span className="text-slate-600">→</span>
-            <span className="shrink-0 px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">DLNM Lag</span>
-            <span className="text-slate-600">→</span>
-            <span className="shrink-0 px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">XGBoost</span>
-            <span className="text-slate-600">→</span>
-            <span className="shrink-0 px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">Surge Est.</span>
-          </div>
+            {/* Provenance Banner */}
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-2 flex items-start gap-2">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+              <div className="text-[9px] font-mono text-amber-300/90 leading-tight">
+                <div className="font-semibold uppercase tracking-wider">
+                  EXPERIMENTAL / SYNTHETIC DEMONSTRATION DATA — NOT OPERATIONAL
+                </div>
+                <div className="text-slate-400 mt-0.5">
+                  Source: Open-Meteo · 5-Day Horizon · Status: EXPERIMENTAL_NOT_VALIDATED
+                </div>
+              </div>
+            </div>
 
-          {(() => {
-            // Use real API data if available, otherwise generate estimates from WBGT
-            const forecastData = districtDetail?.hospital_impact_forecast && districtDetail.hospital_impact_forecast.length > 0
-              ? districtDetail.hospital_impact_forecast
-              : (() => {
-                  const wbgt = currentDistrict?.WBGT_celsius || 31.8;
-                  const baseAdmissions = Math.round(12 + (wbgt - 28) * 8.5);
-                  const today = new Date();
-                  return Array.from({ length: 5 }, (_, i) => {
-                    const d = new Date(today);
-                    d.setDate(d.getDate() + i);
-                    const jitter = 1 + (Math.sin(i * 2.1 + wbgt) * 0.18);
-                    const trend = 1 + i * 0.04;
-                    const predicted = Math.round(baseAdmissions * jitter * trend);
-                    return {
-                      date: `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
-                      day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()],
-                      predicted_admissions: predicted,
-                      ImpactTier: predicted >= 55 ? 'Red' : predicted >= 38 ? 'Orange' : 'Yellow',
-                    };
-                  });
-                })();
-            const isEstimated = !(districtDetail?.hospital_impact_forecast && districtDetail.hospital_impact_forecast.length > 0);
-            const maxAdmissions = Math.max(...forecastData.map((d: any) => d.predicted_admissions));
-            const totalSurge = forecastData.reduce((s: number, d: any) => s + d.predicted_admissions, 0);
-            const peakDay = forecastData.reduce((a: any, b: any) => a.predicted_admissions > b.predicted_admissions ? a : b);
-            const tierColor = (tier: string) => tier === 'Red' ? '#ef4444' : tier === 'Orange' ? '#f97316' : '#eab308';
-
-            return (
-              <>
-                {/* Summary stats row */}
-                <div className="grid grid-cols-3 gap-2 mb-3">
-                  <div className="bg-[#0B0D0E]/70 rounded-xl p-2 border border-white/[0.05] text-center">
-                    <div className="text-[9px] font-mono text-slate-500 uppercase">5-Day Total</div>
-                    <div className="text-base font-bold font-mono text-white">{totalSurge}</div>
-                    <div className="text-[9px] font-mono text-slate-500">admissions</div>
-                  </div>
-                  <div className="bg-[#0B0D0E]/70 rounded-xl p-2 border border-white/[0.05] text-center">
-                    <div className="text-[9px] font-mono text-slate-500 uppercase">Peak Day</div>
-                    <div className="text-base font-bold font-mono" style={{ color: tierColor(peakDay.ImpactTier) }}>{peakDay.predicted_admissions}</div>
-                    <div className="text-[9px] font-mono text-slate-500">{peakDay.date}</div>
-                  </div>
-                  <div className="bg-[#0B0D0E]/70 rounded-xl p-2 border border-white/[0.05] text-center">
-                    <div className="text-[9px] font-mono text-slate-500 uppercase">Daily Avg</div>
-                    <div className="text-base font-bold font-mono text-slate-200">{Math.round(totalSurge / 5)}</div>
-                    <div className="text-[9px] font-mono text-slate-500">adm/day</div>
-                  </div>
+            {/* Content States */}
+            {hospitalLoading ? (
+              <div className="py-6 text-center text-slate-400">
+                <div className="inline-block animate-spin rounded-full h-5 w-5 border-2 border-amber-400 border-t-transparent mb-2"></div>
+                <div className="text-xs font-mono">Loading experimental data for Ward {selectedWardNo}...</div>
+              </div>
+            ) : !forecastData || forecastData.length === 0 ? (
+              <div className="py-4 text-center">
+                <div className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider">
+                  HOSPITAL IMPACT DATA UNAVAILABLE
+                </div>
+                <div className="text-[10px] font-mono text-slate-500 mt-1">
+                  No experimental forecast returned for Ward {selectedWardNo}.
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                  <span>5-Day Thermal Risk Horizon</span>
+                  <span className="text-slate-500">Admissions: N/A (Not Operational)</span>
                 </div>
 
-                {/* Bar chart */}
-                <div className="h-36 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={forecastData} margin={{ top: 8, right: 5, left: -15, bottom: 0 }}>
-                      <XAxis
-                        dataKey="date"
-                        tick={{ fill: '#6b7280', fontSize: 10, fontFamily: 'ui-monospace, monospace' }}
-                        axisLine={{ stroke: 'rgba(255,255,255,0.06)' }}
-                        tickLine={false}
-                      />
-                      <YAxis
-                        tick={{ fill: '#6b7280', fontSize: 10, fontFamily: 'ui-monospace, monospace' }}
-                        axisLine={false}
-                        tickLine={false}
-                        domain={[0, (dm: number) => Math.ceil(dm * 1.15)]}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#1a1f24',
-                          borderColor: 'rgba(255,255,255,0.1)',
-                          borderRadius: '12px',
-                          fontSize: '11px',
-                          color: '#f1f5f9',
-                          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-                        }}
-                        labelFormatter={(v) => `📅 ${v}`}
-                        formatter={(val: any, _name: any, props: any) => [
-                          `${val} admissions/day`,
-                          `${props.payload.ImpactTier} Alert Tier`,
-                        ]}
-                        cursor={{ fill: 'rgba(255,255,255,0.03)' }}
-                      />
-                      <Bar dataKey="predicted_admissions" radius={[6, 6, 0, 0]} maxBarSize={40}>
-                        {forecastData.map((entry: any, index: number) => (
-                          <Cell
-                            key={`surge-cell-${index}`}
-                            fill={tierColor(entry.ImpactTier)}
-                            fillOpacity={0.85}
-                          />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                <div className="space-y-1.5">
+                  {forecastData.map((day: any, idx: number) => {
+                    const tier = (day.ImpactTier || 'Green').toLowerCase();
+                    const tierStyle =
+                      tier === 'red'
+                        ? 'border-rose-500/30 bg-rose-500/10 text-rose-300'
+                        : tier === 'orange'
+                        ? 'border-amber-500/30 bg-amber-500/10 text-amber-300'
+                        : tier === 'yellow'
+                        ? 'border-yellow-500/30 bg-yellow-500/10 text-yellow-300'
+                        : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300';
 
-                {/* Day-by-day breakdown */}
-                <div className="mt-2 space-y-1">
-                  {forecastData.map((entry: any, idx: number) => {
-                    const pct = maxAdmissions > 0 ? (entry.predicted_admissions / maxAdmissions) * 100 : 0;
                     return (
-                      <div key={`row-${idx}`} className="flex items-center gap-2 text-[10px] font-mono">
-                        <span className="w-12 text-slate-500 shrink-0">{entry.day || entry.date}</span>
-                        <div className="flex-1 bg-slate-800/50 rounded-full h-2 overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all duration-700"
-                            style={{
-                              width: `${pct}%`,
-                              background: `linear-gradient(90deg, ${tierColor(entry.ImpactTier)}88, ${tierColor(entry.ImpactTier)})`,
-                            }}
-                          />
+                      <div
+                        key={day.date || idx}
+                        className="bg-[#0B0D0E]/70 border border-white/[0.05] rounded-xl px-3 py-2 flex items-center justify-between text-[11px] font-mono"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-slate-300 font-semibold w-16">
+                            {day.date ? day.date.slice(5) : `Day ${idx + 1}`}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded text-[9px] uppercase font-bold border ${tierStyle}`}>
+                            {day.ImpactTier || 'Green'}
+                          </span>
                         </div>
-                        <span className="w-8 text-right font-bold" style={{ color: tierColor(entry.ImpactTier) }}>
-                          {entry.predicted_admissions}
-                        </span>
+
+                        <div className="flex items-center gap-4 text-slate-400 text-[10px]">
+                          <div>
+                            <span className="text-slate-500">WBGT: </span>
+                            <span className="text-slate-200 font-bold">{day.wbgt_max != null ? `${day.wbgt_max}°C` : '—'}</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-500">Min: </span>
+                            <span className="text-slate-200 font-bold">{day.t_min != null ? `${day.t_min}°C` : '—'}</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-500">Admissions: </span>
+                            <span className="text-slate-400 font-bold">
+                              {day.predicted_admissions != null ? day.predicted_admissions : 'N/A'}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     );
                   })}
                 </div>
-
-                {/* Estimation disclaimer */}
-                {isEstimated && (
-                  <div className="mt-3 pt-2 border-t border-white/[0.05] flex items-start gap-1.5">
-                    <AlertTriangle className="w-3 h-3 text-amber-500/60 shrink-0 mt-0.5" />
-                    <span className="text-[9px] font-mono text-slate-500 leading-relaxed">
-                      Estimates derived from current WBGT ({currentDistrict?.WBGT_celsius || 31.8}°C) using 2-stage DLNM epidemiological lag model. Not a clinical forecast.
-                    </span>
-                  </div>
-                )}
-              </>
-            );
-          })()}
-        </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Top 5 Thermal Hotspots Leaderboard */}
         <div className="bg-[#14171A]/80 border border-white/[0.08] rounded-2xl p-4 shadow-md">
