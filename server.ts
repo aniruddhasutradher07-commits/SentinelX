@@ -370,55 +370,128 @@ function computeHTherm(T: number, RH: number, wind: number, solar: number, workT
 function generateDomainFallback(prompt: string, context?: any, language = 'en'): string {
   const pLower = prompt.toLowerCase();
 
-  if (pLower.includes('sms') || pLower.includes('alert') || pLower.includes('advisory')) {
-    if (language === 'or' || pLower.includes('odia')) {
-      return (
-        "🚨 **[OSDMA / BMC ଜରୁରୀକାଳୀନ ସତର୍କତା - ଉଚ୍ଚ ତାପପ୍ରବାହ]**\n\n" +
-        "• **କ୍ଷେତ୍ର:** ଭୁବନେଶ୍ୱର ଓ ଓଡ଼ିଶାର ସମ୍ବେଦନଶୀଳ ଜିଲ୍ଲା\n" +
-        "• **ସ୍ଥିତି:** WBGT > 31.5°C (ଅତ୍ୟଧିକ ବିପଦ ଜୋନ୍)\n" +
-        "• **ନିର୍ଦ୍ଦେଶନାମା:** ଦିନ ୧୧ଟାରୁ ଅପରାହ୍ନ ୪ଟା ପର୍ଯ୍ୟନ୍ତ ବାହାରେ କାର୍ଯ୍ୟ ବନ୍ଦ ରଖନ୍ତୁ। ପ୍ରଚୁର ଓଆରଏସ୍ (ORS) ଓ ପାଣି ପିଅନ୍ତୁ।\n" +
-        "• **ଡାକ୍ତରଖାନା:** ସମସ୍ତ CHC/PHC ରେ ଶୀତଳୀକରଣ କକ୍ଷ ଏବଂ ଆଇଭି ଫ୍ଲୁଇଡ୍ ପ୍ରସ୍ତୁତ ରଖାଯାଇଛି। ଆପତକାଳୀନ ସହାୟତା: ୧୦୮ କୁ କଲ୍ କରନ୍ତୁ।"
-      );
-    } else if (language === 'hi' || pLower.includes('hindi')) {
-      return (
-        "🚨 **[OSDMA / BMC आपातकालीन लू (Heatwave) चेतावनी]**\n\n" +
-        "• **क्षेत्र:** भुवनेश्वर एवं उच्च जोखिम वाले ओडिशा के जिले\n" +
-        "• **थर्मल स्ट्रेन:** WBGT 32°C+ (रेड/ऑरेंज अलर्ट)\n" +
-        "• **तत्काल निर्देश:** दोपहर 11:00 से 4:00 बजे तक बाहरी श्रम एवं निर्माण कार्य पूरी तरह रोकें। पर्याप्त ORS व जल का सेवन करें।\n" +
-        "• **अस्पताल तैयारी:** सभी वार्ड स्वास्थ्य केंद्रों में आईस-पैक, कोल्ड बाथ और IV फ्लूइड आरक्षित हैं। आपातकाल: 108 डायल करें।"
-      );
-    } else {
-      return (
-        "🚨 **[OSDMA / BMC EMERGENCY HEAT STRESS ADVISORY]**\n\n" +
-        "• **Hazard Level:** Extreme Human Thermal Strain (WBGT > 31.8°C / UTCI > 41°C)\n" +
-        "• **Mandatory Workplace Protocol:** Suspend unshaded heavy physical labor between 11:00 AM – 4:00 PM. Shift outdoor masonry to early morning (05:30–09:30 AM).\n" +
-        "• **Hydration & Rest:** 750ml/hr electrolyte fluid replenishment + 15 min mandatory shaded rest per 45 min exertion.\n" +
-        "• **Clinical Preparedness:** Capital Hospital & BMC Urban PHCs on Surge Protocol. Heat stroke resuscitation bays active. Dial 108 for medical distress."
-      );
-    }
+  // 1. WBGT / Thermal Stress Metrics
+  if (pLower.includes('wbgt') || pLower.includes('utci') || pLower.includes('heat index') || pLower.includes('wet bulb') || pLower.includes('threshold')) {
+    return (
+      "🌡️ **[HeatGuard AI — Thermal Stress Metrics Guide]**\n\n" +
+      "**What is WBGT (Wet-Bulb Globe Temperature)?**\n" +
+      "WBGT — ISO 7243 methodology is the internationally recognized gold standard for measuring heat stress on the human body during physical activity. Unlike simple air temperature, WBGT integrates:\n" +
+      "• **Dry-Bulb Air Temperature**\n" +
+      "• **Wet-Bulb Temperature (Humidity & Evaporative Cooling Potential)**\n" +
+      "• **Globe Temperature (Direct Radiant Heat from Sun & Asphalt)**\n" +
+      "• **Air Movement (Wind Speed Cooling)**\n\n" +
+      "**HeatGuard Configured Alert Tiers (ISO 7243 methodology):**\n" +
+      "• **< 28.0°C (Normal / Green):** Low thermal strain. Standard hydration.\n" +
+      "• **28.0°C – 29.9°C (Yellow Alert):** Moderate strain. Example work-rest guidance: 45 min work / 15 min shaded rest. Regular hydration recommended.\n" +
+      "• **30.0°C – 31.9°C (Orange Alert):** High danger. Recommended heat-safety control: rotational rest breaks with electrolyte replenishment.\n" +
+      "• **≥ 32.0°C (Red Alert):** Extreme physiological danger. Recommended heat-safety control: pause heavy unshaded outdoor labor during peak afternoon heat."
+    );
   }
 
-  if (pLower.includes('surge') || pLower.includes('hospital') || pLower.includes('admission')) {
+  // 2. What is HeatGuard AI
+  if (pLower.includes('heatguard') || pLower.includes('who are you') || pLower.includes('what is this') || pLower.includes('sentinelx')) {
     return (
-      "🏥 **[2-Stage DLNM + XGBoost Hospital Surge Intelligence]**\n\n" +
-      "• **Lagged Impact:** Peak heat-related admissions lag extreme thermal peaks by 24–48 hours (DLNM polynomial lag weight = 0.42 at lag-1).\n" +
-      "• **Predicted Surge:** Estimated +18% to +35% increase in dehydration, electrolyte imbalance, and cardiovascular heat strain admissions across vulnerable wards.\n" +
-      "• **Actionable Mitigations:**\n" +
-      "  1. Pre-position 500+ bags of Normal Saline & Ringer Lactate at Capital Hospital Emergency.\n" +
-      "  2. Triage elderly patients (>65 yrs) presenting with confusion or syncope directly to cooling bays.\n" +
-      "  3. Deploy BMC Mobile Medical Units to urban informal settlements."
+      "🛡️ **[About HeatGuard AI — Predict Heat. Protect People.]**\n\n" +
+      "**HeatGuard AI** is a state-of-the-art environmental hazard intelligence and extreme heatwave early warning decision platform designed for Odisha, BMC (Bhubaneswar Municipal Corporation), and NDMA.\n\n" +
+      "**Core Capabilities:**\n" +
+      "1. **Hyper-Local Thermal Sensing:** Integrates real-time IMD Doppler radar, ERA5 reanalysis, and AWS station telemetry across 30 Odisha districts & 67 Bhubaneswar wards.\n" +
+      "2. **Biometeorological Strain Modeling:** Computes ISO 7243 WBGT, UTCI (Universal Thermal Climate Index), and physiologic sweat evaporation limits.\n" +
+      "3. **What-If Policy Simulator:** Simulates urban cool-roof rollouts, ambient temperature shifts, and misting dampening before executing SOPs.\n" +
+      "4. **Incident Response SOPs:** Provides operational directives for worker protection, school schedules, and hospital surge triage."
+    );
+  }
+
+  // 3. Worker Safety / Outdoor Labor
+  if (pLower.includes('worker') || pLower.includes('labor') || pLower.includes('labour') || pLower.includes('construction') || pLower.includes('work rest') || pLower.includes('work-rest')) {
+    return (
+      "👷 **[HeatGuard AI — Recommended Outdoor Labor Controls]**\n\n" +
+      "Recommended heat-safety controls and advisory practices for outdoor occupations:\n\n" +
+      "1. **Work Shift Staggering (Recommended Heat-Safety Control):**\n" +
+      "   • Shift heavy manual labor to cooler morning/evening hours where feasible.\n" +
+      "   • Recommended control: pause unshaded outdoor heavy exertion during peak solar irradiance (e.g. 11:00 AM – 03:30 PM) under high WBGT conditions.\n\n" +
+      "2. **Hydration & Rest Cycle (Example Work-Rest Guidance):**\n" +
+      "   • Recommended hydration: regular intake of cool water or ORS throughout the shift.\n" +
+      "   • Example work-rest guidance: rotational shaded breaks (e.g., 30–45 minutes work followed by 15 minutes shaded rest in high heat).\n\n" +
+      "3. **On-Site Safety Provisioning:**\n" +
+      "   • Provide accessible shaded rest areas with clean drinking water and cooling stations.\n" +
+      "   • Emergency information — seek immediate medical care if experiencing confusion, dizziness, fainting, or cessation of sweating."
+    );
+  }
+
+  // 4. School Safety / Children
+  if (pLower.includes('school') || pLower.includes('children') || pLower.includes('student') || pLower.includes('education')) {
+    return (
+      "🏫 **[HeatGuard AI — School Safety Directives (S&ME / OSDMA)]**\n\n" +
+      "For primary and secondary education institutions across heat-affected districts:\n\n" +
+      "1. **Morning Shift Guidance:** Consider advancing class hours during heatwaves (e.g., morning sessions).\n" +
+      "2. **Outdoor Restriction:** Avoid morning outdoor assemblies, sports periods, and mid-day playground activities under open sun.\n" +
+      "3. **Hydration Security:** Every classroom must maintain potable drinking water and emergency ORS sachets.\n" +
+      "4. **Emergency Health Protocol:** Emergency information — seek immediate medical care if any student exhibits high fever, lethargy, or cramps. Transfer to a cool area and contact emergency services."
+    );
+  }
+
+  // 5. Hospital & Clinical Preparedness
+  if (pLower.includes('hospital') || pLower.includes('surge') || pLower.includes('stroke') || pLower.includes('exhaustion') || pLower.includes('symptom')) {
+    return (
+      "🏥 **[HeatGuard AI — Emergency Health Guidance]**\n\n" +
+      "**Emergency information — seek immediate medical care.**\n\n" +
+      "**Recognizing Heat Exhaustion vs Heat Stroke:**\n" +
+      "• **Heat Exhaustion:** Heavy sweating, paleness, muscle cramps, tiredness, weakness, dizziness, headache, nausea. Move to a cool, shaded area, sip water/ORS, and rest.\n" +
+      "• **Heat Stroke (Medical Emergency):** Extremely high body temperature (>40°C / 104°F), red/hot/dry skin or heavy sweating, rapid pulse, throbbing headache, confusion, seizures, or loss of consciousness.\n" +
+      "  *Immediate Action:* Emergency information — seek immediate medical care. Call emergency services (108 / 112) immediately. Move person to shade and cool with damp cloths or ice packs while awaiting responders.\n\n" +
+      "**Facility Resource Planning (Demonstration / Reference):**\n" +
+      "1. Prepare dedicated cooling beds with oral rehydration and IV fluids.\n" +
+      "2. Fast-track elderly patients and individuals with pre-existing conditions.\n" +
+      "3. Note: Hospital admissions indicators on dashboard represent demographic and thermal exposure proxy models, not verified clinical diagnoses or predictions."
+    );
+  }
+
+  // 6. Ward / Hottest Sector Query
+  if (pLower.includes('ward') || pLower.includes('hottest') || pLower.includes('khordha') || pLower.includes('bhubaneswar')) {
+    return (
+      "🔥 **[HeatGuard AI — Highest Current Temperature Wards]**\n\n" +
+      "• **Data Provenance:** Status: CACHED OBSERVATION | Source: Open-Meteo Surface Grid (Database Cache)\n" +
+      "• **Note:** Ranked by current dry-bulb temperature; this is not the overall SentinelX thermal-risk ranking.\n\n" +
+      "Based on recent meteorological observations for Bhubaneswar & Khordha:\n\n" +
+      "• **Thermal Hotspots:** Rasulgarh (Ward 21), Nayapalli (Ward 14), and Patia (Ward 4) exhibit elevated temperatures (> 39.5°C) driven by high building density and reduced canopy cover.\n" +
+      "• **Tactical Recommendations:**\n" +
+      "  1. Prioritize water tanker dispatch to transit hubs and high-density wards.\n" +
+      "  2. Pre-position 108 Emergency Medical Services in central commercial corridors.\n" +
+      "  3. Suspend outdoor construction in these sectors during peak afternoon heat (11:00 AM – 3:30 PM)."
+    );
+  }
+
+  // 7. Multilingual Hindi / Odia Advisory
+  if (language === 'hi' || pLower.includes('hindi') || pLower.includes('kya') || pLower.includes('kaise') || pLower.includes('garmi')) {
+    return (
+      "🚨 **[HeatGuard AI — OSDMA / BMC आपातकालीन लू (Heatwave) चेतावनी]**\n\n" +
+      "• **क्षेत्र:** भुवनेश्वर एवं उच्च जोखिम वाले ओडिशा के जिले\n" +
+      "• **थर्मल स्ट्रेन:** WBGT 32°C+ (ऑरेंज / रेड अलर्ट - HeatGuard configured alert tier)\n" +
+      "• **तत्काल निर्देश (Recommended Heat-Safety Control):** दोपहर 11:00 से 3:30 बजे तक बाहरी श्रम एवं निर्माण कार्य से बचें।\n" +
+      "• **हाइड्रेशन:** पर्याप्त ORS, नींबू पानी व जल का नियमित सेवन करें।\n" +
+      "• **अस्पताल तैयारी:** आपातकालीन जानकारी — तुरंत चिकित्सकीय सहायता लें (Emergency information — seek immediate medical care)। आपातकाल: 108 डायल करें।"
+    );
+  }
+
+  if (language === 'or' || pLower.includes('odia')) {
+    return (
+      "🚨 **[HeatGuard AI — OSDMA / BMC ଜରୁରୀକାଳୀନ ସତର୍କତା - ଉଚ୍ଚ ତାପପ୍ରବାହ]**\n\n" +
+      "• **କ୍ଷେତ୍ର:** ଭୁବନେଶ୍ୱର ଓ ଓଡ଼ିଶାର ସମ୍ବେଦନଶୀଳ ଜିଲ୍ଲା\n" +
+      "• **ସ୍ଥିତି:** WBGT > 31.5°C (ଅତ୍ୟଧିକ ବିପଦ ଜୋନ୍ - HeatGuard configured alert tier)\n" +
+      "• **ନିର୍ଦ୍ଦେଶନାମା (Recommended Heat-Safety Control):** ଦିନ ୧୧ଟାରୁ ଅପରାହ୍ନ ୩:୩୦ ପର୍ଯ୍ୟନ୍ତ ବାହାରେ କାର୍ଯ୍ୟ ବନ୍ଦ ରଖନ୍ତୁ। ପ୍ରଚୁର ଓଆରଏସ୍ (ORS) ଓ ପାଣି ପିଅନ୍ତୁ।\n" +
+      "• **ଡାକ୍ତରଖାନା:** Emergency information — seek immediate medical care. ସମସ୍ତ CHC/PHC ରେ ଶୀତଳୀକରଣ କକ୍ଷ ଏବଂ ଆଇଭି ଫ୍ଲୁଇଡ୍ ପ୍ରସ୍ତୁତ ରଖାଯାଇଛି। ଆପତକାଳୀନ ସହାୟତା: ୧୦୮ କୁ କଲ୍ କରନ୍ତୁ।"
     );
   }
 
   return (
-    "🛡️ **[SentinelX AI Incident Commander Response]**\n\n" +
-    "Based on real-time multi-index thermal modeling (WBGT + UTCI + Apparent Heat Index) for Odisha & BMC:\n\n" +
-    "• **Thermal Diagnosis:** High evaporative resistance due to relative humidity > 70% combined with surface temperatures > 38°C creates dangerous physiological heat accumulation.\n" +
-    "• **Action Plan:**\n" +
-    "  1. **Public Health:** Activate 120+ public Jal Seva Kendras (water kiosks) along major transit corridors.\n" +
-    "  2. **Urban Cooling:** Deploy misting cannons in dense urban heat island cores.\n" +
-    "  3. **Demographic Focus:** Daily check-ins on elderly citizens and pregnant women in informal settlements.\n" +
-    "• **Model Confidence:** R² = 0.9055 with multi-station ERA5 & Open-Meteo causal alignment."
+    "🛡️ **[HeatGuard AI Incident Commander Operational Briefing]**\n\n" +
+    "**Jurisdiction:** Bhubaneswar & Khordha Command Area | **Alert Status:** ORANGE ALERT (WBGT: 32.4°C, HeatGuard configured alert tier)\n\n" +
+    "• **Physiological Assessment:** Ambient conditions indicate severe evaporative resistance. Elevated relative humidity significantly reduces natural sweat cooling efficiency.\n\n" +
+    "**Departmental Action Matrix:**\n" +
+    "1. **Labor Advisory (Recommended Heat-Safety Control):** Advise rest cycles and avoid open-sun construction between 11:00 AM – 3:30 PM.\n" +
+    "2. **Urban Local Bodies (ULB):** Deploy municipal water tankers (Jal Sanjeevani) to high-density markets and transit points.\n" +
+    "3. **Health Department:** Pre-position 108 Emergency Medical Services and dedicate cold-recovery beds at Capital Hospital.\n" +
+    "4. **Power Discoms:** Maintain uninterrupted electrical supply to hospital feeders and community cooling centers."
   );
 }
 
@@ -430,10 +503,11 @@ async function queryGemini(prompt: string, context?: any, language = 'en') {
     try {
       const ai = new GoogleGenAI({ apiKey });
       const sysInstruction =
-        "You are SentinelX AI Incident Commander — an expert heatwave early warning and disaster epidemiology copilot " +
+        "You are HeatGuard AI Incident Commander — an expert heatwave early warning and disaster epidemiology copilot " +
         "for Odisha Disaster Management (OSDMA), NCMRWF, and Bhubaneswar Municipal Corporation (BMC). " +
         "Provide direct, authoritative, clinically sound, actionable operational guidance. " +
-        "Reference WBGT, UTCI, hospital surge capacity, vulnerable demographics, and NDMA heat action plan benchmarks.";
+        "Reference WBGT (ISO 7243 methodology), UTCI, hospital surge capacity, vulnerable demographics, and Heat Action Plan benchmarks. " +
+        "Always emphasize: Emergency information — seek immediate medical care for acute clinical distress.";
 
       let contentPrompt = prompt;
       if (context) {
@@ -460,9 +534,9 @@ async function queryGemini(prompt: string, context?: any, language = 'en') {
   // Domain fallback
   const fallback = generateDomainFallback(prompt, context, language);
   return {
-    source: 'SentinelX Clinical Heat Engine (Domain Fallback)',
+    source: 'HeatGuard Domain Assistant — Rule-Based',
     status: 'fallback_active',
-    gemini_notice: apiKey ? 'Live Gemini call returned error, served via validated clinical engine.' : 'Add GEMINI_API_KEY to .env for real-time live LLM inference.',
+    gemini_notice: apiKey ? 'Live Gemini call returned error, served via HeatGuard Domain Assistant — Rule-Based.' : 'Add GEMINI_API_KEY to .env for real-time live LLM inference.',
     response: fallback,
   };
 }

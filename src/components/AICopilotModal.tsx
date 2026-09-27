@@ -24,12 +24,14 @@ interface AICopilotModalProps {
 export const AICopilotModal: React.FC<AICopilotModalProps> = ({ onClose, onDispatchAlert }) => {
   const [activeSubTab, setActiveSubTab] = useState<'chat' | 'advisory'>('chat');
 
+  const INITIAL_WELCOME = "🔥 **HeatGuard AI Incident Commander Ready.**\n\nI am connected to real-time IMD/ERA5 telemetry, 30 Odisha districts, and 67 Bhubaneswar wards. How can I assist with heatwave mitigation, thermal protocols, or disaster operations today?";
+
   // Chat state
   const [messages, setMessages] = useState<Array<{ sender: 'user' | 'bot'; text: string; source?: string }>>([
     {
       sender: 'bot',
-      text: "🛡️ **SentinelX AI Incident Commander Ready.**\n\nI am connected to real-time NCMRWF/ERA5 telemetry, 30 Odisha districts, and 67 Bhubaneswar wards. How can I assist disaster management operations today?",
-      source: 'Google Gemini AI Copilot',
+      text: INITIAL_WELCOME,
+      source: 'HeatGuard Domain Assistant — Rule-Based',
     },
   ]);
   const [inputPrompt, setInputPrompt] = useState('');
@@ -48,8 +50,9 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({ onClose, onDispa
   const [pdfContent, setPdfContent] = useState('');
 
   const presetQueries = [
-    'What are the mandatory cooling protocols when WBGT > 32°C?',
-    'How should Capital Hospital prepare for 48-hour lagged heat surge?',
+    'What are the recommended cooling protocols when WBGT > 32°C?',
+    'What is WBGT and how is it measured?',
+    'Which Bhubaneswar wards have the highest current temperatures?',
     'What work-rest cycle should BMC enforce for outdoor construction workers?',
   ];
 
@@ -66,16 +69,20 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({ onClose, onDispa
       const res = await fetch(getApiUrl('/api/v1/ai/copilot'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: textToSend }),
+        body: JSON.stringify({ 
+          message: textToSend,
+          query: textToSend,
+          prompt: textToSend
+        }),
       });
-      const data: AICopilotResponse = await res.json();
+      const data: any = await res.json();
 
       setMessages([
         ...newMessages,
         {
           sender: 'bot',
-          text: data.response,
-          source: data.source,
+          text: data.response || data.ai_response || data.text || 'No response generated.',
+          source: data.source || data.engine || 'HeatGuard Domain Assistant — Rule-Based',
         },
       ]);
     } catch (err) {
@@ -105,7 +112,7 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({ onClose, onDispa
         }),
       });
       const data = await res.json();
-      setAdvisoryResult(data.response);
+      setAdvisoryResult(data.response || data.advisory || '');
     } catch (err) {
       console.error('Failed to generate advisory:', err);
     } finally {
@@ -153,7 +160,7 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({ onClose, onDispa
         </div>
 
         <span className="text-[11px] font-mono text-slate-400 hidden sm:inline mr-2">
-          Powered by Google Gemini 1.5 Flash + Clinical Domain Engine
+          Powered by Google Gemini 1.5 Flash + HeatGuard Domain Assistant — Rule-Based
         </span>
       </div>
 
@@ -199,7 +206,7 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({ onClose, onDispa
                       Source: {m.source}
                     </span>
                   )}
-                  {m.sender === 'bot' && m.text !== "🛡️ **SentinelX AI Incident Commander Ready.**\n\nI am connected to real-time NCMRWF/ERA5 telemetry, 30 Odisha districts, and 67 Bhubaneswar wards. How can I assist disaster management operations today?" && (
+                  {m.sender === 'bot' && m.text !== INITIAL_WELCOME && (
                     <div className="mt-3 pt-3 border-t border-slate-700/50">
                       <button
                         onClick={() => {
@@ -238,7 +245,7 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({ onClose, onDispa
               value={inputPrompt}
               onChange={(e) => setInputPrompt(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder="Ask SentinelX AI Incident Commander (e.g. WBGT cooling threshold, surge mitigation)..."
+              placeholder="Ask HeatGuard AI Incident Commander (e.g. WBGT cooling threshold, surge mitigation, worker shifts)..."
               className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-500"
             />
             <button
@@ -355,7 +362,7 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({ onClose, onDispa
                 {advisoryResult || (
                   <div className="text-slate-500 flex flex-col items-center justify-center h-48 text-center">
                     <Languages className="w-8 h-8 mb-2 opacity-30" />
-                    Click "Generate Multilingual Broadcast Advisory" to generate clinical warning text.
+                    Click "Generate Multilingual Broadcast Advisory" to generate public advisory text.
                   </div>
                 )}
               </div>
