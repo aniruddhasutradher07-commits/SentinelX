@@ -4,9 +4,8 @@ import { HThermCalculator } from "../../components/HThermCalculator";
 import { NightRecoveryCard, NightRecoveryData } from "../../components/NightRecoveryCard";
 import { HeatBalanceChart } from "../../components/HeatBalanceChart";
 import { PhysiologyReplay } from "../../components/PhysiologyReplay";
-import { StatCard } from "../ui/StatCard";
 import { SectionHeader } from "../ui/SectionHeader";
-import { Activity, ShieldAlert, HeartPulse } from "lucide-react";
+import { Activity } from "lucide-react";
 
 interface BiotechTabProps {
   activeDistrict: {
@@ -31,29 +30,50 @@ export default function BiotechTab({ activeDistrict, telemetry, weather, hourlyF
   const liveTemp = envRisk.temperature_c ?? weather?.current?.temperature_2m;
   const liveRh = envRisk.humidity_pct ?? weather?.current?.relative_humidity_2m;
   const liveWind = envRisk.wind_speed_ms ?? (weather?.current?.wind_speed_10m ? weather.current.wind_speed_10m / 3.6 : undefined);
-  // Only use solar radiation if it's explicitly available from backend telemetry or verified weather (not fallback mock)
-  const liveSolar = weather?.current?.surface_solar_radiation; // OpenMeteo verified shortwave radiation
+  const liveSolar = weather?.current?.surface_solar_radiation;
 
-  // Calculate Night Recovery metrics from historical/hourly telemetry
-  const nightHours = hourlyForecast?.filter(h => {
-    const d = new Date(h.time);
-    return d.getHours() >= 22 || d.getHours() <= 5;
-  }) || [];
-  
+  // Calculate Night Recovery metrics from raw hourly weather data (Open-Meteo format)
+  // weather.hourly = { time: string[], temperature_2m: number[], relative_humidity_2m: number[] }
   let nightMinTemp: number | undefined = undefined;
   let nightAvgRh: number | undefined = undefined;
-  
-  if (nightHours.length > 0) {
-    nightMinTemp = Math.min(...nightHours.map(h => h.temperature_2m));
-    const rhSum = nightHours.reduce((acc, h) => acc + h.relative_humidity_2m, 0);
-    nightAvgRh = Math.round(rhSum / nightHours.length);
+
+  const hourlyRaw = weather?.hourly;
+  if (hourlyRaw?.time && hourlyRaw?.temperature_2m && hourlyRaw?.relative_humidity_2m) {
+    const nightIndices: number[] = [];
+    hourlyRaw.time.forEach((isoStr: string, idx: number) => {
+      const hour = new Date(isoStr).getHours();
+      if (hour >= 22 || hour <= 5) {
+        nightIndices.push(idx);
+      }
+    });
+
+    if (nightIndices.length > 0) {
+      const nightTemps = nightIndices.map((i: number) => hourlyRaw.temperature_2m[i]).filter((v: number) => typeof v === 'number');
+      const nightRhs = nightIndices.map((i: number) => hourlyRaw.relative_humidity_2m[i]).filter((v: number) => typeof v === 'number');
+
+      if (nightTemps.length > 0) {
+        nightMinTemp = Math.round(Math.min(...nightTemps) * 10) / 10;
+      }
+      if (nightRhs.length > 0) {
+        nightAvgRh = Math.round(nightRhs.reduce((a: number, b: number) => a + b, 0) / nightRhs.length);
+      }
+    }
+  }
+
+  // Derive a rough thermal burden from daytime WBGT + night minimum temp
+  let thermalBurden: number | undefined = undefined;
+  if (nightMinTemp !== undefined) {
+    // Simplified: higher WBGT + higher night floor = higher burden
+    const dayContrib = Math.min(100, Math.round((wbgtVal / 38) * 70));
+    const nightPenalty = Math.min(30, Math.max(0, Math.round((nightMinTemp - 24) * 3)));
+    thermalBurden = Math.min(100, dayContrib + nightPenalty);
   }
 
   const nightRecoveryData: NightRecoveryData = {
     night_min_temp_c: nightMinTemp,
     night_humidity_pct: nightAvgRh,
-    // explicitly omitting consecutive_poor_nights, thermal_burden_score, failure_score 
-    // so they show NOT AVAILABLE / EXPERIMENTAL as requested.
+    thermal_burden_score: thermalBurden,
+    // recovery_score and streak remain undefined → shows "EXPERIMENTAL" label as designed
   };
 
   return (
@@ -81,17 +101,17 @@ export default function BiotechTab({ activeDistrict, telemetry, weather, hourlyF
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-7 space-y-6">
           <div className="glass-panel rounded-xl overflow-hidden flex flex-col h-full border border-slate-700/50">
-            <HThermCalculator 
-              liveTemp={liveTemp} 
-              liveRh={liveRh} 
-              liveWind={liveWind} 
-              liveSolar={liveSolar} 
+            <HThermCalculator
+              liveTemp={liveTemp}
+              liveRh={liveRh}
+              liveWind={liveWind}
+              liveSolar={liveSolar}
             />
           </div>
         </div>
 
         <div className="lg:col-span-5 space-y-6 flex flex-col">
-          <NightRecoveryCard data={nightRecoveryData} className="w-full" />
+          <NightRecoveryCard data={nightRecoveryData} className="w-full flex-1" />
           <HeatBalanceChart />
         </div>
       </div>
@@ -103,7 +123,7 @@ export default function BiotechTab({ activeDistrict, telemetry, weather, hourlyF
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-12 glass-panel rounded-xl border border-cyan-500/20 overflow-hidden relative min-h-[400px]">
-           <OrganStrainHologram />
+           <OrganStrainHologram score={hThermScore} />
         </div>
       </div>
     </div>
