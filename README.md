@@ -1,361 +1,651 @@
-# 🛡️ HEATGUARD AI — Predict Heat. Protect People.
-### Impact-Based Heat Health Early Warning & Environmental Risk Intelligence Platform
-**Smart India Hackathon 2026 · Problem Statement PS 26083**  
-*Ministry of Earth Sciences (MoES) / NCMRWF / Disaster Management Authorities*  
-*Primary Geographic Validation Domain: Bhubaneswar Municipal Corporation (67 Wards), Odisha, India*
+# HeatGuard AI
+### Predict Heat. Protect People.
 
-[![Live Production](https://img.shields.io/badge/Production-Live%20on%20Railway-00C7B7?style=for-the-badge&logo=railway&logoColor=white)](https://sentinelx-thermal-api-production-aa42.up.railway.app)
-[![API Documentation](https://img.shields.io/badge/OpenAPI%203.1-Interactive%20Swagger-059669?style=for-the-badge&logo=fastapi&logoColor=white)](https://sentinelx-thermal-api-production-aa42.up.railway.app/docs)
-[![Pytest Suite](https://img.shields.io/badge/Tests-97%20Passed%20%7C%2010%20Skipped-10B981?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.5%20Strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](src/)
-[![ML Pipeline](https://img.shields.io/badge/ML%20V2-HistGradientBoosting%20%28ERA5%29-FF6F00?style=for-the-badge&logo=scikit-learn&logoColor=white)](data/ml_v2/)
-[![Full Project Report](https://img.shields.io/badge/Docs-Complete%20SIH%20Report%20(14k%20words)-6366F1?style=for-the-badge&logo=gitbook&logoColor=white)](docs/HEATGUARD_AI_END_TO_END_PROJECT_REPORT.md)
+**Impact-Based Heat Health Early Warning & Environmental Risk Intelligence Platform**  
+*Smart India Hackathon 2026 · Problem Statement: PS 26083*  
+*Target Geography: Bhubaneswar Municipal Corporation (67 Wards), Khordha, Odisha, India*
 
----
-
-## 🌐 Live Deployments & Key Links
-
-* **🚀 Production Cloud Application:** [https://sentinelx-thermal-api-production-aa42.up.railway.app](https://sentinelx-thermal-api-production-aa42.up.railway.app)
-* **📖 Interactive Swagger API Docs:** [https://sentinelx-thermal-api-production-aa42.up.railway.app/docs](https://sentinelx-thermal-api-production-aa42.up.railway.app/docs)
-* **📑 Comprehensive 14,000-Word Project Report:** [`docs/HEATGUARD_AI_END_TO_END_PROJECT_REPORT.md`](docs/HEATGUARD_AI_END_TO_END_PROJECT_REPORT.md)
-* **📄 Printable Standalone HTML Executive Report:** [`docs/HEATGUARD_AI_END_TO_END_PROJECT_REPORT.html`](docs/HEATGUARD_AI_END_TO_END_PROJECT_REPORT.html)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Railway%20Cloud-00C7B7?style=for-the-badge&logo=railway&logoColor=white)](https://sentinelx-thermal-api-production-aa42.up.railway.app)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://sentinelx-thermal-api-production-aa42.up.railway.app/docs)
+[![React](https://img.shields.io/badge/React-18.3-61DAFB?style=for-the-badge&logo=react&logoColor=black)](src/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7%20Strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](src/)
+[![Vite](https://img.shields.io/badge/Vite-6.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)](vite.config.ts)
+[![Leaflet](https://img.shields.io/badge/Leaflet-1.9%20GIS-199900?style=for-the-badge&logo=leaflet&logoColor=white)](src/components/OdishaMap.tsx)
+[![Docker](https://img.shields.io/badge/Docker-Multi--Stage-2496ED?style=for-the-badge&logo=docker&logoColor=white)](Dockerfile)
+[![Pytest](https://img.shields.io/badge/Tests-97%20Passed%20%7C%2010%20Skipped-10B981?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
 ---
 
-## 🌡️ Executive Overview: "What Will the Weather DO to People?"
+## 🔗 Key Links for Evaluators
 
-Traditional heatwave warning systems in India rely almost exclusively on macro-scale ambient dry-bulb thermometer thresholds (e.g., standard IMD alerts triggered when temperature exceeds 40°C in the plains). However, **temperature alone is a dangerously incomplete indicator of human thermal stress**:
-1. **Humidity Masking:** 37°C at 75% relative humidity completely shuts down evaporative perspiration, inducing lethal hyperthermia at air temperatures conventionally classified as "normal summer heat".
-2. **Solar Radiation & Radiant Load:** High downward insolation directly superheats urban masonry and human tissue, driving Wet Bulb Globe Temperature (WBGT) and Universal Thermal Climate Index (UTCI) far above ambient air temperature.
-3. **Absence of Hyperlocal Spatial Differentiation:** Macro-scale citywide alerts treat metropolitan areas as single homogeneous points, ignoring localized Urban Heat Islands (UHI), informal slum heat traps, and tree canopy deficits.
-4. **Disconnection from Population Vulnerability:** Extreme temperatures disproportionately harm geriatric populations (aged $\ge 60$), infants (aged $\le 5$), outdoor daily-wage laborers, and informal settlement residents with asbestos/tin roofing.
-
-**HeatGuard AI** (engineered on the `SentinelX` architecture) transforms raw meteorological and satellite observations into proactive, ward-level decision support. Moving from crude weather forecasts to impact-based human heat-stress intelligence, HeatGuard continuously synthesizes atmospheric physics, socio-demographic vulnerability, supervised machine learning, and multi-channel automated alerting across **67 municipal administrative wards of Bhubaneswar, Odisha**.
-
----
-
-## ⚡ Core Platform Capabilities
-
-| Capability Domain | Implemented Engineering Architecture | Operational Provenance Status |
+| Resource | Direct Link | Description |
 | :--- | :--- | :--- |
-| **Biometeorological Science** | Real-time calculation of **WBGT** (ISO 7243 via Liljegren & Stull physics), **UTCI** (187-node Fiala model regression), **Heat Index** (NOAA/Rothfusz), and **Steadman Apparent Temperature**. | `CALCULATED / LIVE` |
-| **67-Ward GIS Mapping** | Hardware-accelerated Leaflet vector choropleth mapping 67 BMC wards (`wards_bhubaneswar.geojson`) with switchable layers: WBGT stress, composite risk tiers, cooling centers, and schools. | `STATIC GIS REFERENCE` |
-| **5-Day Forward Outlook** | Rolling 120-hour deterministic forecasting predicting daily maxima, minima, diurnal stress peaks, and **Tropical Night Warnings** ($T_{\text{min}} \ge 28.0^\circ\text{C}$). | `FORECAST` |
-| **Supervised ML V2 Pipeline** | `HistGradientBoostingRegressor` trained across **262,656 hourly records** of Copernicus ECMWF ERA5 reanalysis (2021–2025). Predicts `NEXT_24H_MAX_APPARENT_TEMPERATURE` with Holdout **MAE 1.0829°C** and **$R^2$ 0.9055**. | `MODELLED (ERA5 ML V2)` |
-| **AI Copilot with Fallback** | Natural language operational assistant using **Google Gemini 1.5 Flash** with instantaneous fallback to **`HeatGuard Domain Assistant — Rule-Based`**. Sorts by "Highest Current Temperature Wards" with strict truthfulness disclaimers. | `LIVE / HYBRID` |
-| **Multi-Channel Alerting** | Automated notification engine supporting SMS (Twilio/Gupshup) and WhatsApp dispatch with SQLite audit logging and safe simulation drill mode (`dry_run=true`). | `DEMO ACTION / SIMULATED` |
-| **11-State Data Provenance** | Immutable data-truth taxonomy (`LIVE`, `CACHED OBSERVATION`, `STALE`, `CALCULATED`, `FORECAST`, `MODELLED`, `EXPERIMENTAL_NOT_VALIDATED`, `STATIC REFERENCE`, `STATIC GIS REFERENCE`, `PENDING_ROLLOUT`, `CREDENTIALS_NOT_CONFIGURED`, `DEMO ACTION`). | `RADICAL DATA TRUTH` |
-| **Hospital Surge Research** | 5-day healthcare surge research prototype (`/api/v1/wards/{ward_no}/hospital-demand`). Explicitly returns `admissions_prediction: null` to prevent clinical data fabrication. | `EXPERIMENTAL_NOT_VALIDATED` |
-| **Mortality Impact Research** | Environmental exposure proxy (`/api/v1/mortality-risk`). Strictly outputs `predicted_mortality: null` until authenticated civil mortality registries are connected. | `EXPERIMENTAL_NOT_VALIDATED` |
+| **🚀 Live Production Demo** | **[sentinelx-thermal-api-production-aa42.up.railway.app](https://sentinelx-thermal-api-production-aa42.up.railway.app)** | Full platform deployment on Railway Cloud |
+| **💻 GitHub Repository** | **[github.com/aniruddhasutradher07-commits/SentinelX](https://github.com/aniruddhasutradher07-commits/SentinelX)** | Official open-source codebase & history |
+| **📑 End-to-End Project Report** | **[`docs/HEATGUARD_AI_END_TO_END_PROJECT_REPORT.md`](docs/HEATGUARD_AI_END_TO_END_PROJECT_REPORT.md)** | Comprehensive 14,000+ word engineering submission report |
+| **📄 Interactive HTML Report** | **[`docs/HEATGUARD_AI_END_TO_END_PROJECT_REPORT.html`](docs/HEATGUARD_AI_END_TO_END_PROJECT_REPORT.html)** | Standalone styled report with interactive tables & figures |
+| **🏛️ System Architecture** | **[`docs/architecture/README.md`](docs/architecture/README.md)** | Detailed 8-tier architectural specifications |
+| **📖 Interactive API Docs** | **[`/docs` (Swagger UI)](https://sentinelx-thermal-api-production-aa42.up.railway.app/docs)** | OpenAPI 3.1 interactive REST schema explorer |
+| **🖼️ Interface Screenshots** | **[`screenshots/README.md`](screenshots/README.md)** | Visual catalog of key operational views |
 
 ---
 
-## 🏗️ System Architecture Topology
+## ⚡ Judge Quick Start (3–5 Minute Evaluation Flow)
+
+If you have 3 to 5 minutes to evaluate HeatGuard AI, follow this guided verification path:
+
+1. **Launch the Live Application:** Open [https://sentinelx-thermal-api-production-aa42.up.railway.app](https://sentinelx-thermal-api-production-aa42.up.railway.app).
+2. **Landing Page Showcase:** Inspect the rotating bio-molecular SVG graphic illustrating the transition *"From Weather Data to Human Survival"* and review the 4 core glassmorphism capability cards.
+3. **Enter Tactical Command Center:** Click **"Explore the Platform"** or use the sidebar navigation (`COMMAND` &rarr; `Command Center`).
+4. **Inspect 67-Ward Bhubaneswar GIS:** Select `COMMAND` &rarr; `Bhubaneswar Core`. Click on individual municipal ward polygons (e.g., Ward 12, Ward 35) to inspect localized Heat Index, WBGT, and vulnerability breakdowns.
+5. **Review Thermal Science Metrics:** In the top dashboard panel, verify that **WBGT (ISO 7243)**, **UTCI**, and **Steadman Heat Index** are computed dynamically alongside dry-bulb temperature.
+6. **5-Day Environmental Outlook:** Switch to the 5-day horizon view to verify daily thermal stress projections and nocturnal recovery penalties.
+7. **Inspect Machine Learning V2:** Navigate to `ANALYTICS` &rarr; `Hospital Surge ML`. Review the `HistGradientBoostingRegressor` metrics on the unseen 2025 holdout (**MAE 1.0829°C**, **$R^2$ 0.9055**) predicting apparent temperature. Note the prominent `[EXPERIMENTAL]` label.
+8. **Occupational & Public Action Views:**
+   - `SAFETY & ACTION` &rarr; `Worker Safety`: Review ISO 7243 work-rest cycles and hydration schedules.
+   - `SAFETY & ACTION` &rarr; `School Safety`: Inspect pediatric exposure restrictions and morning-shift recommendations.
+   - `CITIZEN` &rarr; `Citizen Advisory`: Verify multi-lingual preventive advisories and 1078 hotline integration.
+9. **Verify Clinical Integrity:** Open the Healthcare Demand view and verify that clinical outcome figures (admissions, mortality) are explicitly displayed as `NULL` / `UNAVAILABLE`, preserving absolute data truth without fabrication.
+10. **Emergency Broadcast Drill:** Open the Alert Dispatch modal and trigger a broadcast. Confirm the system logs the drill with DPDP-compliant recipient phone masking (`+91 98****1234`) and tags the execution as `SIMULATED RESPONSE FLOW`.
+
+---
+
+## 1. Overview
+
+**HeatGuard AI** is an impact-based heat health early warning and environmental risk intelligence platform engineered for municipal administrations, disaster management authorities, and occupational safety officers.
+
+### Core Proposition:
+> **"This is not a temperature-only dashboard."**  
+> Conventional systems ask: *"What will the weather be?"*  
+> **HeatGuard AI asks: *"What will the weather do to people?"***
+
+The platform translates raw meteorological inputs (dry-bulb temperature, relative humidity, downward solar flux, wind velocity) into physiological human thermal stress by synthesizing:
+- Atmospheric physics (Steadman Heat Index, ISO 7243 WBGT, Universal Thermal Climate Index)
+- Hyperlocal GIS across all **67 administrative wards of Bhubaneswar Municipal Corporation**
+- Socio-demographic vulnerability (geriatric density, outdoor laborer concentration, tree canopy deficit, uninsulated roofing)
+- Forward-looking 5-day environmental thermal outlooks
+- Supervised Machine Learning (ML V2) for 24-hour apparent temperature forecasting
+- Role-specific tactical advisories (construction laborers, schools, municipal water deployment)
+- Fully auditable emergency alert simulation workflows with radical data provenance
+
+> **Important Operational Disclaimer:**  
+> HeatGuard AI is a municipal decision-support and planning system. It does not provide clinical diagnoses, does not prescribe individualized medical treatment, and does not claim guaranteed prevention of heat-related illnesses, hospitalizations, or fatalities.
+
+---
+
+## 2. Problem
+
+India experiences severe and escalating heatwave seasons, with ground temperatures regularly exceeding 42°C across the eastern and central plains. Traditional early warning systems suffer from fatal structural deficiencies:
+
+1. **The "Dry-Bulb Fallacy":** Standard alerts rely on simple ambient thermometer thresholds (e.g., IMD 40°C alert). However, 36°C at 80% relative humidity shuts down the human body's evaporative cooling mechanism (perspiration), inducing fatal heat stroke at air temperatures conventionally classified as "normal".
+2. **Absence of Hyperlocal Spatial Granularity:** Macro-scale forecasts treat an entire 150 km² metropolitan area as a single homogeneous data point, completely ignoring localized microclimates, high-density informal settlements, and the Urban Heat Island (UHI) effect.
+3. **Disconnection from Population Vulnerability:** Extreme temperatures do not affect all citizens equally. Geriatric residents, outdoor construction workers, gig-economy delivery drivers, and households under uninsulated tin roofs experience drastically higher physiological strain than shaded indoor populations.
+4. **Uncertain or Fabricated Intelligence:** Many demonstration dashboards display synthetic, unverifiable data without clear provenance, creating dangerous ambiguity during emergency operations.
+
+---
+
+## 3. Solution
+
+HeatGuard AI resolves these challenges through a unified, 8-tier, data-transparent engineering architecture:
+
+- **Physiologically Grounded:** Computes ISO 7243 Wet Bulb Globe Temperature (WBGT), Universal Thermal Climate Index (UTCI), and NOAA Heat Index in real-time.
+- **Ward-Level Granularity:** Renders high-resolution polygon GIS for all 67 municipal wards of Bhubaneswar, combining localized thermal hazard with census demographic data.
+- **Actionable Decision Support:** Translates numeric indices into specific, role-based protocols: hourly work/rest cycles for construction crews, school bell schedule adjustments, and water tanker deployment priorities.
+- **Radical Data Truth:** Every single data point across the dashboard is tagged with an immutable provenance state (`LIVE`, `CALCULATED`, `FORECAST`, `EXPERIMENTAL`, `STATIC REFERENCE`, `UNAVAILABLE`, `CREDENTIALS_NOT_CONFIGURED`, or `SIMULATED`), ensuring decision-makers always know the exact reliability of information.
+
+---
+
+## 4. Why HeatGuard AI
+
+| Dimension | Conventional Heat Warning Systems | HeatGuard AI Platform |
+| :--- | :--- | :--- |
+| **Primary Metric** | Dry-Bulb Air Temperature (°C) | Physiological Indices (WBGT, UTCI, Heat Index, Nocturnal Recovery) |
+| **Spatial Resolution** | Citywide / District Average (1 point) | Hyperlocal Ward-Level Polygons (67 BMC Wards) |
+| **Vulnerability Context** | None (Weather in a vacuum) | Composite Multi-Factor (Elderly %, Workers %, Tree Deficit, Roof Type) |
+| **Decision Output** | Passive Color Alert (Yellow / Orange / Red) | Prescriptive Tactical Directives (Work/rest ratios, tanker staging, school hours) |
+| **Forecast Methodology**| Numerical Weather Model only | Hybrid: Deterministic Physics + ML V2 (262k ERA5 hourly records) |
+| **Data Provenance** | Unlabeled, opaque sources | Explicit 8-state immutable provenance badging on every widget |
+| **Safety Guardrails** | Unchecked AI text generation | Grounded operational Copilot with fallback rules and clinical data fencing |
+
+---
+
+## 5. Key Capabilities
+
+- **Real-Time Bio-Meteorological Engine:** Continuous ingestion and computation of WBGT, UTCI, Heat Index, and Apparent Temperature.
+- **Interactive 67-Ward GIS Explorer:** Hardware-accelerated Leaflet vector choropleth displaying ward risk rankings, demographic factors, and live telemetry.
+- **5-Day Multi-Horizon Outlook:** Daily forward outlook highlighting peak diurnal heat hours and **Tropical Night Warnings** (minimum nocturnal temperatures failing to drop below 26°C).
+- **ML V2 Apparent Temperature Forecaster:** Supervised gradient boosting trained on 5 years of Copernicus ERA5 reanalysis data.
+- **Worker & Occupational Safety Portal:** Direct enforcement of ISO 7243 occupational guidelines with automated hydration reminders and continuous work limits.
+- **School & Pediatric Safety Advisory:** Guidelines for outdoor sports suspension, hydration recesses, and morning shift transition alerts.
+- **Resource Staging Simulator:** What-If scenario modeler allowing municipal administrators to simulate the impact of heat spikes on cooling shelter and tanker demands.
+- **DPDP-Compliant Alert Drill System:** Emergency broadcast simulator with encrypted/masked recipient contacts and auditable dispatch logs.
+
+---
+
+## 6. System Architecture
+
+HeatGuard AI implements a robust, modular pipeline decoupling deterministic bio-meteorology from machine learning and asynchronous advisory workflows.
 
 ```mermaid
-graph TD
-    subgraph Client Layer
-        Browser[Modern Web Browser / Field Tablet]
-        ReactSPA[React 18 + Vite TypeScript SPA]
-        GISMap[Leaflet 67-Ward Interactive GIS Choropleth]
-        CopilotModal[AI Copilot Tactical Assistant Drawer]
+flowchart TD
+    subgraph Clients["1. User & Client Presentation Layer"]
+        Browser["Modern Browser / Field Tablet (React 18 + TS)"]
+        Landing["Landing Page Showcase"]
+        CommandCenter["Command Center (Tactical Cockpit)"]
+        GIS67["Bhubaneswar 67-Ward Interactive GIS"]
     end
 
-    subgraph API & Gateway Layer
-        FastAPIEntry[FastAPI Master Application - main.py]
-        CORSMiddleware[CORS Security & Static Mount]
-        APIRouterCatalog[76 Registered REST Endpoints]
+    subgraph API["2. API Gateway & Microservices (FastAPI / Express)"]
+        FServer["Express & Vite Middleware (Port 3000)"]
+        FastAPIServer["FastAPI ASGI Core Engine (Port 8000)"]
+        CORS["CORS & Error Handlers"]
     end
 
-    subgraph Computational Engines
-        ThermalEngine[Deterministic Thermal Engine<br/>WBGT ISO 7243 | UTCI | Heat Index]
-        WardRiskEngine[Ward Vulnerability Scorer<br/>50% Hazard + 35% Vulnerability + 15% Exposure]
-        ForecastEngine[5-Day Forward Outlook Aggregator]
-        MLV2Engine[Supervised ML V2 Regressor<br/>HistGradientBoosting on 262k ERA5 Rows]
-        CopilotEngine[Copilot Hybrid Engine<br/>Google Gemini + Deterministic Rule Fallback]
-        HealthResearchEngine[Health Surge & Mortality Research Proxies]
-        AlertDispatchEngine[SMS & WhatsApp Dispatch Pipeline]
+    subgraph Ingestion["3. Data Ingestion, Normalization & Caching"]
+        MemCache["In-Memory LRU & TTL Caches"]
+        ColdStart["Cold-Start Fallback Manager"]
+        RealtimeCDC["Supabase PostgreSQL CDC Sync"]
     end
 
-    subgraph Data & Persistence Layer
-        SQLiteDB[(SQLite Database - sentinelx_data.db)]
-        ObsCache[Weather Observations Table - 600s Sync]
-        AuditLogs[Alert Dispatch Audit Log Table]
-        MLArtifacts[ML V2 Model Artifact - 438 KB Joblib]
-        WardGeoJSON[BMC 67 Wards - wards_bhubaneswar.geojson]
+    subgraph Science["4. Deterministic Bio-Meteorological Core"]
+        HI["Steadman Heat Index"]
+        WBGT["ISO 7243 Wet Bulb Globe Temp"]
+        UTCI["Universal Thermal Climate Index"]
+        NightRecovery["Nocturnal Recovery Index"]
     end
 
-    subgraph External Observation Feeds
-        OpenMeteoAPI[Open-Meteo Weather Surface Grid API]
-        ERA5CDS[Copernicus CDS / ECMWF ERA5 Reanalysis 2021-2025]
-        CPCBAPI[CPCB OGD Air Quality Platform]
-        IMDAPI[IMD Mausam National API]
-        BhuvanWMS[ISRO / NRSC Bhuvan LULC 50K WMS]
-        TwilioGupshup[Twilio / Gupshup Gateways]
+    subgraph Spatial["5. Ward-Level Spatial & Vulnerability Engine"]
+        BMCGeo["67-Ward GeoJSON Polygon Registry"]
+        OdishaGeo["30-District Administrative Geometry"]
+        VulnEngine["Vulnerability Multiplier Engine<br>(Elderly, Workers, Canopy, Roofs)"]
     end
 
-    Browser --> ReactSPA
-    ReactSPA --> GISMap
-    ReactSPA --> CopilotModal
-    ReactSPA -->|Async Fetch API| FastAPIEntry
-    FastAPIEntry --> CORSMiddleware
-    CORSMiddleware --> APIRouterCatalog
+    subgraph ML["6. Predictive ML Layer (Experimental)"]
+        MLV2["HistGradientBoostingRegressor<br>(Target: Next 24h Max Apparent Temp)"]
+        Holdout2025["2025 Chronological Holdout<br>(MAE 1.08°C, R² 0.91)"]
+    end
 
-    APIRouterCatalog --> ThermalEngine
-    APIRouterCatalog --> WardRiskEngine
-    APIRouterCatalog --> ForecastEngine
-    APIRouterCatalog --> MLV2Engine
-    APIRouterCatalog --> CopilotEngine
-    APIRouterCatalog --> HealthResearchEngine
-    APIRouterCatalog --> AlertDispatchEngine
+    subgraph Actions["7. Tactical Advisory & Simulated Alert Dispatch"]
+        WorkerAdvisory["Occupational Work/Rest Protocols"]
+        SchoolAdvisory["Pediatric Activity Limits"]
+        ResourceAlloc["Water Tanker & Shelter Siting"]
+        SimulatedDispatch["Simulated Emergency Broadcast Gateway<br>(NIC / Twilio Dry-Run + DPDP Audit)"]
+    end
 
-    ThermalEngine --> ObsCache
-    WardRiskEngine --> WardGeoJSON
-    WardRiskEngine --> ObsCache
-    MLV2Engine --> MLArtifacts
-    AlertDispatchEngine --> AuditLogs
+    subgraph ExternalSources["8. External Ground & Remote Feeds"]
+        OpenMeteo["Open-Meteo API<br>[LIVE / CACHED]"]
+        ERA5["Copernicus CDS / ERA5<br>[HISTORICAL ML]"]
+        CPCB["CPCB OGD Platform<br>[CREDENTIALS_NOT_CONFIGURED]"]
+        IMD["IMD Synoptic Observations<br>[CREDENTIALS_NOT_CONFIGURED]"]
+        Bhuvan["ISRO NRSC Bhuvan<br>[PENDING LEGEND ROLLOUT]"]
+    end
 
-    ObsCache --> SQLiteDB
-    AuditLogs --> SQLiteDB
+    Browser --> FServer
+    FServer --> FastAPIServer
+    FastAPIServer --> Ingestion
+    ExternalSources --> Ingestion
+    Ingestion --> Science
+    Science --> Spatial
+    Spatial --> ML
+    Spatial --> Actions
+    ML --> Actions
+    Actions --> Browser
+```
 
-    ThermalEngine -.->|Polling Loop (600s)| OpenMeteoAPI
-    MLV2Engine -.->|Offline Supervised Training| ERA5CDS
-    APIRouterCatalog -.->|Station Lookup| CPCBAPI
-    APIRouterCatalog -.->|District Warning| IMDAPI
-    GISMap -.->|Satellite WMS| BhuvanWMS
-    AlertDispatchEngine -.->|Webhook Alert| TwilioGupshup
+### Architectural Separation:
+- **OPERATIONAL CORE:** Deterministic thermal physics (Steadman, ISO 7243 WBGT, UTCI), 67-ward polygon GIS, vulnerability weighting, role-based safety directives.
+- **EXPERIMENTAL / RESEARCH:** ML V2 apparent temperature model, healthcare surge capacity architecture, PhysioNet physiological reference curves, simulated alert dispatch.
+
+---
+
+## 7. Data Sources & Provenance
+
+HeatGuard AI enforces radical transparency regarding data sources and operational connectivity:
+
+| Data Source | Purpose | Current Project Status | Verification Notes |
+| :--- | :--- | :--- | :--- |
+| **Open-Meteo API** | Real-time weather observations (temp, RH, solar flux, wind) & 5-day forecast | **`LIVE / CACHED FALLBACK`** | High-precision global reanalysis grid; 10-minute cache TTL with automatic offline fallback. |
+| **Copernicus CDS / ERA5** | 5-year historical training dataset (2021–2025) across Odisha coordinates | **`OFFLINE TRAINING DATA`** | 262,656 hourly records used to train and validate the supervised ML V2 model. |
+| **BMC Ward GeoJSON** | Administrative boundary polygons for Bhubaneswar's 67 municipal wards | **`STATIC GIS REFERENCE`** | Verified GeoJSON polygon coordinates (`wards_bhubaneswar.geojson`) with complete topological closure. |
+| **CPCB OGD Platform** | Real-time air quality co-exposure (PM2.5, PM10, AQI) | **`CREDENTIALS_NOT_CONFIGURED`** | Code integrated; gracefully degrades to offline synthetic reference when API token is not provided in environment. |
+| **IMD Mausam Portal** | Official synoptic weather context and national heatwave bulletins | **`CREDENTIALS_NOT_CONFIGURED`** | Architectural client implemented; reports credential status transparently rather than fabricating live feeds. |
+| **ISRO / NRSC Bhuvan** | Land Use / Land Cover (LULC 50K) and Land Surface Temperature (LST) | **`PENDING LEGEND ROLLOUT`** | WMS tile integration completed; awaiting public tokenized legend activation. |
+| **PhysioNet Stress Study** | Empirical human biometric heat stress reference data | **`EXPERIMENTAL / REFERENCE`** | Offline wearable study reference; not connected as a live biometric monitor. |
+
+---
+
+## 8. Thermal Science
+
+HeatGuard AI integrates three internationally recognized bio-meteorological frameworks:
+
+### 1. Steadman Heat Index (Rothfusz Formulation)
+Calculates apparent temperature sensation from ambient dry-bulb temperature ($T$ in °F) and relative humidity ($RH$ in %):
+$$\text{HI} = c_1 + c_2 T + c_3 RH + c_4 T \cdot RH + c_5 T^2 + c_6 RH^2 + c_7 T^2 \cdot RH + c_8 T \cdot RH^2 + c_9 T^2 \cdot RH^2$$
+
+### 2. Wet Bulb Globe Temperature (WBGT)
+Evaluates occupational thermal stress under direct solar exposure according to **ISO 7243 methodology**:
+$$\text{WBGT}_{\text{outdoor}} = 0.7\,T_{\text{nw}} + 0.2\,T_{\text{g}} + 0.1\,T_{\text{a}}$$
+- $T_{\text{nw}}$: Natural wet-bulb temperature (evaporative efficiency)
+- $T_{\text{g}}$: Black globe temperature (radiant thermal load)
+- $T_{\text{a}}$: Ambient dry-bulb air temperature
+
+*Operating Caveat:* The configured alert tiers (Green, Yellow, Orange, Red) in HeatGuard AI represent application-level municipal decision thresholds. ISO 7243 specifies the measurement methodology but does not prescribe the platform's specific UI color palette.
+
+### 3. Universal Thermal Climate Index (UTCI)
+Assesses the physiological strain on human thermoregulation (energy budget balance), incorporating 10m wind speed and radiant heat exchange.
+
+### 4. Ward-Level Composite Risk Index Formula
+To rank intervention urgency across Bhubaneswar's 67 wards, HeatGuard AI calculates:
+
+$$\text{Ward Risk Score} = 0.50 \times \text{Hazard} + 0.35 \times \text{Vulnerability} + 0.15 \times \text{Exposure}$$
+
+- **Hazard ($0.50$):** Normalized composite of localized WBGT, Heat Index, and nocturnal recovery deficit ($T_{\text{min}} \ge 26.0^\circ\text{C}$).
+- **Vulnerability ($0.35$):** Weighted sum of geriatric ratio (aged 65+, 30%), outdoor worker density (30%), vegetative canopy deficit (20%), and uninsulated heat-trapping roof percentage (20%).
+- **Exposure ($0.15$):** Population density per square kilometer derived from municipal census records.
+
+> **Decision Support Notice:**  
+> The composite score is a prioritized decision-support indicator for municipal resource deployment, not a clinical diagnosis.
+
+---
+
+## 9. AI / ML
+
+The machine learning capability in HeatGuard AI is implemented via **ML V2** (`data/ml_v2/models/ml_v2_model.joblib`), trained on historical ECMWF ERA5 reanalysis data.
+
+### Model Specification:
+- **Algorithm:** `HistGradientBoostingRegressor` (Scikit-Learn)
+- **Target Variable:** `NEXT_24H_MAX_APPARENT_TEMPERATURE`
+- **Feature Space (36 Features):**
+  - Meteorological features: temperature, dew point, relative humidity, wind speed, solar radiation, surface pressure.
+  - Lag features: 1h, 3h, 6h, 12h, 24h lags of thermal and moisture variables.
+  - Rolling window statistics: 6h and 24h rolling means, standard deviations, and maximums.
+  - Temporal & seasonal encodings: hour of day (sine/cosine), day of year, solar zenith proxy.
+
+### Chronological Holdout Validation (Zero Data Leakage):
+- **Training Set (2021–2023):** 26,256 hourly records per coordinate grid
+- **Validation Set (2024):** 8,784 hourly records per coordinate grid
+- **Unseen Test Set (2025):** 8,760 hourly records per coordinate grid
+
+### Measured Holdout Performance (2025 Test Year):
+- **Mean Absolute Error (MAE):** **`1.0829 °C`** (Target: < 1.50 °C)
+- **Root Mean Squared Error (RMSE):** **`1.3862 °C`** (Target: < 2.00 °C)
+- **Coefficient of Determination ($R^2$):** **`0.9055`** (Target: > 0.85)
+
+> **Critical AI Scope Boundary:**  
+> ML V2 predicts an **environmental thermal variable** (apparent temperature). It is **NOT** a hospital admissions predictor, **NOT** a mortality predictor, and **NOT** a clinical diagnosis model. All life-safety municipal tiers remain governed by deterministic physics. In the UI and documentation, ML V2 is strictly labeled: **`EXPERIMENTAL / RESEARCH MODEL`**.
+
+---
+
+## 10. GIS & 67-Ward Intelligence
+
+HeatGuard AI provides ward-level spatial resolution across the entire municipal jurisdiction of Bhubaneswar:
+
+- **67 Administrative Wards:** Full geometric coverage stored in GeoJSON polygon format (`wards_bhubaneswar.geojson`).
+- **Interactive Leaflet Mapping:** High-performance vector rendering with dynamic color-coding by risk tier, WBGT thermal stress, or vulnerability multiplier.
+- **Topological Integrity:** 100% of ward boundaries have closed linear rings and valid coordinate bounds ($20.18^\circ\text{N} - 20.38^\circ\text{N}$, $85.74^\circ\text{E} - 85.92^\circ\text{E}$).
+- **Microclimate Layering:** Dynamic overlays representing municipal cooling shelters, public drinking water stations, and school clusters.
+- **Data Reality:** Ward boundary geometry is a static GIS reference, while overlaid meteorological telemetry is live/calculated depending on the selected layer.
+
+---
+
+## 11. Alerts & Decision Support
+
+HeatGuard AI translates thermal risk into immediate, auditable operational actions:
+
+- **Role-Specific Directives:**
+  - **Outdoor Workers:** Enforces ISO 7243 work-to-rest intervals (e.g., 45 min work / 15 min rest at WBGT 30°C; mandatory work stoppage at WBGT > 32.2°C).
+  - **Schools:** Automated alerts recommending suspension of afternoon outdoor sports, mandatory hydration breaks, and transition to morning class hours.
+  - **Municipal Logistics:** Staging water tankers and activating public cooling shelters in wards where composite risk exceeds 75 (Red Alert).
+- **Simulated Emergency Dispatch:** The prototype includes a multi-channel emergency broadcast simulator (SMS / WhatsApp / Voice IVR).
+  - **Dry-Run Mode:** All broadcasts run in **`SIMULATED RESPONSE FLOW`** mode. No carrier network charges are incurred, and no real field personnel are deployed.
+  - **DPDP Act Compliance:** All recipient phone numbers recorded in the audit log table (`sentinelx_data.db`) are automatically masked (e.g., `+91 98****1234`) to respect digital privacy regulations.
+
+---
+
+## 12. Data Truth & Responsible AI
+
+To prevent the dangerous hallucination of emergency information, HeatGuard AI implements an explicit **Radical Data Truth Taxonomy**:
+
+```
+[LIVE]                    Real-time telemetry actively verified from sensor/API
+[CALCULATED]              Deterministically derived from physical equations (ISO 7243)
+[FORECAST]                Forward-looking numerical weather prediction
+[EXPERIMENTAL]            Research machine learning models (ML V2)
+[STATIC REFERENCE]        Official reference standards (NDMA benchmarks, census data)
+[UNAVAILABLE / NULL]      Clinical outcomes where authentic records are absent
+[CREDENTIALS_NOT_CONFIGURED] External API credentials not present in host environment
+[SIMULATED]               Emergency dispatch actions executed in dry-run drill mode
+```
+
+### Truth Commitments:
+1. **No Fake Live Data:** Cached observations are explicitly labeled as cached with elapsed timestamps.
+2. **No Fabricated Government Feeds:** If CPCB or IMD API keys are missing, the system states `CREDENTIALS_NOT_CONFIGURED` instead of generating synthetic data and calling it live.
+3. **No Fabricated Health Outcomes:** Hospital demand endpoints return explicit `null` for admissions and mortality, refusing to invent artificial patient casualties.
+4. **Deterministic Primacy:** Life-critical alert tiers are never delegated to black-box heuristics; they remain strictly deterministic.
+
+---
+
+## 13. Validation & Engineering Evidence
+
+HeatGuard AI's engineering claims are backed by reproducible automated verification:
+
+- **Automated Pytest Suite:**
+  ```text
+  ================== 97 passed, 10 skipped, 1 warning in 37.41s ==================
+  ```
+  Verified across 25 test modules spanning bio-meteorological math, API endpoints, feature engineering, and graceful degradation.
+- **ML V2 Unseen 2025 Holdout:**
+  - MAE: **1.0829 °C**
+  - RMSE: **1.3862 °C**
+  - $R^2$: **0.9055**
+- **Frontend Static Verification:** `tsc --noEmit` completes with **0 errors**.
+- **Production Build:** `npm run build` succeeds cleanly, producing minified assets in `dist/`.
+- **Credential Security:** Repository-wide automated regex scanning confirms **0 exposed private keys, tokens, or hardcoded passwords**.
+
+---
+
+## 14. Technology Stack
+
+### Backend & Scientific Computing
+- **Language:** Python 3.12 / 3.13
+- **Web Framework:** FastAPI 0.115 (ASGI) + Uvicorn
+- **Machine Learning:** Scikit-Learn (HistGradientBoostingRegressor), NumPy, Pandas, Joblib
+- **Bio-Meteorology:** PyThermalComfort, custom ISO 7243 and Rothfusz implementations
+- **Testing:** Pytest 8.4+, AnyIO, Starlette TestClient
+
+### Frontend & Spatial Presentation
+- **Framework:** React 18.3 + TypeScript 5.7
+- **Build System:** Vite 6.0 + ESBuild
+- **Styling:** TailwindCSS 4.0 + Lucide React Icons
+- **Mapping & GIS:** Leaflet 1.9 + React-Leaflet
+- **Data Visualization:** Recharts, Canvas-rendered bio-molecular animations
+
+### Infrastructure & Deployment
+- **Containerization:** Multi-stage Docker (Python 3.12-slim base)
+- **Production Hosting:** Railway Cloud (HTTPS Edge termination)
+- **Database / Cache:** SQLite 3 (local persistence), Supabase (PostgreSQL CDC sync)
+
+---
+
+## 15. Repository Structure
+
+```text
+/
+├── README.md                           # Master hackathon documentation & judge guide
+├── LICENSE                             # MIT Open-Source License
+├── .gitignore                          # Security-hardened git exclusion rules
+├── .env.example                        # Sanitized environment configuration template
+├── Dockerfile                          # Multi-stage production container manifest
+├── requirements.txt                    # Pinned Python backend dependencies
+├── package.json                        # Node.js frontend dependencies & build scripts
+├── vite.config.ts                      # Vite build & plugin configuration
+├── pytest.ini                          # Pytest discovery and pythonpath configuration
+│
+├── main.py                             # FastAPI master application entrypoint
+├── database.py                         # SQLite engine & database session manager
+├── schemas.py                          # Pydantic request/response data contracts
+├── models.py                           # SQLAlchemy database models
+├── thermal_stress_engine.py            # Core bio-meteorological equations
+├── prediction_engine.py                # Deterministic multi-day forecast aggregator
+├── server.ts                           # Express + Vite development and SSR server
+│
+├── routers/                            # Modular FastAPI REST API routers (21 modules)
+│   ├── sentinelx.py                    # Primary tactical telemetry router
+│   ├── health.py                       # System healthcheck router
+│   ├── ml_v2_forecast.py               # Supervised ML V2 prediction router
+│   ├── hospital_surge.py               # Hospital demand research router
+│   ├── alerts.py                       # Alert broadcast & audit router
+│   └── ...
+│
+├── services/                           # Business logic, caching & data adapters (21 modules)
+│   ├── open_meteo_service.py           # Real-time weather observation adapter
+│   ├── cpcb_service.py                 # CPCB air quality integration client
+│   ├── imd_service.py                  # IMD synoptic weather client
+│   ├── bhuvan_service.py               # ISRO Bhuvan satellite client
+│   └── ...
+│
+├── core/                               # System configuration, security & logging
+│   └── config.py                       # Application settings & environment loader
+│
+├── ml_v2/                              # Machine learning training & feature pipeline
+│   ├── feature_engineering.py          # 36 meteorological & lag feature transformers
+│   ├── splits.py                       # Chronological data splitters (train/val/test)
+│   └── targets.py                      # Apparent temperature target creators
+│
+├── data/                               # Spatial boundaries & ML model artifacts
+│   ├── wards_bhubaneswar.geojson       # BMC 67-ward polygon geometry
+│   ├── odisha_districts.geojson        # 30 Odisha district administrative boundaries
+│   ├── ml_v2/
+│   │   ├── models/ml_v2_model.joblib   # Trained HistGradientBoostingRegressor artifact
+│   │   ├── models/ml_v2_model_metadata.json # Feature registry & holdout metrics
+│   │   ├── era5_grid_mapping.csv       # Spatial grid-to-district coordinate mapping
+│   │   └── historical_weather_era5_cds_2021_2025.csv # 262k ERA5 hourly training rows
+│   └── physiology_reference/           # PhysioNet stress study schema definition
+│
+├── src/                                # React 18 + TypeScript frontend application
+│   ├── pages/
+│   │   ├── Landing.tsx                 # Animated Landing Page showcase
+│   │   └── Dashboard.jsx               # Tactical situation room
+│   ├── components/                     # Reusable UI widgets & GIS layers
+│   │   ├── AppSidebar.tsx              # Primary collapsible navigation
+│   │   ├── Header.tsx                  # Tactical header with Landing Page switcher
+│   │   ├── OdishaMap.tsx               # Statewide district choropleth
+│   │   ├── WardView.tsx                # 67-ward Bhubaneswar GIS viewer
+│   │   └── tabs/                       # Dedicated domain safety tabs
+│   └── services/                       # API clients & Supabase realtime sync
+│
+├── docs/                               # Comprehensive project documentation
+│   ├── README.md                       # Master documentation directory
+│   ├── HEATGUARD_AI_END_TO_END_PROJECT_REPORT.md # Canonical SIH evaluation report
+│   ├── HEATGUARD_AI_END_TO_END_PROJECT_REPORT.html # Printable styled report
+│   ├── architecture/README.md          # 8-tier architectural specifications
+│   ├── methodology/README.md           # Thermal science & mathematical derivations
+│   ├── validation/README.md            # Empirical ML metrics & test evidence
+│   ├── api/README.md                   # Complete REST API reference
+│   ├── deployment/README.md            # Cloud, Docker & local deployment guide
+│   └── research/README.md              # Research boundaries & Responsible AI guidelines
+│
+├── tests/                              # Automated pytest suite (25 test files)
+│   ├── ml_v2/                          # ML feature & pipeline test suite
+│   ├── test_vulnerability_engine.py    # Bio-meteorological equation tests
+│   ├── test_mock_api_graceful.py       # Graceful degradation tests
+│   └── ...
+│
+└── screenshots/                        # Visual platform captures for evaluators
+    ├── README.md                       # Screenshots index & evaluation walk-through
+    ├── dashboard_command_center_full.png # Full command center cockpit capture
+    ├── dashboard_command_center.png    # Primary risk dashboard detail
+    └── dashboard_unique_innovations.png# Architectural innovation highlights
 ```
 
 ---
 
-## 📂 Repository Directory Tree
+## 16. Local Setup
 
-```
-/Users/aniruddhasutradhar/Desktop/SIH
-├── main.py                     # Master FastAPI ASGI application entrypoint & static mount
-├── database.py                 # SQLite database engine & session management
-├── models.py                   # SQLAlchemy ORM models (WeatherObservation, ForecastCache, AlertAuditLog)
-├── schemas.py                  # Pydantic schemas for request/response serialization
-├── requirements.txt            # Python production dependencies
-├── package.json                # Frontend NPM packages and build scripts
-├── Dockerfile                  # Production multi-stage Docker build specification
-├── .env.example                # Environment variable template (zero committed secrets)
-├── wards_bhubaneswar.geojson   # Formal BMC 67-ward polygon boundary features with demographics
-├── odisha_districts.geojson    # Sovereign Odisha 30-district boundary polygons
-│
-├── routers/                    # Modular FastAPI REST API Routers (76 registered endpoints)
-│   ├── weather.py              # Live observation endpoints (/api/v1/dashboard)
-│   ├── forecast.py             # 5-day horizon forecasting (/api/v1/forecast-risk)
-│   ├── wards.py                # Ward-level risk intelligence and ranking (/api/v1/wards, /api/v1/wards/{id})
-│   ├── thermal.py              # Thermal index calculations (/api/v1/thermal/thermal-stress)
-│   ├── copilot.py              # AI Copilot hybrid chat engine (/api/v1/ai/copilot, /api/v1/ai/advisory)
-│   ├── health_research.py      # Research endpoints (/api/v1/wards/{id}/hospital-demand, /api/v1/mortality-risk)
-│   ├── cpcb.py                 # CPCB air quality integration (/api/v1/cpcb/status)
-│   ├── imd.py                  # IMD official warning integration (/api/v1/imd/status)
-│   ├── alerts.py               # Multi-channel notification dispatch (/api/v1/alerts/dispatch)
-│   ├── htherm.py               # Human thermal stress & metabolic balance (/api/v1/h-therm/calculate)
-│   ├── model_validation.py     # ML validation metrics & confusion matrices (/api/v1/model-validation)
-│   ├── ml_v2.py                # HistGradientBoosting temperature predictor (/api/v1/ml-v2/forecast)
-│   └── sentinelx.py            # Comprehensive telemetry, multi-hazard, and GeoJSON endpoints
-│
-├── services/                   # Core Business Logic & Scientific Computation
-│   ├── ingestion.py            # Open-Meteo ingestion, grid batching, and SQLite caching
-│   ├── thermal_engine.py       # Deterministic implementations of WBGT, UTCI, HI, and Apparent Temp
-│   ├── risk_engine.py          # Composite 3-tier Ward Risk Scorer (Hazard, Vulnerability, Exposure)
-│   ├── live_sync.py            # Unified daemon synchronizer (Open-Meteo: 600s, IMD: 900s, CPCB: 900s)
-│   ├── notification_service.py # SMS & WhatsApp adapter pipeline with dry-run support
-│   ├── cpcb_client.py          # CPCB OGD API client and Haversine nearest-station matcher
-│   ├── imd_client.py           # IMD Mausam API client and district warning normalizer
-│   ├── bhuvan_lulc.py          # Bhuvan LULC AOI statistics cache service
-│   └── htherm_engine.py        # Physiological thermal comfort and organ stress modeling
-│
-├── src/                        # React 18 TypeScript Frontend Source
-│   ├── App.tsx                 # Root application component, tab router, and live header status chips
-│   ├── index.css               # Design system tokens, tactical dark palette, and CSS utilities
-│   ├── services/apiConfig.ts   # Centralized API base URL resolver and proxy router
-│   ├── components/             # Reusable UI Components
-│   │   ├── AICopilotModal.tsx  # Natural language AI Copilot drawer with safety disclaimers
-│   │   ├── ModelValidationView.tsx # ML metrics, ROC curves, and confusion matrix tables
-│   │   ├── BenchmarksView.tsx  # Historical NDMA heatwave benchmarks (1998, 2015, 2019)
-│   │   └── tabs/               # Primary Screen Views
-│   │       ├── CommandTab.tsx          # Municipal Command & Control Center view
-│   │       ├── MapViewTab.tsx          # Interactive 67-ward GIS choropleth and layer selector
-│   │       ├── OdishaStateTab.tsx      # Macro state-level Odisha meteorological overview
-│   │       ├── CitizenViewTab.tsx      # Public-facing citizen advisory and cooling center locator
-│   │       ├── WorkerSafetyTab.tsx     # ISO 7243 occupational work-rest advisory
-│   │       ├── SchoolSafetyTab.tsx     # School schedule and student outdoor activity guidance
-│   │       ├── HospitalDemandTab.tsx   # Healthcare surge research view (explicit research proxy)
-│   │       ├── HThermTab.tsx           # Interactive metabolic heat balance calculator
-│   │       ├── SimulatorTab.tsx        # Environmental parameter stress-testing simulator
-│   │       └── HistoricalReplayTab.tsx # Replay interface for historic heatwave scenarios
-│
-├── data/                       # Datasets, Model Artifacts & Baselines
-│   ├── sentinelx_data.db       # Active production SQLite database
-│   ├── ml_v2/                  # Supervised ML V2 Pipeline
-│   │   ├── historical_weather_era5_cds_2021_2025.csv # 262,656 processed rows of cleaned ERA5 data
-│   │   └── models/
-│   │       ├── ml_v2_model.joblib # Serialized HistGradientBoosting model artifact (438 KB)
-│   │       └── ml_v2_model_metadata.json # 36-feature training metadata and test evaluation metrics
-│   └── physiology_reference/   # Offline research/reference physiology data (PhysioNet, 36 subjects)
-│
-├── tests/                      # Automated Quality Assurance & Verification Suite
-│   ├── test_forecast.py        # 5-day forecast structure and date validation tests
-│   ├── test_pipeline.py        # End-to-end data ingestion and thermal calculation tests
-│   ├── test_ml_v2.py           # ML V2 inference, shape verification, and feature alignment
-│   ├── test_live_features.py   # Live API status, graceful degradation, and provenance checks
-│   └── ... (25 test files total covering 97 passing test cases)
-│
-└── docs/                       # Technical Documentation & Architectural Audits
-    ├── HEATGUARD_AI_END_TO_END_PROJECT_REPORT.md   # 14,000+ word comprehensive SIH project report
-    └── HEATGUARD_AI_END_TO_END_PROJECT_REPORT.html # Polished, printable executive HTML document
-```
+### System Prerequisites:
+- **Python:** 3.11 or 3.12+
+- **Node.js:** v18+ or v20+
+- **Git**
 
----
+### Installation Steps:
 
-## 🤖 Supervised Machine Learning Pipeline (ML V2)
-
-HeatGuard AI incorporates a dedicated histogram-based gradient boosting regressor (`HistGradientBoostingRegressor`) designed to forecast maximum apparent temperature 24 hours in advance without target leakage.
-
-```
-[=================== TRAIN SET ===================] [=== VAL SET ===] [=== TEST SET ===]
-Jan 2, 2021                       Dec 31, 2023     Jan 1, 2024       Jan 1, 2025    Dec 30, 2025
-Rows: 157,536 (26,256 hrs/grid)                    Rows: 52,704      Rows: 52,416 (8,736 hrs/grid)
-Total Dataset: 262,656 processed rows across 6 ERA5 grid points (43,776 hourly timesteps)
-```
-
-### Verified Holdout Evaluation Metrics (Unseen 2025 Calendar Year)
-* **Target Variable:** `NEXT_24H_MAX_APPARENT_TEMPERATURE` (°C)
-* **Dataset:** Copernicus Climate Change Service (C3S) ECMWF ERA5 Reanalysis
-* **Feature Vector:** 36 strictly backward-looking features (instantaneous meteorology, cyclical sin/cos encodings, autoregressive lags at 1h/3h/6h/12h/24h, and 24h rolling extrema).
-* **Holdout MAE:** **1.0829 °C** (reduced error by ~0.12°C over strong persistence baseline)
-* **Holdout RMSE:** **1.3862 °C**
-* **Holdout $R^2$ Score:** **0.9055**
-* **Inference Latency:** **< 1.2 ms** per sample
-* **Model Artifact:** `data/ml_v2/models/ml_v2_model.joblib` (438 KB)
-
----
-
-## 🔬 Radical Data Truth & Provenance Framework
-
-In life-critical disaster management platforms, misrepresenting simulated numbers as real observations can result in tragic misallocations of municipal resources. HeatGuard AI formally categorizes every data point into one of **11 explicit engineering states**:
-
-```
-+---------------------------------------------------------------------------------------------------+
-|                            HEATGUARD DATA-TRUTH TAXONOMY (11 STATES)                              |
-+---------------------------------------------------------------------------------------------------+
-|  1. LIVE                        | Direct real-time sensor / API observation fetched < 10 min ago  |
-|  2. CACHED OBSERVATION          | Fresh observation from local SQLite cache (< 6 hours old)       |
-|  3. STALE                       | Observation older than 6 hours; upstream network feed interrupted|
-|  4. CALCULATED                  | Deterministic mathematical transformation of valid meteorology   |
-|  5. FORECAST                    | Numerical weather model projection over 24h to 120h horizon      |
-|  6. MODELLED (ERA5 ML V2)       | Supervised machine learning inference trained on ERA5 reanalysis|
-|  7. EXPERIMENTAL_NOT_VALIDATED  | Research proxy model; explicitly returns null clinical outcomes  |
-|  8. STATIC REFERENCE            | Pre-loaded municipal baselines (Census, hospital locations)     |
-|  9. STATIC GIS REFERENCE        | Local bundled GeoJSON polygons (wards_bhubaneswar.geojson)      |
-|  10. PENDING_ROLLOUT            | Satellite layer connected but awaiting color palette calibration|
-|  11. CREDENTIALS_NOT_CONFIGURED | Real API client implemented, but agency secret key unconfigured |
-|  12. DEMO ACTION / SIMULATED    | Simulated action flow (e.g., alert dry-run, QRT dispatch drill) |
-+---------------------------------------------------------------------------------------------------+
-```
-
-### Examples of Enforced Truthfulness:
-1. **Hospital Admissions:** `/api/v1/wards/{ward_no}/hospital-demand` returns `admissions_prediction: null` with status `EXPERIMENTAL_NOT_VALIDATED`. The legacy 2-stage DLNM model was removed from production alerting due to target leakage.
-2. **Mortality Prediction:** `/api/v1/mortality-risk` returns `predicted_mortality: null`. It provides an `ENVIRONMENTAL EXPOSURE PROXY` while explicitly disclaiming clinical mortality prediction until civil death registries are linked.
-3. **Government Credentials:** CPCB and IMD endpoints report `CREDENTIALS_NOT_CONFIGURED` when official agency API keys are unset, refusing to fabricate synthetic air quality or synoptic warnings.
-4. **AI Copilot Transparency:** The Copilot titles its warmest-wards response as *"Highest Current Temperature Wards"* and appends the mandatory disclaimer: *"Ranked by current dry-bulb temperature; this is not the overall SentinelX thermal-risk ranking."*
-5. **Emergency Alerts:** The dispatcher defaults to `dry_run: true`, recording a simulated alert in the SQLite audit log (`DEMO ACTION`) rather than claiming non-existent carrier delivery.
-
----
-
-## 🚀 Quick Start Guide
-
-### Prerequisites
-* Python 3.12 or 3.13
-* Node.js 18+ and npm
-* Docker (optional, for containerized run)
-
-### 1. Clone the Repository
 ```bash
+# 1. Clone the repository
 git clone https://github.com/aniruddhasutradher07-commits/SentinelX.git
 cd SentinelX
-```
 
-### 2. Backend Setup (FastAPI)
-```bash
-# Create and activate virtual environment
-python3 -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
-# Install production dependencies
-pip install -r requirements.txt
-
-# Copy environment template
+# 2. Configure environment
 cp .env.example .env
 
-# Run FastAPI backend with Uvicorn
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-```
-Backend API will be available at **`http://localhost:8000`** (Swagger docs at `/docs`).
+# 3. Setup Python Backend Virtual Environment
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 
-### 3. Frontend Setup (React 18 + Vite)
-```bash
-# In a separate terminal
+# 4. Setup Node.js Frontend Dependencies
 npm install
-npm run dev
 ```
-Interactive frontend will launch at **`http://localhost:5173`**.
 
-### 4. Running with Docker (Production Multi-Stage Build)
-```bash
-# Build production multi-stage image
-docker build -t heatguard-ai .
+### Running the Application:
 
-# Run container (serves both API and static frontend from port 8000)
-docker run -p 8000:8000 -e PORT=8000 heatguard-ai
-```
-Visit **`http://localhost:8000`** in your browser.
+- **Run Full-Stack Development Server (Frontend + Express Proxy):**
+  ```bash
+  npm run dev
+  ```
+  *Accessible at:* `http://localhost:3000` (Direct Landing Page at `/` and Command Center at `/app`).
+
+- **Run FastAPI Backend Server Independently:**
+  ```bash
+  uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+  ```
+  *API Docs:* `http://localhost:8000/docs`
+
+- **Execute Automated Test Suite:**
+  ```bash
+  pytest
+  ```
 
 ---
 
-## 🧪 Verification & Quality Assurance
+## 17. Environment Variables
 
-HeatGuard AI maintains continuous automated verification across scientific calculations, API endpoints, and type contracts:
+Configure these settings in your `.env` file (copied from `.env.example`):
 
-```bash
-# 1. Run full Python automated test suite
-python -m pytest tests/ -q --tb=line
+| Variable Name | Required | Default / Example | Purpose |
+| :--- | :--- | :--- | :--- |
+| `PORT` | Optional | `8000` | Port for FastAPI server |
+| `APP_ENV` | Optional | `development` | Runtime environment (`development` / `production`) |
+| `VITE_API_BASE_URL` | Optional | `http://localhost:8000` | Backend API URL for frontend queries |
+| `DATABASE_URL` | Optional | `sqlite:///./sentinelx_data.db` | Local SQLite or PostgreSQL connection string |
+| `GEMINI_API_KEY` | Optional | `YOUR_KEY` | Powers AI Copilot Q&A (falls back to rule engine if unset) |
+| `CPCB_API_KEY` | Optional | `YOUR_KEY` | Official CPCB data.gov.in token (gracefully offline if unset) |
+| `IMD_API_KEY` | Optional | `YOUR_KEY` | IMD Mausam API token (reports credential status if unset) |
+| `BHUVAN_LULC50K_TOKEN`| Optional | `YOUR_KEY` | ISRO Bhuvan satellite WMS layer token |
+| `WEATHER_PROVIDER` | Optional | `open_meteo` | Realtime weather provider (`open_meteo`) |
+| `USE_MOCK_DATA` | Optional | `false` | When true, forces offline synthetic data for demos |
 
-# Verified Output:
-# ======================== 97 passed, 10 skipped in 21.10s ========================
+---
 
-# 2. Run TypeScript compiler strict check
-npx tsc --noEmit
+## 18. API Quick Reference
 
-# 3. Build optimized production bundle
-npm run build
+Selected verified core endpoints from the 21 registered routes:
+
+```http
+# System Status & Health
+GET  /
+GET  /health
+GET  /api/v1/summary
+GET  /api/v1/live-feed
+
+# 67-Ward GIS & Spatial Data
+GET  /api/v1/odisha-geojson
+GET  /api/v1/wards-geojson
+GET  /api/v1/districts
+GET  /api/v1/wards
+
+# Forecasting & Machine Learning
+GET  /api/v1/forecast-risk?district=Khordha&horizon=5
+GET  /api/v1/ml-v2/forecast
+
+# External Feeds Status
+GET  /api/v1/cpcb/status
+GET  /api/v1/imd/status?district=Khordha
+GET  /api/v1/bhuvan/status
+
+# Research Boundaries (Returns NULL for clinical outcomes)
+GET  /api/v1/wards/{ward_no}/hospital-demand
+GET  /api/v1/physiology-reference
+
+# Emergency Broadcast Simulation
+POST /api/v1/broadcast/dispatch
+GET  /api/v1/alerts/audit-log
 ```
 
 ---
 
-## 📊 Problem Statement Mapping Matrix (SIH PS 26083)
+## 19. Production Demo
 
-| SIH Requirement | HeatGuard Implementation | Verified Status |
+The production platform is hosted on Railway Cloud with automated continuous deployment:
+
+- **Web Application & Tactical Dashboard:**  
+  👉 **`https://sentinelx-thermal-api-production-aa42.up.railway.app`**
+- **Interactive Swagger REST API Documentation:**  
+  👉 **`https://sentinelx-thermal-api-production-aa42.up.railway.app/docs`**
+
+The deployment runs in a high-availability container environment with automated health checks, dynamic cold-start recovery, and client-side fallback data resilience.
+
+---
+
+## 20. Judge Verification Flow
+
+To systematically verify the codebase against the problem statement requirements:
+
+| Verification Target | Code Location | Verification Action |
 | :--- | :--- | :--- |
-| **Multi-Parameter Meteorological Sensing** | 2m temp, relative humidity, wind speed, downward solar radiation, dew point, surface pressure. | `LIVE (Open-Meteo, 600s sync)` |
-| **Comprehensive Thermal Stress Indices** | Deterministic formulations for WBGT (ISO 7243), UTCI (Fiala model), NOAA Heat Index, and Apparent Temp. | `CALCULATED / LIVE` |
-| **Hyperlocal Spatial Granularity** | 67 BMC wards mapped with polygon boundaries, demographic density, and vulnerability multipliers. | `STATIC GIS REFERENCE` |
-| **3–5 Day Forward Forecast** | 120-hour forecast horizon predicting daily thermal peaks and tropical night recovery deficits. | `FORECAST` |
-| **Supervised Machine Learning** | HistGradientBoosting regressor trained on 262k ERA5 hourly records (Holdout MAE: 1.08°C). | `MODELLED (ERA5 ML V2)` |
-| **Role-Specific Public Health Guidance** | Actionable advisories tailored for citizens, outdoor construction laborers (ISO 7243), and schools. | `CALCULATED ADVISORY` |
-| **Emergency Early Warning Notification** | Automated multi-channel SMS and WhatsApp alert dispatcher with immutable SQLite audit logging. | `DEMO ACTION / DISPATCH` |
+| **ISO 7243 WBGT Math** | `thermal_stress_engine.py` | Run `pytest tests/test_vulnerability_engine.py` |
+| **67-Ward Polygon GIS** | `data/wards_bhubaneswar.geojson` | Load UI at `/app` &rarr; click `Bhubaneswar Core` |
+| **ML V2 Model & Features** | `data/ml_v2/models/ml_v2_model.joblib` | Run `pytest tests/ml_v2/` |
+| **Data Provenance Truth** | `src/components/Header.tsx`, `routers/` | Verify `CREDENTIALS_NOT_CONFIGURED` & `SIMULATED` tags |
+| **Audit Privacy Masking** | `routers/alerts.py` | Execute simulated dispatch & check masked phone format |
+| **TypeScript Integrity** | `src/` | Run `npm run lint` (`tsc --noEmit`) |
+| **Test Suite Coverage** | `tests/` | Run `pytest` (verifies 97 passed tests) |
 
 ---
 
-## 👥 Contributors & Acknowledgements
+## 21. Research / Experimental Boundaries
 
-* **Team:** HeatGuard AI Engineering & Research Team (Smart India Hackathon 2026)
-* **Problem Statement:** PS 26083 — Extreme Heatwave Early Warning & Impact Advisory System
-* **Data Providers:** Open-Meteo API, Copernicus Climate Change Service (ECMWF ERA5), Central Pollution Control Board (CPCB), India Meteorological Department (IMD), ISRO/NRSC Bhuvan, Survey of India, and Census of India.
+HeatGuard AI strictly delineates operational features from experimental research:
+
+- **Deterministic Primacy:** Life-critical municipal alert tiers are computed deterministically. Machine learning models never override physical safety thresholds.
+- **Healthcare Demand Boundary:** Hospital admissions and mortality predictions remain in research status (`null` output) until HIPAA/DPDP-compliant hospital EHR data is connected.
+- **Simulated Dispatch:** All alert notifications are simulated drills; no real municipal emergency teams are mobilized.
+- **Biometric Reference:** PhysioNet datasets serve as offline architectural references only.
 
 ---
-*Predict Heat. Protect People. — HeatGuard AI © 2026*
+
+## 22. Known Limitations
+
+- **Official API Keys in Default Deployment:** Real-time CPCB and IMD APIs operate under `CREDENTIALS_NOT_CONFIGURED` in public cloud environments where official government subscription keys are not configured, gracefully defaulting to verified meteorological reanalysis.
+- **Indoor Thermal Variation:** The current WBGT model represents outdoor conditions; indoor thermal modeling is estimated via roofing material vulnerability multipliers rather than in-building indoor air sensors.
+- **Static Demographic Weights:** Census demographic proportions are based on municipal ward census figures and do not dynamically reflect hour-by-hour daytime worker commuting migration.
+
+---
+
+## 23. Roadmap
+
+- **Phase 1 (Completed):** 67-ward polygon GIS, deterministic WBGT/UTCI/HI engines, ML V2 apparent temperature forecasting, multi-channel simulated dispatch, DPDP audit logging.
+- **Phase 2 (Next 6 Months):** Official CPCB API production key activation, live ISRO Bhuvan LST tile streaming, pilot integration with Bhubaneswar Smart City ICCC (Integrated Command and Control Centre).
+- **Phase 3 (Long-Term):** Privacy-preserving federated learning with local district hospitals for validated clinical heat-stroke surge forecasting.
+
+---
+
+## 24. Documentation
+
+Explore the full documentation suite in [`docs/`](docs/):
+
+- [`docs/HEATGUARD_AI_END_TO_END_PROJECT_REPORT.md`](docs/HEATGUARD_AI_END_TO_END_PROJECT_REPORT.md) — Comprehensive SIH project report
+- [`docs/HEATGUARD_AI_END_TO_END_PROJECT_REPORT.html`](docs/HEATGUARD_AI_END_TO_END_PROJECT_REPORT.html) — Printable executive report
+- [`docs/architecture/README.md`](docs/architecture/README.md) — System architecture specifications
+- [`docs/methodology/README.md`](docs/methodology/README.md) — Thermal science & mathematical derivations
+- [`docs/validation/README.md`](docs/validation/README.md) — Empirical validation & holdout metrics
+- [`docs/api/README.md`](docs/api/README.md) — Complete REST API reference
+- [`docs/deployment/README.md`](docs/deployment/README.md) — Deployment & infrastructure guide
+- [`docs/research/README.md`](docs/research/README.md) — Research boundaries & Responsible AI
+
+---
+
+## 25. Team & Project Credits
+
+Developed for the **Smart India Hackathon 2026** under Problem Statement **PS 26083**.
+
+- **Project:** HeatGuard AI (SentinelX Architecture)
+- **Problem Statement:** PS 26083 — Impact-Based Heatwave Early Warning System
+- **Domain:** Ministry of Earth Sciences / Disaster Management / Urban Resilience
+- **Target City:** Bhubaneswar Municipal Corporation (67 Wards), Odisha, India
+
+---
+
+## 26. License
+
+This project is open-source software licensed under the **[MIT License](LICENSE)**.
