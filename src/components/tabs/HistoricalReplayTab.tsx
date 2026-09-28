@@ -352,7 +352,7 @@ export default function HistoricalReplayTab() {
             </div>
 
             <div className="p-3 bg-purple-950/20 border border-purple-500/30 rounded-xl text-purple-300 text-[11px] font-sans">
-              <b>Provenance Note: </b>Represents what SentinelX's 2-stage DLNM+XGBoost surge model would have predicted if active in {summary?.event_year}.
+              <b>Provenance Note: </b>Represents what SentinelX's experimental surge model would have predicted if active in {summary?.event_year}.
             </div>
           </div>
 

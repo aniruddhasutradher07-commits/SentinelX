@@ -63,7 +63,7 @@ export const BenchmarksView: React.FC = () => {
           </div>
           <h3 className="text-sm font-bold text-white font-display">AI / ML &amp; Systems</h3>
           <ul className="text-xs text-slate-400 mt-2 space-y-1.5 list-disc list-inside">
-            <li>2-Stage DLNM + XGBoost Model</li>
+            <li>Hospital Surge Forecaster</li>
             <li>R² = 0.9055 explanatory power</li>
             <li>MAE = 0.90 admissions/day</li>
             <li>GeoJSON spatial ward pipeline</li>

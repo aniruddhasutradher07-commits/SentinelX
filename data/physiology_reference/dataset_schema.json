@@ -1,0 +1,50 @@
+{
+  "dataset": {
+    "name": "PhysioNet Wearable Device Dataset",
+    "version": "1.0.1",
+    "total_subjects": 36,
+    "activities": ["STRESS", "AEROBIC", "ANAEROBIC"]
+  },
+  "signals": {
+    "HR": {
+      "name": "Heart Rate",
+      "units": "BPM",
+      "sampling_hz": 1,
+      "usable_for_sentinelx": true
+    },
+    "TEMP": {
+      "name": "Skin Temperature",
+      "units": "Celsius",
+      "sampling_hz": 4,
+      "usable_for_sentinelx": true
+    },
+    "EDA": {
+      "name": "Electrodermal Activity",
+      "units": "uS",
+      "sampling_hz": 4,
+      "usable_for_sentinelx": false
+    },
+    "BVP": {
+      "name": "Blood Volume Pulse",
+      "units": null,
+      "sampling_hz": 64,
+      "usable_for_sentinelx": false
+    },
+    "IBI": {
+      "name": "Inter Beat Interval",
+      "units": "s",
+      "sampling_hz": null,
+      "usable_for_sentinelx": false
+    },
+    "ACC": {
+      "name": "3-axis Accelerometer",
+      "units": "1/64g",
+      "sampling_hz": 32,
+      "usable_for_sentinelx": false
+    }
+  },
+  "timestamp_format": {
+    "default": "Row 1 = Initial UTC Unix time, Row 2 = Hz, Row 3+ = Values",
+    "IBI": "Column 1 = Relative time (s), Column 2 = Duration (s)"
+  }
+}

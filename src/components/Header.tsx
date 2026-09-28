@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router';
 import heatguardLogo from '../assets/heatguard-logo.png';
 
 interface HeaderProps {
@@ -17,12 +18,24 @@ interface HeaderProps {
   isSimulatingPulse?: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = () => {
+export const Header: React.FC<HeaderProps> = ({ setActiveTab }) => {
+  const handleGoLanding = (e: React.MouseEvent) => {
+    if (setActiveTab) {
+      e.preventDefault();
+      setActiveTab('landing');
+    }
+  };
+
   return (
     <header className="bg-[#030612]/95 border-b border-white/10 backdrop-blur-xl px-5 py-2.5 flex items-center justify-between gap-4 shrink-0 z-30 shadow-lg">
       {/* Brand & Logo */}
-      <div className="flex items-center gap-3.5">
-        <div className="relative group">
+      <Link 
+        to="/" 
+        onClick={handleGoLanding}
+        title="Return to HeatGuard AI Landing Page" 
+        className="flex items-center gap-3.5 group cursor-pointer hover:opacity-95 transition-opacity"
+      >
+        <div className="relative">
           <img 
             src={heatguardLogo} 
             alt="HeatGuard AI Logo" 
@@ -46,10 +59,18 @@ export const Header: React.FC<HeaderProps> = () => {
             Predict Heat. Protect People.
           </span>
         </div>
-      </div>
+      </Link>
 
-      {/* Sleek status indicator */}
+      {/* Sleek status indicator and Home link */}
       <div className="flex items-center gap-3">
+        <Link
+          to="/"
+          onClick={handleGoLanding}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-xs font-mono text-orange-300 hover:text-white transition-all shadow-sm cursor-pointer"
+          title="Return to Landing Page"
+        >
+          <span>← Landing Page</span>
+        </Link>
         <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900/60 border border-white/5 text-xs font-mono text-slate-300 shadow-inner">
           <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse" />
           <span>LIVE ENVIRONMENTAL MONITORING</span>

@@ -13,3 +13,7 @@ data/wearable-device-dataset-from-induced-stress-and-structured-exercise-session
 # SentinelX production frontend build
 !dist/
 !dist/**
+
+# Scratch and temporary tools
+scratch/
+

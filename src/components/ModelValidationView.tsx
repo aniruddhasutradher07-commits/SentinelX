@@ -155,7 +155,7 @@ export const ModelValidationView: React.FC = () => {
               onClick={() => setActiveModelTab('surge')}
               className={`px-3 py-1 rounded-lg transition-all ${activeModelTab === 'surge' ? 'bg-sky-600 text-white font-semibold' : 'text-slate-400 hover:text-white'}`}
             >
-              2-Stage Surge
+              Surge Forecaster
             </button>
           </div>
         </div>
@@ -369,7 +369,7 @@ export const ModelValidationView: React.FC = () => {
               </div>
             )}
 
-            {/* MODEL 2: 2-Stage DLNM + XGBoost Hospital Surge Forecaster */}
+            {/* MODEL 2: Hospital Surge Forecaster */}
             {(activeModelTab === 'both' || activeModelTab === 'surge') && surgeModel && (
               <div className="bg-tactical-800 border border-tactical-border rounded-2xl p-5 space-y-5 flex flex-col justify-between">
                 
@@ -521,12 +521,12 @@ export const ModelValidationView: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Stage 1 DLNM Lag Weights Chart */}
+                {/* Distributed Lag Weights Chart */}
                 {surgeModel.stage1_weights && (
                   <div className="bg-tactical-900 border border-tactical-border rounded-xl p-3.5 space-y-2">
                     <span className="text-xs font-mono text-slate-400 font-semibold flex items-center gap-1.5">
                       <TrendingUp className="w-3.5 h-3.5 text-amber-400" />
-                      Stage 1 DLNM Epidemiological Distributed Lag Weights
+                      Environmental Distributed Lag Weights
                     </span>
                     <div className="h-28 w-full">
                       <ResponsiveContainer width="100%" height="100%">

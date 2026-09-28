@@ -40,6 +40,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'COMMAND',
     items: [
+      { id: 'landing', label: 'Landing Page', icon: Sparkles, badge: 'SHOWCASE' },
       { id: 'command', label: 'Command Center', icon: ShieldAlert },
       { id: 'odisha', label: 'Odisha Statewide', icon: MapPin },
       { id: 'wards', label: 'Bhubaneswar Core', icon: Building2 },

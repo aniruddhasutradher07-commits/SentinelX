@@ -1,0 +1,68 @@
+{
+    "status": "SHADOW_INFERENCE_ONLY",
+    "prediction_time": "2026-09-24T20:00:00+00:00",
+    "prediction": 36.646431027608294,
+    "feature_source": "Open-Meteo",
+    "training_source": "Copernicus / ECMWF ERA5",
+    "source_alignment": "NOT_EXACT",
+    "feature_validation_status": "PASS",
+    "out_of_range_features": [],
+    "distribution_report": {
+        "temperature_c": {
+            "live_value": 30.0,
+            "train_min": 11.44223,
+            "train_max": 41.220978,
+            "train_mean": 27.356209008207074,
+            "out_of_range": false
+        },
+        "relative_humidity_pct": {
+            "live_value": 65.0,
+            "train_min": 17.775011,
+            "train_max": 100.00913,
+            "train_mean": 79.12969689114793,
+            "out_of_range": false
+        },
+        "dew_point_c": {
+            "live_value": 22.70307600598059,
+            "train_min": 3.250763,
+            "train_max": 30.25174,
+            "train_mean": 23.100531221975782,
+            "out_of_range": false
+        },
+        "apparent_temperature_c": {
+            "live_value": 33.126151683372704,
+            "train_min": 9.889194,
+            "train_max": 45.653267,
+            "train_mean": 31.101510383364893,
+            "out_of_range": false
+        },
+        "wind_speed_ms": {
+            "live_value": 2.7777777777777777,
+            "train_min": 0.002113659,
+            "train_max": 10.775864,
+            "train_mean": 2.5578996031870704,
+            "out_of_range": false
+        },
+        "precipitation_mm": {
+            "live_value": 0.0,
+            "train_min": 0.0,
+            "train_max": 22.10664749145508,
+            "train_mean": 0.1807676276195016,
+            "out_of_range": false
+        },
+        "pressure_hpa": {
+            "live_value": 1013.25,
+            "train_min": 987.3056,
+            "train_max": 1022.63873,
+            "train_mean": 1008.0588933696529,
+            "out_of_range": false
+        },
+        "cloud_cover_pct": {
+            "live_value": 0.0,
+            "train_min": 0.0,
+            "train_max": 100.0,
+            "train_mean": 52.325915733189774,
+            "out_of_range": false
+        }
+    }
+}

@@ -33,7 +33,15 @@ import { getApiUrl, fetchWithColdStart } from './services/apiConfig';
 
 
 function CommandCenter() {
-  const [activeTab, setActiveTab] = useState<string>('command');
+  const getInitialTab = () => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab');
+      if (tabParam) return tabParam;
+    }
+    return 'command';
+  };
+  const [activeTab, setActiveTab] = useState<string>(getInitialTab);
   const [summary, setSummary] = useState<SystemSummary | null>(null);
   const [telemetry, setTelemetry] = useState<LiveTelemetry | null>(null);
   const [districts, setDistricts] = useState<DistrictRiskRecord[]>([]);
@@ -332,6 +340,12 @@ function CommandCenter() {
               />
             )}
 
+            {activeTab === 'landing' && (
+              <div className="flex-1 overflow-y-auto h-full w-full bg-[#0a0e12]">
+                <Landing inApp={true} onOpenCommand={() => setActiveTab('command')} />
+              </div>
+            )}
+
             {activeTab === 'citizen' && (
               <CitizenAdvisoryView
                 wards={wards}
@@ -451,8 +465,11 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<CommandCenter />} />
+        <Route path="/" element={<Landing />} />
         <Route path="/landing" element={<Landing />} />
+        <Route path="/app" element={<CommandCenter />} />
+        <Route path="/command" element={<CommandCenter />} />
+        <Route path="/dashboard" element={<CommandCenter />} />
       </Routes>
     </Router>
   );

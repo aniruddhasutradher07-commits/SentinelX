@@ -57,7 +57,7 @@ function AIAdvisor({
         </div>
 
         <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/30">
-          SHAP / DLNM Explainability
+          SHAP Feature Explainability
         </span>
       </div>
 
