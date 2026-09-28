@@ -64,4 +64,4 @@ def test_cpcb_spatial_quality():
     assert res2["distance_to_ward_km"] > 20.0
 
 if __name__ == "__main__":
-    pytest.main(["-v", "scratch/test_live_sources.py"])
+    pytest.main(["-v", __file__])

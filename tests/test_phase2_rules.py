@@ -34,4 +34,4 @@ def test_evaluate_environmental_risk_triggers():
     assert "unhealthy aqi" in triggers
 
 if __name__ == "__main__":
-    pytest.main(["-v", "scratch/test_phase2_rules.py"])
+    pytest.main(["-v", __file__])

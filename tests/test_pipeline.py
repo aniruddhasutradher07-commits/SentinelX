@@ -82,4 +82,4 @@ def test_batch_coordinate_mapping():
     assert res[2].latitude == 20.25
 
 if __name__ == "__main__":
-    pytest.main(["-v", "scratch/test_pipeline.py"])
+    pytest.main(["-v", __file__])
