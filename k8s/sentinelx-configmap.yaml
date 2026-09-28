@@ -23,4 +23,4 @@ metadata:
   namespace: disaster-management
 type: Opaque
 stringData:
-  GEMINI_API_KEY: "AIzaSyDR9BlDJxO2z4RQEUcqGH4W9sE2E28S5d4"
+  GEMINI_API_KEY: "YOUR_GEMINI_API_KEY_HERE"
