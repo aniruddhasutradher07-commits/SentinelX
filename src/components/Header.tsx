@@ -6,6 +6,7 @@ interface HeaderProps {
   activeTab?: string;
   setActiveTab?: (tab: string) => void;
   telemetry?: any;
+  isUsingFallbackData?: boolean;
   onOpenCopilot?: () => void;
   onOpenDispatcher?: () => void;
   onExportSitRep?: () => void;
@@ -18,13 +19,21 @@ interface HeaderProps {
   isSimulatingPulse?: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ setActiveTab }) => {
+export const Header: React.FC<HeaderProps> = ({ setActiveTab, telemetry, isUsingFallbackData }) => {
   const handleGoLanding = (e: React.MouseEvent) => {
     if (setActiveTab) {
       e.preventDefault();
       setActiveTab('landing');
     }
   };
+
+  const isSyntheticMode = Boolean(
+    isUsingFallbackData ||
+    telemetry?.is_synthetic ||
+    telemetry?.is_demo_fallback ||
+    telemetry?.provenance?.includes('SYNTHETIC') ||
+    telemetry?.status === 'DEMO / SYNTHETIC — NOT LIVE'
+  );
 
   return (
     <header className="bg-[#030612]/95 border-b border-white/10 backdrop-blur-xl px-5 py-2.5 flex items-center justify-between gap-4 shrink-0 z-30 shadow-lg">
@@ -42,8 +51,10 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab }) => {
             className="w-10 h-10 rounded-xl object-contain bg-white/5 p-1 border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.25)] transition-transform group-hover:scale-105" 
           />
           <div 
-            className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-[#030612] shadow-sm animate-pulse" 
-            title="System Status: Online" 
+            className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#030612] shadow-sm animate-pulse ${
+              isSyntheticMode ? 'bg-amber-400 shadow-[0_0_8px_#f59e0b]' : 'bg-emerald-500'
+            }`}
+            title={isSyntheticMode ? "System Status: Demo Fallback Active" : "System Status: Online"}
           />
         </div>
         <div className="flex flex-col">
@@ -51,9 +62,15 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab }) => {
             <span className="font-extrabold text-lg tracking-wide text-white font-tech leading-tight">
               HeatGuard<span className="bg-gradient-to-r from-amber-400 to-rose-500 bg-clip-text text-transparent">AI</span>
             </span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-semibold tracking-wider">
-              SYSTEM STATUS: ONLINE
-            </span>
+            {isSyntheticMode ? (
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 font-semibold tracking-wider">
+                DEMO / SYNTHETIC — NOT LIVE
+              </span>
+            ) : (
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-semibold tracking-wider">
+                SYSTEM STATUS: ONLINE
+              </span>
+            )}
           </div>
           <span className="text-xs text-slate-400 tracking-wide font-medium">
             Predict Heat. Protect People.
@@ -71,10 +88,17 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab }) => {
         >
           <span>← Landing Page</span>
         </Link>
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900/60 border border-white/5 text-xs font-mono text-slate-300 shadow-inner">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse" />
-          <span>LIVE ENVIRONMENTAL MONITORING</span>
-        </div>
+        {isSyntheticMode ? (
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-950/70 border border-amber-500/40 text-xs font-mono text-amber-300 shadow-inner">
+            <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_#f59e0b] animate-pulse" />
+            <span>DEMO / SYNTHETIC — NOT LIVE</span>
+          </div>
+        ) : (
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900/60 border border-white/5 text-xs font-mono text-slate-300 shadow-inner">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse" />
+            <span>LIVE ENVIRONMENTAL MONITORING</span>
+          </div>
+        )}
       </div>
     </header>
   );

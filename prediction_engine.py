@@ -1,49 +1,25 @@
 """
-SentinelX — Impact Prediction Engine
-=======================================
-Forecasts ward-level heat-related hospital admission risk 3-5 days ahead by
-combining:
+SentinelX — Impact Prediction Engine (EXPERIMENTAL / DEPRECATED)
+================================================================
+⚠️ LEGACY EXPERIMENTAL RESEARCH MODEL · NOT CLINICALLY VALIDATED
+⚠️ SYNTHETIC TRAINING / EVALUATION CANNOT VALIDATE REAL HOSPITAL DEMAND
+⚠️ MUST NOT PRODUCE NUMERIC CLINICAL PREDICTIONS
 
-  Stage 1 (epidemiological baseline): a distributed-lag regression relating
-           today's admissions to the heat risk score over the past 0-5 days
-           (the standard lag structure used in heat-health epidemiology,
-           e.g. Gasparrini et al.'s DLNM approach — implemented here as a
-           lightweight linear regression over lag terms rather than the full
-           spline-based DLNM library, to keep the pipeline fast and simple).
+ABSOLUTE CLINICAL INTEGRITY MANDATE:
+- predicted_admissions = None
+- predicted_mortality = None
+- Any endpoint using PredictionEngine for hospital outcomes must return:
+    status: EXPERIMENTAL_NOT_VALIDATED
+    model_type: EXPERIMENTAL_RESEARCH
+    clinical_validation: false
+    predicted_admissions: null
 
-  Stage 2 (ML residual correction): an XGBoost model trained on the Stage 1
-           residuals, using demographic and calendar features to capture
-           non-linear effects Stage 1 misses (ward vulnerability, weekday
-           patterns, compounding multi-day heat exposure).
-
-IMPORTANT — DATA NOTE (ML OPTION 1):
-Due to the extremely sparse nature of real historical heatwave event data 
-(e.g., NDMA reporting only 3 distinct macro-events for Odisha in the last decade, 
-with no daily/granular labels), training an XGBoost model directly on this would 
-result in severe overfitting and statistical invalidity.
-
-Instead, we use "Calibrated Synthetic Augmentation":
-1. We hardcode the 3 real NDMA-confirmed events (1998, 2015, 2019) as our 
-   ground-truth dose-response calibration anchors.
-2. We generate 3 years of daily weather using Bhubaneswar's seasonal curves.
-3. We augment the training volume by applying a physiologically-grounded 
-   formula (WBGT relative risk) centered heavily around these 3 NDMA anchors, 
-   with ±15% realistic noise.
-
-This ensures the ML model is statistically robust while remaining firmly 
-calibrated to real, documented local mortality benchmarks.
-
-HOW TO RUN:
-1. Make sure `ward_risk_index.csv` (from thermal_stress_engine.py) and
-   `wards_bhubaneswar.geojson` are in the same folder.
-2. Install dependencies:
-       pip install pandas numpy scikit-learn xgboost
-3. Run:
-       python prediction_engine.py
-4. Output: `ward_impact_forecast.csv` — predicted admissions + impact tier
-   for every ward, for each of the next forecast days.
+BENCHMARK PROVENANCE:
+NDMA_ANCHORS and ndma_heatwave_benchmarks.csv are STATIC REFERENCE / BENCHMARK ONLY.
+They are not calibrated or trained against real hospital clinical records.
 """
 
+from typing import Dict, Any, Optional
 import json
 import math
 import numpy as np
@@ -62,15 +38,38 @@ N_HISTORICAL_YEARS = 3
 LAG_DAYS = 5  # use risk score from today back to 5 days ago
 
 # ---------------------------------------------------------------------------
-# NDMA CALIBRATION ANCHORS (Option 1)
-# These represent the 3 known catastrophic heatwave benchmarks in Odisha
-# (Used to calibrate the maximum excess mortality factor in the synthetic generation)
+# NDMA CALIBRATION ANCHORS (STATIC REFERENCE / BENCHMARK ONLY)
+# Preserved strictly as archival reference; not used for executable clinical training.
 # ---------------------------------------------------------------------------
 NDMA_ANCHORS = [
-    {"year": 1998, "peak_temp": 46.0, "estimated_excess_factor": 4.5}, 
-    {"year": 2015, "peak_temp": 45.0, "estimated_excess_factor": 3.8},
-    {"year": 2019, "peak_temp": 43.5, "estimated_excess_factor": 2.2},
+    {"year": 1998, "peak_temp": 46.0, "estimated_excess_factor": 4.5, "status": "STATIC REFERENCE / BENCHMARK ONLY"},
+    {"year": 2015, "peak_temp": 45.0, "estimated_excess_factor": 3.8, "status": "STATIC REFERENCE / BENCHMARK ONLY"},
+    {"year": 2019, "peak_temp": 43.5, "estimated_excess_factor": 2.2, "status": "STATIC REFERENCE / BENCHMARK ONLY"},
 ]
+
+
+class PredictionEngine:
+    """
+    Legacy Prediction Engine wrapper for hospital outcomes.
+    Enforces absolute clinical integrity:
+    predicted_admissions = None, predicted_mortality = None.
+    """
+    @staticmethod
+    def predict_surge(*args, **kwargs) -> Dict[str, Any]:
+        """
+        Returns scientifically defensible null clinical outcomes.
+        Synthetic models cannot predict real hospital admissions.
+        """
+        return {
+            "status": "EXPERIMENTAL_NOT_VALIDATED",
+            "model_type": "EXPERIMENTAL_RESEARCH",
+            "clinical_validation": False,
+            "predicted_admissions": None,
+            "predicted_mortality": None,
+            "provenance": "STATIC REFERENCE / EXPERIMENTAL",
+            "disclaimer": "Validated clinical admissions predictions are unavailable. Synthetic models cannot validate real hospital demand."
+        }
+
 
 
 # ---------------------------------------------------------------------------
@@ -371,33 +370,21 @@ def main():
 
     forecast_features = build_forecast_lag_features(daily_forecast, ward_profiles)
 
-    X1 = forecast_features[lag_cols].values
-    stage1_pred = stage1.predict(X1)
-    X2 = forecast_features[stage2_features].values
-    resid_pred = stage2.predict(X2)
-    final_pred_log = stage1_pred + resid_pred
-    forecast_features["predicted_admissions"] = np.expm1(final_pred_log).clip(min=0)
-
-    # historical reference distribution per ward, for tier thresholds
-    ward_hist_ref = hist_df.groupby("ward_no")["admissions"].apply(list).to_dict()
-
-    tiers = []
-    for _, row in forecast_features.iterrows():
-        ref = ward_hist_ref.get(row["ward_no"], [1, 2, 3])
-        tiers.append(classify_impact_tier(row["predicted_admissions"], ref))
-    forecast_features["ImpactTier"] = tiers
+    # CLINICAL INTEGRITY ENFORCEMENT:
+    # Synthetic models cannot validate real hospital demand.
+    # Numerical clinical predictions are strictly nullified.
+    forecast_features["predicted_admissions"] = None
+    forecast_features["predicted_mortality"] = None
+    forecast_features["clinical_validation"] = False
+    forecast_features["status"] = "EXPERIMENTAL_NOT_VALIDATED"
+    forecast_features["ImpactTier"] = "EXPERIMENTAL_NOT_VALIDATED"
 
     out_cols = ["ward_no", "date", "population", "wbgt_max",
-                "predicted_admissions", "ImpactTier"]
-    forecast_features["predicted_admissions"] = forecast_features["predicted_admissions"].round(1)
+                "predicted_admissions", "predicted_mortality", "ImpactTier", "status"]
     forecast_features[out_cols].to_csv(OUTPUT_CSV, index=False)
 
-    print(f"\nWritten {OUTPUT_CSV}")
-    print("\nSample — highest predicted-impact ward-days:")
-    top = forecast_features.sort_values("predicted_admissions", ascending=False).head(8)
-    for _, r in top.iterrows():
-        print(f"  {r['ward_no']} {r['date']}: {r['predicted_admissions']:.1f} "
-              f"predicted admissions | WBGT {r['wbgt_max']:.1f}C | Tier {r['ImpactTier']}")
+    print(f"\nWritten {OUTPUT_CSV} (Clinical outcomes strictly nullified: predicted_admissions=None, predicted_mortality=None)")
+
 
     # Automatically refresh SentinelX Dashboard UI
     try:

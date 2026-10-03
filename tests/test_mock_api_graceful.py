@@ -1,6 +1,5 @@
 import pytest
 import os
-os.environ["USE_MOCK_DATA"] = "true"
 from fastapi.testclient import TestClient
 from main import app
 import sys
@@ -13,11 +12,12 @@ def test_no_xgboost_dependency():
         reqs = f.read()
     assert "xgboost" not in reqs.lower()
 
-def test_mock_api_ward_graceful_degradation():
+def test_mock_api_ward_graceful_degradation(monkeypatch):
     """
     Test that the 5-day forecast endpoint /api/v1/wards/{ward_no} 
     gracefully handles missing legacy hospital models.
     """
+    monkeypatch.setenv("USE_MOCK_DATA", "true")
     from routers import mock_api
     
     # Simulate missing xgboost dependency

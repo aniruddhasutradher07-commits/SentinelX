@@ -20,6 +20,7 @@ import requests
 from services.cpcb_client import cpcb_client
 from services.imd_client import imd_client
 from services.notification_service import notification_service
+from core.demo_fixtures import is_demo_fallback_enabled, get_demo_mortality_risk_payload
 
 router = APIRouter(prefix="/api/v1", tags=["Health Research & Official Data Integrations"])
 
@@ -62,6 +63,8 @@ def get_mortality_risk(
         url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&daily=temperature_2m_max,temperature_2m_min,relative_humidity_2m_max,wind_speed_10m_max&timezone=auto&forecast_days={horizon}"
         resp = requests.get(url, timeout=4)
         if resp.status_code != 200:
+            if is_demo_fallback_enabled():
+                return get_demo_mortality_risk_payload(target_name, horizon)
             return {
                 "status": "UNAVAILABLE",
                 "experimental": True,
@@ -149,6 +152,8 @@ def get_mortality_risk(
         }
 
     except Exception as ex:
+        if is_demo_fallback_enabled():
+            return get_demo_mortality_risk_payload(target_name, horizon)
         return {
             "status": "UNAVAILABLE",
             "experimental": True,
@@ -257,6 +262,49 @@ def get_imd_status(district: str = Query("Khordha")):
         "fetched_at": context.get("fetched_at"),
         "reason": context.get("reason"),
         "provenance": "Official National Meteorological Agency" if context.get("status") in ("LIVE", "STALE") else "Unconfigured"
+    }
+
+
+# ---------------------------------------------------------------------------
+# 3.5. CPCB Live Connector Endpoints
+# ---------------------------------------------------------------------------
+@router.get("/cpcb/status", summary="Central Pollution Control Board (CPCB / OGD) Status")
+def get_cpcb_status():
+    """
+    Exposes official CPCB air quality ingestion and station registry status.
+    Fallback pipeline: LIVE -> STALE/CACHED -> UNAVAILABLE
+    Credentials key is never exposed.
+    """
+    return cpcb_client.get_status()
+
+
+@router.get("/cpcb/ward/{ward_no}", summary="Ward CPCB Air Quality Station Telemetry")
+def get_cpcb_ward(ward_no: str):
+    """
+    Returns nearest official CPCB station telemetry and distance for the given ward.
+    """
+    import json
+    lat, lon = 20.296, 85.824
+    try:
+        if os.path.exists("wards_bhubaneswar.geojson"):
+            with open("wards_bhubaneswar.geojson", "r", encoding="utf-8") as f:
+                feats = json.load(f).get("features", [])
+                for feat in feats:
+                    p = feat.get("properties", {})
+                    w = p.get("wardno")
+                    if str(w).upper() == ward_no.upper() or f"W{w}".upper() == ward_no.upper():
+                        lat = float(p.get("latitudei") or lat)
+                        lon = float(p.get("longitudei") or lon)
+                        break
+    except Exception:
+        pass
+
+    ctx = cpcb_client.map_ward_to_station(lat, lon)
+    return {
+        "ward_no": ward_no,
+        "latitude": lat,
+        "longitude": lon,
+        **ctx
     }
 
 

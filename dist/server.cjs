@@ -163,14 +163,12 @@ function loadDatasets() {
       const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
       districtImpactData = ODISHA_30_DISTRICTS.map((d) => {
         const vuln = getDistrictVulnerability(d.district);
-        const baseSurge = (d.wbgt - 27) * 7.5 * vuln.vulnerability_multiplier;
-        const admissions = Math.round(d.pop * 5e-5 * (1 + baseSurge / 100) * 10) / 10;
         return {
           district: d.district,
           date: today,
           population: d.pop,
           wbgt_max: d.wbgt,
-          predicted_admissions: admissions,
+          predicted_admissions: null,
           ImpactTier: d.wbgt >= 32 ? "Red" : d.wbgt >= 30 ? "Orange" : "Yellow"
         };
       });
@@ -261,7 +259,7 @@ function loadDatasets() {
         date: today,
         population: w.population,
         wbgt_max: w.WBGT_celsius,
-        predicted_admissions: Math.round(w.population * 18e-5 * w.vulnerability_multiplier * 10) / 10,
+        predicted_admissions: null,
         ImpactTier: w.RiskTier
       }));
     }
@@ -425,6 +423,44 @@ app.get("/api/v1/forecast-risk", async (req, res) => {
     const data = await response.json();
     res.json(data);
   } catch (error) {
+    if (process.env.ENABLE_DEMO_FALLBACK === "true") {
+      const now = /* @__PURE__ */ new Date();
+      const horizon = Number(req.query.horizon || 5);
+      const demoForecast = [];
+      const sampleTemps = [36.2, 37.1, 38, 37.5, 36.8];
+      const sampleRhs = [65, 62, 60, 63, 66];
+      const sampleWbgts = [30.8, 31.5, 32.2, 31.9, 31.2];
+      const sampleHis = [42, 44.5, 46.2, 45.1, 43.4];
+      const sampleUtcis = [39.1, 40.2, 41.5, 40.8, 39.7];
+      for (let i = 0; i < Math.min(horizon, 5); i++) {
+        const d = new Date(now.getTime() + i * 864e5);
+        const dtStr = d.toISOString().slice(0, 10);
+        demoForecast.push({
+          date: dtStr,
+          provenance: "DEMO / SYNTHETIC \u2014 NOT LIVE",
+          model_status: "DEMO / SYNTHETIC \u2014 NOT LIVE",
+          weather: {
+            max_temperature_c: sampleTemps[i],
+            avg_humidity_percent: sampleRhs[i],
+            max_wind_speed_ms: 2.8,
+            peak_solar_radiation_wm2: 650,
+            source: "DEMO / SYNTHETIC \u2014 NOT LIVE (Offline Demo Fixture)"
+          },
+          thermal: {
+            heat_index_c: sampleHis[i],
+            wbgt_c: sampleWbgts[i],
+            utci_c: sampleUtcis[i],
+            recovery_deficit: false
+          },
+          risk: {
+            thermal_score: Math.min(100, Math.round(sampleWbgts[i] / 35 * 1e3) / 10),
+            risk_tier: sampleWbgts[i] >= 32 ? "Red" : sampleWbgts[i] >= 30 ? "Orange" : "Yellow",
+            classification: "ENVIRONMENTAL EXPOSURE PROXY"
+          }
+        });
+      }
+      return res.json(demoForecast);
+    }
     console.error("Forecast proxy error:", error);
     res.status(502).json({ error: "Failed to connect to Python backend on port 8000" });
   }
@@ -531,7 +567,6 @@ app.get("/api/v1/status", (req, res) => {
 app.get("/api/v1/summary", (req, res) => {
   let state_dist_count = 30;
   let state_pop = 41974218;
-  let state_admissions = 2450;
   let state_peak_wbgt = 31.8;
   let state_peak_dist = "Khordha";
   let state_orange_red = 12;
@@ -540,7 +575,6 @@ app.get("/api/v1/summary", (req, res) => {
     const todayImpacts = districtImpactData.filter((d) => d.date === today);
     state_dist_count = todayImpacts.length || 30;
     state_pop = todayImpacts.reduce((acc, cur) => acc + (cur.population || 0), 0) || 41974218;
-    state_admissions = Math.round(todayImpacts.reduce((acc, cur) => acc + (cur.predicted_admissions || 0), 0) * 10) / 10;
     state_orange_red = todayImpacts.filter((d) => d.ImpactTier === "Orange" || d.ImpactTier === "Red").length;
   }
   if (districtRiskData.length > 0) {
@@ -554,29 +588,26 @@ app.get("/api/v1/summary", (req, res) => {
   }
   let bmc_ward_count = 67;
   let bmc_total_pop = 837838;
-  let bmc_admissions = 75.2;
   let bmc_top_ward = "W21";
-  let bmc_top_val = 3;
   let bmc_orange_red = 1;
   if (wardImpactData.length > 0) {
     const today = wardImpactData[0].date;
     const todayImpacts = wardImpactData.filter((d) => d.date === today);
     bmc_ward_count = todayImpacts.length || 67;
     bmc_total_pop = todayImpacts.reduce((acc, cur) => acc + (cur.population || 0), 0) || 837838;
-    bmc_admissions = Math.round(todayImpacts.reduce((acc, cur) => acc + (cur.predicted_admissions || 0), 0) * 10) / 10;
     bmc_orange_red = todayImpacts.filter((d) => d.ImpactTier === "Orange" || d.ImpactTier === "Red").length;
     if (todayImpacts.length > 0) {
-      const topW = [...todayImpacts].sort((a, b) => (b.predicted_admissions || 0) - (a.predicted_admissions || 0))[0];
-      bmc_top_ward = topW.ward_no || "W21";
-      bmc_top_val = topW.predicted_admissions || 3;
+      const topW = [...todayImpacts].sort((a, b) => (b.WBGT_celsius || 0) - (a.WBGT_celsius || 0))[0];
+      bmc_top_ward = topW?.ward_no || "W21";
     }
   }
   res.json({
     timestamp_ist: (/* @__PURE__ */ new Date()).toISOString(),
+    provenance: process.env.ENABLE_DEMO_FALLBACK === "true" ? "DEMO / SYNTHETIC \u2014 NOT LIVE" : "LIVE / REANALYSIS",
     odisha_statewide: {
       monitored_districts: state_dist_count,
       total_population: state_pop,
-      today_expected_hospital_admissions: state_admissions,
+      today_expected_hospital_admissions: null,
       peak_wbgt_district: state_peak_dist,
       peak_wbgt_celsius: state_peak_wbgt,
       elevated_risk_districts_count: state_orange_red
@@ -584,12 +615,12 @@ app.get("/api/v1/summary", (req, res) => {
     bhubaneswar_urban_core: {
       monitored_wards: bmc_ward_count,
       total_population: bmc_total_pop,
-      today_expected_hospital_admissions: bmc_admissions,
+      today_expected_hospital_admissions: null,
       peak_surge_ward: bmc_top_ward,
-      peak_ward_expected_admissions: bmc_top_val,
+      peak_ward_expected_admissions: null,
       elevated_risk_wards_count: bmc_orange_red
     },
-    legacy_model_engine: "2-Stage DLNM Lagged Baseline + XGBoost Residual ML",
+    legacy_model_engine: "LEGACY / EXPERIMENTAL (2-Stage DLNM Lagged Baseline + XGBoost Residual ML)",
     legacy_hospital_model_r2: "UNVALIDATED"
   });
 });
@@ -1083,8 +1114,11 @@ app.all("/api/v1/alerts/broadcast", (req, res) => {
 });
 app.get("/api/v1/benchmarks", (req, res) => {
   res.json({
+    status: "STATIC REFERENCE / BENCHMARK ONLY",
+    provenance: "STATIC REFERENCE / BENCHMARK ONLY",
     count: ndmaBenchmarks.length,
-    benchmarks: ndmaBenchmarks
+    benchmarks: ndmaBenchmarks,
+    note: "Historical NDMA benchmarks are preserved for static reference only; not used in active model training or operational real-time risk scoring."
   });
 });
 async function startServer() {

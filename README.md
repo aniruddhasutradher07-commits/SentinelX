@@ -12,7 +12,7 @@
 [![Vite](https://img.shields.io/badge/Vite-6.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)](vite.config.ts)
 [![Leaflet](https://img.shields.io/badge/Leaflet-1.9%20GIS-199900?style=for-the-badge&logo=leaflet&logoColor=white)](src/components/OdishaMap.tsx)
 [![Docker](https://img.shields.io/badge/Docker-Multi--Stage-2496ED?style=for-the-badge&logo=docker&logoColor=white)](Dockerfile)
-[![Pytest](https://img.shields.io/badge/Tests-97%20Passed%20%7C%2010%20Skipped-10B981?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Pytest](https://img.shields.io/badge/Tests-117%20Passed%20%7C%2010%20Skipped-10B981?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
 ---
@@ -316,13 +316,17 @@ To prevent the dangerous hallucination of emergency information, HeatGuard AI im
 [UNAVAILABLE / NULL]      Clinical outcomes where authentic records are absent
 [CREDENTIALS_NOT_CONFIGURED] External API credentials not present in host environment
 [SIMULATED]               Emergency dispatch actions executed in dry-run drill mode
+[DEMO / SYNTHETIC — NOT LIVE] Explicitly labeled offline demo fixture when external feeds fail during demo sessions
 ```
 
-### Truth Commitments:
-1. **No Fake Live Data:** Cached observations are explicitly labeled as cached with elapsed timestamps.
-2. **No Fabricated Government Feeds:** If CPCB or IMD API keys are missing, the system states `CREDENTIALS_NOT_CONFIGURED` instead of generating synthetic data and calling it live.
-3. **No Fabricated Health Outcomes:** Hospital demand endpoints return explicit `null` for admissions and mortality, refusing to invent artificial patient casualties.
-4. **Deterministic Primacy:** Life-critical alert tiers are never delegated to black-box heuristics; they remain strictly deterministic.
+### Truth Commitments & Safe Demo Fallback Policy:
+1. **Production Mode Defaults to Real Sources:** `USE_MOCK_DATA=false` and `ENABLE_DEMO_FALLBACK=false` are the immutable production defaults. The system connects to verified external observation grids (Open-Meteo) and SQLite observation caches.
+2. **Safe Demo Fallback Architecture (Hackathon Resilience):** If an external source fails during an offline demonstration or hackathon session (e.g. WiFi outage, upstream API timeout), setting `ENABLE_DEMO_FALLBACK=true` enables a deterministic offline demo fixture without modifying production behavior.
+3. **Mandatory Visible Labeling:** Every fallback response payload and frontend UI banner carries the prominent tag: **`DEMO / SYNTHETIC — NOT LIVE`** (`is_live: false`). Synthetic values are **never** labeled as `LIVE`, `CALCULATED FROM LIVE DATA`, or official government data.
+4. **No Fabricated Health Outcomes:** Hospital demand and mortality research endpoints strictly return `null` for admissions and mortality under all conditions, refusing to invent artificial patient casualties or diagnoses.
+5. **No Fabricated Government Feeds:** If CPCB or IMD API keys are missing, the system states `CREDENTIALS_NOT_CONFIGURED` or `UNAVAILABLE` instead of generating synthetic data and falsely claiming it as official government telemetry.
+6. **Deterministic Primacy:** Life-critical alert tiers are never delegated to black-box heuristics; they remain strictly deterministic.
+7. **Preservation of Provenance States:** All standard state transitions (`LIVE`, `STALE`, `UNAVAILABLE`, `CREDENTIALS_NOT_CONFIGURED`) remain fully functional and uncompromised.
 
 ---
 
@@ -332,9 +336,9 @@ HeatGuard AI's engineering claims are backed by reproducible automated verificat
 
 - **Automated Pytest Suite:**
   ```text
-  ================== 97 passed, 10 skipped, 1 warning in 37.41s ==================
+  ================= 117 passed, 10 skipped, 1 warning in 35.93s =================
   ```
-  Verified across 25 test modules spanning bio-meteorological math, API endpoints, feature engineering, and graceful degradation.
+  Verified across 26 test modules spanning bio-meteorological math, API endpoints, feature engineering, safe demo fallback resilience, and graceful degradation.
 - **ML V2 Unseen 2025 Holdout:**
   - MAE: **1.0829 °C**
   - RMSE: **1.3862 °C**
@@ -523,7 +527,8 @@ Configure these settings in your `.env` file (copied from `.env.example`):
 | `IMD_API_KEY` | Optional | `YOUR_KEY` | IMD Mausam API token (reports credential status if unset) |
 | `BHUVAN_LULC50K_TOKEN`| Optional | `YOUR_KEY` | ISRO Bhuvan satellite WMS layer token |
 | `WEATHER_PROVIDER` | Optional | `open_meteo` | Realtime weather provider (`open_meteo`) |
-| `USE_MOCK_DATA` | Optional | `false` | When true, forces offline synthetic data for demos |
+| `USE_MOCK_DATA` | Optional | `false` | Production default false. When true, loads legacy mock router |
+| `ENABLE_DEMO_FALLBACK` | Optional | `false` | Production default false. When true, enables safe labeled offline demo fixtures if live network fails |
 
 ---
 
@@ -589,7 +594,7 @@ To systematically verify the codebase against the problem statement requirements
 | **Data Provenance Truth** | `src/components/Header.tsx`, `routers/` | Verify `CREDENTIALS_NOT_CONFIGURED` & `SIMULATED` tags |
 | **Audit Privacy Masking** | `routers/alerts.py` | Execute simulated dispatch & check masked phone format |
 | **TypeScript Integrity** | `src/` | Run `npm run lint` (`tsc --noEmit`) |
-| **Test Suite Coverage** | `tests/` | Run `pytest` (verifies 97 passed tests) |
+| **Test Suite Coverage** | `tests/` | Run `pytest` (verifies 117 passed, 10 skipped tests) |
 
 ---
 

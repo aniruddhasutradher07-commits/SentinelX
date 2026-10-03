@@ -12,6 +12,7 @@ import requests
 from typing import Dict, Any, List, Optional
 from services.thermal_engine import heat_index_celsius, wbgt_outdoor_celsius, utci_celsius
 from services.risk_engine import calculate_vulnerability_score, calculate_risk
+from core.demo_fixtures import is_demo_fallback_enabled, DEMO_PROVENANCE_TAG, DEMO_SOURCE_TAG, DEMO_DISCLAIMER
 
 # In-memory spatial cache: key = f"{round(lat, 2)}_{round(lon, 2)}"
 # Value = {"data": ..., "expires_at": ...}
@@ -146,7 +147,10 @@ def compute_biometeorological_profile(
     surge_pct = surge_pct * vuln["vulnerability_multiplier"]
     surge_pct = round(min(92.0, max(5.0, surge_pct)), 1)
     
-    estimated_admissions = int(round(120 * (1.0 + (surge_pct / 100.0))))
+    # CLINICAL INTEGRITY MANDATE:
+    # Synthetic models must NOT produce numeric clinical admissions or mortality.
+    # Predicted admissions remain strictly None.
+    estimated_admissions = None
 
     return {
         "temperature_c": round(t_c, 1),
@@ -167,7 +171,11 @@ def compute_biometeorological_profile(
         "tier": tier,
         "status_desc": status_desc,
         "predicted_hospital_surge_pct": surge_pct,
-        "estimated_er_admissions_day": estimated_admissions
+        "estimated_er_admissions_day": None,
+        "predicted_admissions": None,
+        "predicted_mortality": None,
+        "clinical_validation": False,
+        "clinical_status": "EXPERIMENTAL_NOT_VALIDATED"
     }
 
 
@@ -265,8 +273,30 @@ def fetch_live_coordinate_stress(lat: float, lon: float, location_name: str = ""
         base_t = 38.5 - abs(lat - 22.0) * 0.3
         base_rh = 55.0 + (lon / 90.0) * 15.0
         metrics = compute_biometeorological_profile(base_t, base_rh, 2.5, 700.0, lat=lat, lon=lon, location_name=location_name)
+        if is_demo_fallback_enabled():
+            return {
+                "status": "DEMO_FALLBACK",
+                "provenance": DEMO_PROVENANCE_TAG,
+                "is_live": False,
+                "lat": round(lat, 4),
+                "lon": round(lon, 4),
+                "location_name": location_name or f"Lat {round(lat, 3)}°, Lon {round(lon, 3)}°",
+                "source": DEMO_SOURCE_TAG,
+                "disclaimer": DEMO_DISCLAIMER,
+                "timestamp_ist": time.strftime("%Y-%m-%d %H:%M:%S IST", time.localtime()),
+                **metrics,
+                "hourly_trend": {
+                    "times": [f"{h:02d}:00" for h in range(24)],
+                    "temperature": [round(base_t + math.sin(h/4)*4, 1) for h in range(24)],
+                    "relative_humidity": [round(base_rh - math.sin(h/4)*8, 1) for h in range(24)],
+                    "wbgt": [round(metrics["wbgt_c"] + math.sin(h/4)*2.5, 1) for h in range(24)]
+                },
+                "hospitals": get_nearby_hospitals(lat, lon, location_name)
+            }
         return {
             "status": "fallback_model",
+            "provenance": "Regional Biometeorology Fallback Model",
+            "is_live": False,
             "lat": round(lat, 4),
             "lon": round(lon, 4),
             "location_name": location_name or f"Lat {round(lat, 3)}°, Lon {round(lon, 3)}°",

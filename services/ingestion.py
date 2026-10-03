@@ -9,6 +9,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from dataclasses import dataclass, asdict, field
 from typing import Optional, List, Dict, Any
+from core.demo_fixtures import is_demo_fallback_enabled, get_demo_weather_payload, DEMO_PROVENANCE_TAG, DEMO_SOURCE_TAG
 
 DB_PATH = "sentinelx_data.db"
 
@@ -76,6 +77,8 @@ class WeatherReading:
     cloud_cover_pct: float = 0.0
     wind_direction: float = 0.0
     forecast_7d_precip: List[float] = field(default_factory=lambda: [0.0]*7)
+    provenance: Optional[str] = None
+    is_demo_fallback: bool = False
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -335,6 +338,35 @@ def fetch_weather_data(lat: float, lon: float, ward_id: str = "") -> Optional[We
         calculate_freshness(cached, stale_thresh)
         return cached
 
+    if is_demo_fallback_enabled():
+        d_payload = get_demo_weather_payload(ward_id, lat, lon)
+        return WeatherReading(
+            ward_id=ward_id,
+            latitude=lat,
+            longitude=lon,
+            temperature_c=d_payload["temperature_c"],
+            humidity_percent=d_payload["humidity_percent"],
+            wind_speed_ms=d_payload["wind_speed_ms"],
+            uv_index=d_payload["uv_index"],
+            aqi=d_payload["aqi"],
+            aqi_standard=d_payload["aqi_standard"],
+            source=d_payload["source"],
+            observed_at=d_payload["observed_at"],
+            fetched_at=d_payload["fetched_at"],
+            is_live=False,
+            is_stale=False,
+            is_demo_fallback=True,
+            provenance=d_payload["provenance"],
+            wind_gusts_ms=d_payload["wind_gusts_ms"],
+            precipitation_mm=d_payload["precipitation_mm"],
+            rain_mm=d_payload["rain_mm"],
+            weather_code=d_payload["weather_code"],
+            pressure_hpa=d_payload["pressure_hpa"],
+            cloud_cover_pct=d_payload["cloud_cover_pct"],
+            wind_direction=d_payload["wind_direction"],
+            forecast_7d_precip=d_payload["forecast_7d_precip"]
+        )
+
     return None
 
 def fetch_multi_location(locations: List[Dict[str, Any]]) -> List[Optional[WeatherReading]]:
@@ -418,6 +450,35 @@ def fetch_multi_location(locations: List[Dict[str, Any]]) -> List[Optional[Weath
                     calculate_freshness(cached, stale_thresh)
                     results[idx] = cached
                 else:
-                    results[idx] = None
+                    if is_demo_fallback_enabled():
+                        d_payload = get_demo_weather_payload(ward_id, locations[idx]["lat"], locations[idx]["lon"])
+                        results[idx] = WeatherReading(
+                            ward_id=ward_id,
+                            latitude=locations[idx]["lat"],
+                            longitude=locations[idx]["lon"],
+                            temperature_c=d_payload["temperature_c"],
+                            humidity_percent=d_payload["humidity_percent"],
+                            wind_speed_ms=d_payload["wind_speed_ms"],
+                            uv_index=d_payload["uv_index"],
+                            aqi=d_payload["aqi"],
+                            aqi_standard=d_payload["aqi_standard"],
+                            source=d_payload["source"],
+                            observed_at=d_payload["observed_at"],
+                            fetched_at=d_payload["fetched_at"],
+                            is_live=False,
+                            is_stale=False,
+                            is_demo_fallback=True,
+                            provenance=d_payload["provenance"],
+                            wind_gusts_ms=d_payload["wind_gusts_ms"],
+                            precipitation_mm=d_payload["precipitation_mm"],
+                            rain_mm=d_payload["rain_mm"],
+                            weather_code=d_payload["weather_code"],
+                            pressure_hpa=d_payload["pressure_hpa"],
+                            cloud_cover_pct=d_payload["cloud_cover_pct"],
+                            wind_direction=d_payload["wind_direction"],
+                            forecast_7d_precip=d_payload["forecast_7d_precip"]
+                        )
+                    else:
+                        results[idx] = None
                     
     return results

@@ -36,27 +36,8 @@ except Exception as e:
     print(f"⚠️ [mock_api] Could not load ML models: {e}")
 
 def predict_hospital_surge(population, vuln_multiplier, vuln_score, risk_score_0_to_100):
-    if stage1_model is None or stage2_model is None:
-        return None
-    
-    try:
-        norm_risk = risk_score_0_to_100 / 100.0
-        lags = [norm_risk] * 6
-        day_of_week = datetime.datetime.now().weekday()
-        vuln = vuln_score / 100.0
-        
-        X1 = np.array([lags])
-        stage1_pred = stage1_model.predict(X1)
-        
-        X2 = np.array([lags + [population, vuln, day_of_week]])
-        resid_pred = stage2_model.predict(X2)
-        
-        final_pred_log = stage1_pred + resid_pred
-        admissions = np.expm1(final_pred_log)[0]
-        return round(float(admissions), 1)
-    except Exception as e:
-        print(f"ML prediction failed: {e}")
-        return None
+    # CLINICAL INTEGRITY SAFEGUARD: Never fabricate clinical outcomes.
+    return None
 
 # Load Real Census 2011 Data for Khordha District
 CENSUS_FILE = "data/odisha_census_khordha_2011.csv"
@@ -219,13 +200,12 @@ for d in ODISHA_30_DISTRICTS:
     })
     
     baseSurge = (d["wbgt"] - 27.0) * 7.5 * vuln["vulnerability_multiplier"]
-    admissions = round(d["pop"] * 0.00005 * (1 + baseSurge / 100.0), 1)
     districtImpactData.append({
         "district": d["district"],
         "date": today,
         "population": d["pop"],
         "wbgt_max": d["wbgt"],
-        "predicted_admissions": admissions,
+        "predicted_admissions": None,
         "ImpactTier": 'Red' if d["wbgt"] >= 32 else ('Orange' if d["wbgt"] >= 30 else 'Yellow')
     })
 
@@ -298,7 +278,7 @@ for idx in range(67):
         "date": today,
         "population": pop,
         "wbgt_max": wbgt,
-        "predicted_admissions": predict_hospital_surge(pop, vuln["vulnerability_multiplier"], vuln["vulnerability_score"], riskScore),
+        "predicted_admissions": None,
         "ImpactTier": tier
     })
 
@@ -374,10 +354,13 @@ def summary():
     
     return {
         "timestamp_ist": datetime.datetime.now().isoformat(),
+        "provenance": "DEMO / SYNTHETIC — NOT LIVE",
+        "is_live": False,
+        "status": "DEMO / SYNTHETIC — NOT LIVE",
         "odisha_statewide": {
             "monitored_districts": state_dist_count,
             "total_population": state_pop,
-            "today_expected_hospital_admissions": state_admissions,
+            "today_expected_hospital_admissions": None,
             "peak_wbgt_district": state_peak_dist,
             "peak_wbgt_celsius": state_peak_wbgt,
             "elevated_risk_districts_count": state_orange_red,
@@ -385,9 +368,9 @@ def summary():
         "bhubaneswar_urban_core": {
             "monitored_wards": bmc_ward_count,
             "total_population": bmc_total_pop,
-            "today_expected_hospital_admissions": bmc_admissions,
+            "today_expected_hospital_admissions": None,
             "peak_surge_ward": bmc_top_ward,
-            "peak_ward_expected_admissions": bmc_top_val,
+            "peak_ward_expected_admissions": None,
             "elevated_risk_wards_count": bmc_orange_red,
         },
         "legacy_model_engine": '2-Stage DLNM Lagged Baseline + XGBoost Residual ML',
@@ -521,18 +504,8 @@ def ward_detail(ward_no: str):
                 # WBGT approximation formula (rough estimate for UI)
                 predicted_wbgt = round(t_max * 0.7 + (rh_max / 100.0) * 0.3 * t_max, 1)
                 
-                # Predict admissions if model available
+                # Strict clinical integrity mandate: no fake admissions
                 adm = None
-                if stage2_model is not None:
-                    # Using current lags but replacing the first one with the future risk score
-                    future_risk = ts_res.environmental_score * vuln["vulnerability_multiplier"]
-                    lags = [future_risk / 100.0] * 6
-                    day_of_week = (datetime.datetime.now() + datetime.timedelta(days=i)).weekday()
-                    vuln_norm = vuln["vulnerability_score"] / 100.0
-                    X_future = np.array([lags + [pop, vuln_norm, day_of_week]])
-                    adm = max(0.0, float(stage2_model.predict(X_future)[0]))
-                    # Apply recovery penalty
-                    adm = round(adm * risk_multiplier, 1)
                 
                 tier = 'Red' if predicted_wbgt >= 32.0 else ('Orange' if predicted_wbgt >= 30.0 else ('Yellow' if predicted_wbgt >= 28.0 else 'Green'))
                 

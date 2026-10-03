@@ -6,6 +6,7 @@ import { CommandIncidentMap } from '../ui/CommandIncidentMap';
 import { RegionalAlertTrigger } from "../RegionalAlertTrigger";
 import { IMDContextCard } from "../IMDContextCard";
 import { CPCBContextCard } from "../CPCBContextCard";
+import { SourceHealthPanel } from "../SourceHealthPanel";
 
 interface CommandTabProps {
   activeDistrict?: {
@@ -95,6 +96,9 @@ export default function CommandTab({ activeDistrict, liveTemp, telemetry }: Comm
         subtitle="Incident Monitoring & Advisory Protocols"
         icon={ShieldAlert}
       />
+
+      {/* COMPACT SOURCE HEALTH PANEL (PRIORITY 2) */}
+      <SourceHealthPanel telemetry={telemetry} />
 
       {/* 1. ACTIVE INCIDENTS & 2. RESPONSE STATUS */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

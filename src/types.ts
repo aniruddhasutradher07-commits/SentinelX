@@ -222,7 +222,7 @@ export interface SystemSummary {
   odisha_statewide: {
     monitored_districts: number;
     total_population: number;
-    today_expected_hospital_admissions: number;
+    today_expected_hospital_admissions: number | null;
     peak_wbgt_district: string;
     peak_wbgt_celsius: number;
     elevated_risk_districts_count: number;
@@ -230,9 +230,9 @@ export interface SystemSummary {
   bhubaneswar_urban_core: {
     monitored_wards: number;
     total_population: number;
-    today_expected_hospital_admissions: number;
+    today_expected_hospital_admissions: number | null;
     peak_surge_ward: string;
-    peak_ward_expected_admissions: number;
+    peak_ward_expected_admissions: number | null;
     elevated_risk_wards_count: number;
   };
   model_engine: string;

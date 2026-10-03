@@ -1459,7 +1459,7 @@
 
       // Hospital Surge
       document.getElementById('cardSurgePct').innerText = `+${data.predicted_hospital_surge_pct}% Influx`;
-      document.getElementById('cardErAdmissions').innerText = data.estimated_er_admissions_day;
+      document.getElementById('cardErAdmissions').innerText = data.estimated_er_admissions_day != null ? data.estimated_er_admissions_day : 'N/A';
 
       // Hospitals List
       const hList = document.getElementById('hospitalsList');
@@ -1623,7 +1623,7 @@
 
       document.getElementById('docWbgt').innerText = `${data.wbgt_c} °C (${data.status_desc})`;
       document.getElementById('docTempRH').innerText = `${data.temperature_c} °C | ${data.relative_humidity_pct}% RH (Evap Efficiency: ${data.evap_efficiency_pct}%)`;
-      document.getElementById('docSurge').innerText = `+${data.predicted_hospital_surge_pct}% Influx (${data.estimated_er_admissions_day} Admissions/Day)`;
+      document.getElementById('docSurge').innerText = data.estimated_er_admissions_day != null ? `+${data.predicted_hospital_surge_pct}% Influx (${data.estimated_er_admissions_day} Admissions/Day)` : `+${data.predicted_hospital_surge_pct}% Thermal Strain Exposure (Admissions: N/A)`;
 
       if (data.hospitals && data.hospitals.length > 0) {
         document.getElementById('docHospital').innerText = `${data.hospitals[0].name} (${data.hospitals[0].hsu_beds} Beds)`;

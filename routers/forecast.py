@@ -8,6 +8,7 @@ from pydantic import BaseModel
 
 from services.thermal_engine import heat_index_celsius, wbgt_outdoor_celsius, utci_celsius
 from services.risk_engine import calculate_risk
+from core.demo_fixtures import is_demo_fallback_enabled, get_demo_forecast_risk_payload
 
 router = APIRouter(tags=["Forecast & Prediction"])
 
@@ -67,6 +68,8 @@ def get_forecast_risk(district: str = Query(..., description="District or city n
                 for day in cached_data:
                     day["provenance"] = "[STALE CACHE]"
                 return cached_data
+            if is_demo_fallback_enabled():
+                return get_demo_forecast_risk_payload(district, horizon)
             raise HTTPException(status_code=429, detail="Open-Meteo rate limit exceeded and no cache available")
     except Exception as e:
         if cache_key in _forecast_cache:
@@ -74,6 +77,8 @@ def get_forecast_risk(district: str = Query(..., description="District or city n
             for day in cached_data:
                 day["provenance"] = "[STALE CACHE]"
             return cached_data
+        if is_demo_fallback_enabled():
+            return get_demo_forecast_risk_payload(district, horizon)
         raise HTTPException(status_code=502, detail=f"Weather upstream fetch failed: {str(e)}")
     
     if "hourly" not in data or "time" not in data["hourly"]:

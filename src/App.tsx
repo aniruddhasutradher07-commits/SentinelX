@@ -275,6 +275,7 @@ function CommandCenter() {
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           telemetry={telemetry}
+          isUsingFallbackData={isUsingFallbackData}
           onOpenCopilot={() => setActiveTab('copilot')}
           onOpenDispatcher={() => handleOpenDispatcher('Khordha')}
           onExportSitRep={handleExportSitRep}
@@ -285,13 +286,13 @@ function CommandCenter() {
 
         {/* Fallback Data Warning Banner */}
         {isUsingFallbackData && (
-          <div className="bg-amber-950/80 border-b border-amber-500/50 px-4 py-2 flex justify-center items-center gap-3 z-40 relative shadow-[0_0_15px_rgba(245,158,11,0.15)]">
-            <AlertCircle className="w-4 h-4 text-amber-400 animate-pulse" />
-            <span className="text-amber-200 text-xs font-mono">
-              Reconnecting to live backend — showing cached reference data
+          <div className="bg-amber-950/90 border-b border-amber-500/60 px-4 py-2.5 flex justify-center items-center gap-3 z-40 relative shadow-[0_0_20px_rgba(245,158,11,0.2)]">
+            <AlertCircle className="w-4 h-4 text-amber-400 animate-pulse shrink-0" />
+            <span className="text-amber-200 text-xs font-mono font-medium">
+              External data source unavailable — offline demonstration fixture active
             </span>
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded border border-amber-500/40 bg-amber-900/60 text-amber-300 uppercase tracking-widest font-semibold shadow-sm">
-              [SYNTHETIC]
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded border border-amber-500/60 bg-amber-900/80 text-amber-300 uppercase tracking-widest font-bold shadow-sm">
+              DEMO / SYNTHETIC — NOT LIVE
             </span>
           </div>
         )}

@@ -239,12 +239,18 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
            <OtherHazardsCard telemetry={telemetry} />
         </div>
 
-        {/* ML V2 FORECAST PANEL */}
+        {/* ML V2 FORECAST PANEL (PRIORITY 6) */}
         <div className="glass-panel rounded-xl p-4 border border-fuchsia-500/30 bg-gradient-to-r from-fuchsia-950/20 via-slate-900/60 to-slate-900/40 relative overflow-hidden flex flex-col justify-between">
           <div className="flex flex-col mb-4">
-            <h2 className="text-sm font-bold font-tech text-white uppercase tracking-wider mb-4 border-b border-fuchsia-500/30 pb-2">
-              ML V2 ENVIRONMENTAL FORECAST
-            </h2>
+            <div className="flex items-center justify-between border-b border-fuchsia-500/30 pb-2 mb-3">
+              <h2 className="text-sm font-bold font-tech text-white uppercase tracking-wider">
+                ML V2 ENVIRONMENTAL FORECAST
+              </h2>
+              <span className="text-[9px] font-mono px-2 py-0.5 rounded border border-fuchsia-500/40 bg-fuchsia-950/50 text-fuchsia-300 font-bold uppercase tracking-widest">
+                EXPERIMENTAL
+              </span>
+            </div>
+
             <div className="flex gap-4 items-center">
               <div className="flex flex-col">
                 <span className="text-[10px] text-slate-400 font-mono">CURRENT APPARENT</span>
@@ -260,22 +266,25 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
             </div>
           </div>
           
-          <div className="flex flex-col gap-1 text-[10px] font-mono text-slate-400 mt-auto bg-[#040817]/50 p-3 rounded border border-slate-700/50">
-            <div className="flex gap-2 justify-between border-b border-slate-700/50 pb-1 mb-1">
-              <span>Status:</span>
-              <span className="text-amber-400 border border-amber-500/30 bg-amber-950/30 px-1 rounded">EXPERIMENTAL</span>
+          <div className="flex flex-col gap-1.5 text-[9.5px] font-mono text-slate-400 mt-auto bg-[#040817]/70 p-3 rounded-lg border border-slate-700/60">
+            <div className="flex gap-2 justify-between border-b border-slate-800 pb-1">
+              <span className="text-slate-400 font-semibold">Target Variable:</span>
+              <span className="text-fuchsia-300 font-bold">NEXT_24H_MAX_APPARENT_TEMPERATURE</span>
             </div>
             <div className="flex gap-2 justify-between">
-              <span>Training:</span>
-              <span className="text-slate-200">ERA5 2021-2025</span>
+              <span className="text-slate-400">Reanalysis Source:</span>
+              <span className="text-slate-200">ERA5 / Copernicus (2021-2025)</span>
             </div>
             <div className="flex gap-2 justify-between">
-              <span>Live Input:</span>
-              <span className="text-cyan-300">Open-Meteo</span>
+              <span className="text-slate-400">Feature Dimension:</span>
+              <span className="text-slate-200">36 features</span>
             </div>
-            <div className="flex gap-2 justify-between">
-              <span>Source Alignment:</span>
-              <span className="text-rose-300">NOT EXACT</span>
+            <div className="flex gap-2 justify-between border-t border-slate-800 pt-1">
+              <span className="text-slate-400">Validated Holdout:</span>
+              <span className="text-cyan-300 font-bold">MAE 1.0829°C · RMSE 1.3862°C · R² 0.9055</span>
+            </div>
+            <div className="text-[8.5px] text-amber-400/90 pt-1 border-t border-slate-800/80">
+              * Operational heat triggers remain deterministic. ML V2 serves environmental advisory guidance only.
             </div>
           </div>
         </div>

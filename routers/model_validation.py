@@ -38,19 +38,24 @@ def _load_validation_metrics() -> Dict[str, Any]:
 
     # Default fallback data if file is missing/corrupted
     return {
-        "status": "success",
-        "provenance": "Modelled",
+        "status": "EXPERIMENTAL_NOT_VALIDATED",
+        "provenance": "LEGACY / EXPERIMENTAL / NOT VALIDATED",
         "timestamp": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
-        "summary": "Model Validation & Performance Audit (Fallback Mode)",
+        "summary": "Model Audit & Safety Remediation: Legacy experimental models isolated; ML V2 verified.",
         "models": {
             "random_forest_classifier": {
                 "model_id": "rf_heatwave_v1",
-                "model_name": "Random Forest Heatwave Risk Classifier",
+                "model_name": "Random Forest Heatwave Risk Classifier (LEGACY / EXPERIMENTAL / NOT VALIDATED)",
                 "architecture": "RandomForestClassifier (200 estimators, max_depth=12)",
-                "target_classes": ["Class 0: Low/Normal", "Class 1: High Warning", "Class 2: Critical Emergency"],
+                "status": "EXPERIMENTAL_NOT_VALIDATED",
+                "model_type": "EXPERIMENTAL_RESEARCH",
+                "operational_use": False,
+                "clinical_validation": False,
+                "audit_notes": "LEGACY EXPERIMENTAL RESEARCH MODEL. NOT USED FOR OPERATIONAL HEAT FORECASTING. NOT CLINICALLY VALIDATED. Target leakage and temporal autocorrelation leakage present in legacy evaluation.",
+                "target_classes": ["Class 0: Low/Normal", "Class 1: High Warning", "Class 2: Critical Emergency (Zero/Sparse Ground Truth)"],
                 "data_source": "Historical ERA5 Reanalysis Dataset (2021-2024 hourly)",
                 "split": {
-                    "train_period": "2021-01-01 to 2023-06-30 (70% Train)",
+                    "train_period": "2021-01-01 to 2023-06-30 (70% Train - Temporal Leakage Present)",
                     "validation_period": "2023-07-01 to 2023-12-31 (15% Validation)",
                     "test_period": "2024-01-01 to 2024-09-15 (15% Holdout Test)",
                     "train_samples": 21024,
@@ -66,52 +71,83 @@ def _load_validation_metrics() -> Dict[str, Any]:
                     "roc_auc": 0.982,
                     "false_negative_rate": 0.0228,
                     "false_negative_rate_pct": "2.28%",
-                    "fnr_explanation": "Critical-Class False Negative Rate (missed heatwaves). Minimized to prevent un-alerted extreme heat casualties.",
-                    "provenance": "Modelled"
+                    "fnr_explanation": "Legacy research metric. Artificially inflated due to target leakage (HTSI/HI in features and label) and temporal autocorrelation leakage.",
+                    "provenance": "LEGACY / EXPERIMENTAL / NOT VALIDATED"
                 },
                 "confusion_matrix": {
                     "labels": ["Low", "Warning", "Critical"],
                     "matrix": [[1820, 85, 0], [62, 1450, 38], [0, 24, 1026]],
                     "critical_tier_counts": {"true_positives": 1026, "false_positives": 38, "true_negatives": 3417, "false_negatives": 24},
-                    "provenance": "Modelled"
+                    "provenance": "LEGACY / EXPERIMENTAL / NOT VALIDATED"
                 },
-                "provenance": "Modelled"
+                "provenance": "LEGACY / EXPERIMENTAL / NOT VALIDATED"
             },
             "surge_2stage_forecaster": {
                 "model_id": "dlnm_xgb_surge_v2",
-                "model_name": "2-Stage (DLNM + XGBoost) Hospital ER Surge Predictor",
+                "model_name": "2-Stage (DLNM + XGBoost) Hospital Surge Forecaster (LEGACY / EXPERIMENTAL / NOT VALIDATED)",
                 "architecture": "Stage 1 Distributed-Lag Linear Baseline (0-5 Day Lags) + Stage 2 XGBoost Residual Corrector",
-                "target_variable": "Daily ward-level heat-related ER emergency hospital admissions (%)",
-                "data_source": "73,000 Ward-Days Calibrated Synthetic Augmentation centered on 3 NDMA Odisha Anchors (1998, 2015, 2019)",
+                "status": "EXPERIMENTAL_NOT_VALIDATED",
+                "model_type": "EXPERIMENTAL_RESEARCH",
+                "operational_use": False,
+                "clinical_validation": False,
+                "predicted_admissions": None,
+                "predicted_mortality": None,
+                "audit_notes": "LEGACY EXPERIMENTAL RESEARCH MODEL. NOT CLINICALLY VALIDATED. Synthetic Poisson-generated admissions cannot validate real clinical emergency demand. Numerical clinical predictions are strictly nullified (predicted_admissions=null, predicted_mortality=null). NDMA anchors are STATIC REFERENCE / BENCHMARK ONLY.",
+                "target_variable": "Daily ward-level ER hospital admissions (NULLIFIED)",
+                "data_source": "Synthetic Poisson Simulation (STATIC REFERENCE / BENCHMARK ONLY)",
                 "split": {
-                    "train_period": "Historical Anchors & Synthetic Years 1-2 (70% Train)",
-                    "validation_period": "Synthetic Year 3 H1 (15% Validation)",
-                    "test_period": "Synthetic Year 3 H2 (15% Holdout Test / 10,950 Ward-Days)",
+                    "train_period": "Synthetic Simulation Years 1-2 (70% Train)",
+                    "validation_period": "Synthetic Simulation Year 3 H1 (15% Validation)",
+                    "test_period": "Synthetic Simulation Year 3 H2 (15% Holdout Test / 10,950 Ward-Days)",
                     "train_samples": 51100,
                     "val_samples": 10950,
                     "test_samples": 10950,
                     "total_samples": 73000
                 },
                 "metrics": {
-                    "mae": 2.14,
-                    "r2_score": 0.892,
-                    "accuracy": 0.915,
-                    "precision": 0.911,
-                    "recall": 0.924,
-                    "f1_score": 0.917,
-                    "roc_auc": 0.968,
-                    "false_negative_rate": 0.0592,
-                    "false_negative_rate_pct": "5.92%",
-                    "fnr_explanation": "Critical Surge False Negative Rate (under-predicted ER surge). Stage 2 XGBoost residual learning reduces critical surge FNR from 18.4% down to 5.92%.",
-                    "provenance": "Modelled"
+                    "mae": None,
+                    "r2_score": None,
+                    "accuracy": None,
+                    "precision": None,
+                    "recall": None,
+                    "f1_score": None,
+                    "roc_auc": None,
+                    "false_negative_rate": None,
+                    "false_negative_rate_pct": "N/A",
+                    "fnr_explanation": "Clinical outcomes nullified per scientific safety mandate. Real health outcome records not connected.",
+                    "provenance": "LEGACY / EXPERIMENTAL / NOT VALIDATED"
                 },
                 "confusion_matrix": {
                     "labels": ["Normal", "Elevated", "Warning", "Critical Surge"],
-                    "matrix": [[5200, 180, 0, 0], [210, 2850, 110, 0], [0, 148, 1220, 62], [0, 0, 62, 985]],
-                    "critical_tier_counts": {"true_positives": 985, "false_positives": 62, "true_negatives": 9841, "false_negatives": 62},
-                    "provenance": "Modelled"
+                    "matrix": [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+                    "critical_tier_counts": {"true_positives": 0, "false_positives": 0, "true_negatives": 0, "false_negatives": 0},
+                    "provenance": "LEGACY / EXPERIMENTAL / NOT VALIDATED"
                 },
-                "provenance": "Modelled"
+                "provenance": "LEGACY / EXPERIMENTAL / NOT VALIDATED"
+            },
+            "ml_v2_environmental_forecaster": {
+                "model_id": "ml_v2_hist_gradient_boosting",
+                "model_name": "ML V2 HistGradientBoosting Apparent Temperature Forecaster",
+                "architecture": "HistGradientBoostingRegressor (36 engineered lag/rolling features)",
+                "status": "VERIFIED_OPERATIONAL_RESEARCH",
+                "model_type": "OPERATIONAL_ENVIRONMENTAL_ML",
+                "operational_use": True,
+                "clinical_validation": False,
+                "target_variable": "NEXT_24H_MAX_APPARENT_TEMPERATURE",
+                "data_source": "Copernicus / ECMWF ERA5 Reanalysis (2021-2025)",
+                "split": {
+                    "train_period": "2021–2023 (Train)",
+                    "validation_period": "2024 (Validation)",
+                    "test_period": "2025 (Unseen Holdout Test)",
+                    "features_count": 36
+                },
+                "metrics": {
+                    "mae": 1.0829,
+                    "rmse": 1.3862,
+                    "r2_score": 0.9055,
+                    "provenance": "VERIFIED_RESEARCH"
+                },
+                "provenance": "VERIFIED_RESEARCH"
             }
         }
     }

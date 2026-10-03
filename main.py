@@ -5,11 +5,11 @@ Smart India Hackathon 2026 · PS 26083 (MoES / NCMRWF / Disaster Management)
 
 Integrates:
   1. Teammate's Core FastAPIs: /weather, /wards, /risk, /thermal, /alerts, /dashboard, /live
-  2. SentinelX Advanced ML: 2-Stage DLNM + XGBoost Hospital Surge Forecasts
+  2. Healthcare Demand Research: Hospital Exposure Index (EXPERIMENTAL / NOT CLINICALLY VALIDATED)
   3. H-THERM Biotech / Physiotherapy Human Strain Engine
   4. Real-time NewsAPI Weather & Heatwave Wire with Threat Scoring
   5. 30 Odisha Districts Statewide Command Center & Leaflet Visualization
-  6. AI-Powered Heatwave Classifier (Random Forest 3-class predictor)
+  6. ML V2 Environmental ML: Next-24h Max Apparent Temperature Forecaster (Copernicus ERA5)
   7. Human Thermal Stress Index (HTSI) — composite 0-100 score
   8. Interactive GIS Risk Map (Folium/Leaflet with emergency infrastructure)
   9. Multi-channel Emergency Alert Dispatcher
@@ -56,15 +56,8 @@ from services.live_sync import start_unified_scheduler
 async def lifespan(app: FastAPI):
     # Startup: Starts the unified background providers
     start_unified_scheduler()
-    try:
-        from experimental_ml.heatwave_classifier import get_model
-        model = get_model()
-        model.train()
-    except Exception as e:
-        print(f"[startup] ML model pre-training skipped: {e}")
-    
+    # Note: Production startup NEVER synchronously trains legacy ML models
     yield
-    
     # Shutdown logic (if any)
     pass
 
@@ -76,9 +69,9 @@ app = FastAPI(
 **MoES / NCMRWF / Disaster Management**
 
 Unified API system for extreme heatwave early warning, human thermal stress assessment (WBGT/UTCI/HI), 
-AI-powered heatwave risk classification (Random Forest), Human Thermal Stress Index (HTSI),
+deterministic ward thermal risk scoring, Human Thermal Stress Index (HTSI),
 interactive GIS risk visualization, multi-channel emergency alerts,
-2-stage machine learning hospital surge predictions, and real-time news wire intelligence.
+and ML V2 next-24h apparent temperature forecasting (Copernicus ERA5).
     """,
     version="3.0.0",
     docs_url="/docs",

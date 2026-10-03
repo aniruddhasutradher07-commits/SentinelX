@@ -20,6 +20,7 @@ from typing import Optional, List, Dict, Any
 from services.notification_service import notification_service
 from routers.news import fetch_live_news
 from services.thermal_engine import heat_index_celsius, wbgt_outdoor_celsius, utci_celsius
+from core.demo_fixtures import is_demo_fallback_enabled, get_demo_hospital_demand_payload
 
 router = APIRouter(prefix="/api/v1", tags=["SentinelX ML & Intelligence"])
 
@@ -189,10 +190,14 @@ def get_live_feed():
         "environmental_risk": risk_result,
         "hospital_surge_model": {
             "status": "EXPERIMENTAL_NOT_VALIDATED",
-            "message": "Model removed from production alerting due to target leakage. Retained for research."
+            "model_type": "EXPERIMENTAL_RESEARCH",
+            "clinical_validation": False,
+            "predicted_admissions": None,
+            "predicted_mortality": None,
+            "message": "Model removed from production alerting due to target leakage. Retained strictly for research."
         },
         "elevated_risk_wards_count": 0,
-        "legacy_model_engine": "2-Stage DLNM Lagged Baseline + XGBoost Residual ML",
+        "legacy_model_engine": "LEGACY / EXPERIMENTAL (2-Stage DLNM Lagged Baseline + XGBoost Residual ML)",
         "legacy_hospital_model_r2": "UNVALIDATED"
     }
 
@@ -271,6 +276,7 @@ def get_ml_forecast(lat: float = Query(20.25), lon: float = Query(85.75)):
         # Missing lags, insufficient history, or duplicates trigger this
         return {
             "status": "DATA_UNAVAILABLE",
+            "data_state": feature_res.get("data_state", "INSUFFICIENT_HISTORY"),
             "message": feature_res.get("reason", "Live feature history incomplete."),
             "experimental": True,
             "source": "Copernicus / ECMWF ERA5 trained model",
@@ -569,9 +575,13 @@ def get_bhubaneswar_wards():
             hi = round(heat_index_celsius(temp, rh), 1)
             utci = round(utci_celsius(temp, rh, solar, wind), 1)
         
-            hazard = round((wbgt / 33.0) * 75.0)
-            risk_score = min(100.0, round(hazard * vuln["vulnerability_multiplier"], 1))
-            tier = "Red" if risk_score >= 85 else ("Orange" if risk_score >= 70 else ("Yellow" if risk_score >= 45 else "Green"))
+            hazard_score = min(100.0, max(0.0, round((wbgt / 33.0) * 75.0, 1)))
+            vuln_score = float(vuln.get("vulnerability_score", 50.0))
+            exposure_score = min(100.0, max(0.0, round((pop / 25000.0) * 100.0, 1)))
+
+            # Documented Ward Risk Score composition: 0.50 Hazard + 0.35 Vulnerability + 0.15 Exposure
+            risk_score = min(100.0, round(0.50 * hazard_score + 0.35 * vuln_score + 0.15 * exposure_score, 1))
+            tier = "Red" if risk_score >= 80 else ("Orange" if risk_score >= 60 else ("Yellow" if risk_score >= 40 else "Green"))
         
         
             # Remote sensing fabrications have been stripped per provenance rules
@@ -623,7 +633,10 @@ def get_bhubaneswar_wards():
                 "HI_celsius": hi,
                 "WBGT_celsius": wbgt,
                 "UTCI_celsius": utci,
-                "thermal_hazard_score": hazard,
+                "hazard_score": hazard_score,
+                "thermal_hazard_score": hazard_score,
+                "vulnerability_score": vuln_score,
+                "exposure_score": exposure_score,
                 "WardRiskScore": risk_score,
                 "RiskTier": tier,
             
@@ -701,6 +714,8 @@ def get_ward_hospital_demand(ward_no: str):
         url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&daily=temperature_2m_max,temperature_2m_min,relative_humidity_2m_max,wind_speed_10m_max&timezone=auto&forecast_days=5"
         resp = requests.get(url, timeout=4)
         if resp.status_code != 200:
+            if is_demo_fallback_enabled():
+                return get_demo_hospital_demand_payload(ward_no)
             return {
                 "status": "UNAVAILABLE",
                 "experimental": True,
@@ -822,6 +837,8 @@ def get_ward_hospital_demand(ward_no: str):
             "forecast": forecast
         }
     except Exception as e:
+        if is_demo_fallback_enabled():
+            return get_demo_hospital_demand_payload(ward_no)
         return {
             "status": "UNAVAILABLE",
             "experimental": True,

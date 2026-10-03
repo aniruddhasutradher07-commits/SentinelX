@@ -36,10 +36,29 @@ export const HospitalSurgeView: React.FC<HospitalSurgeViewProps> = ({ summary })
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[10px] font-mono text-amber-400 block">Predicted Admissions</span>
               </div>
-              <span className="text-lg font-bold font-mono text-amber-500">N/A</span>
+              <span className="text-lg font-bold font-mono text-amber-400">N/A</span>
+            </div>
+
+            <div className="bg-tactical-850/70 border border-amber-500/30 p-3 rounded-xl text-right">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-mono text-amber-400 block">Predicted Mortality</span>
+              </div>
+              <span className="text-lg font-bold font-mono text-amber-400">N/A</span>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Clinical Integrity Mandate Card */}
+      <div className="bg-[#030712]/90 border border-amber-500/40 rounded-xl p-4 font-mono text-xs text-slate-300">
+        <div className="flex items-center gap-2 text-amber-400 font-bold mb-1 uppercase tracking-wider text-[11px]">
+          <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
+          <span>Clinical &amp; Hospital Modeling Integrity Mandate</span>
+        </div>
+        <p className="text-[11px] leading-relaxed text-slate-300 font-sans">
+          Admissions = <span className="font-mono text-amber-400 font-bold">N/A</span> · Mortality = <span className="font-mono text-amber-400 font-bold">N/A</span>.
+          In compliance with medical research integrity and NDMA guidelines, HeatGuard AI strictly prohibits returning fabricated patient admissions or heatstroke mortality counts. Verified clinical registries are not linked to this node.
+        </p>
       </div>
 
       {/* Basic Metrics Display */}
@@ -49,23 +68,23 @@ export const HospitalSurgeView: React.FC<HospitalSurgeViewProps> = ({ summary })
           <span className="text-2xl font-bold text-white block mt-2">
             {summary?.odisha_statewide?.peak_wbgt_celsius || 'N/A'} °C
           </span>
-          <span className="text-[10px] text-slate-500 mt-1 block">Experimental metric</span>
+          <span className="text-[10px] text-slate-500 mt-1 block">Bio-meteorological calculated metric</span>
         </div>
 
         <div className="bg-tactical-800/80 border border-tactical-border rounded-2xl p-5">
-          <h2 className="text-sm font-bold text-slate-400">Recovery Status</h2>
+          <h2 className="text-sm font-bold text-slate-400">Physiological Load</h2>
           <span className="text-2xl font-bold text-amber-400 block mt-2">
             Marginal
           </span>
-          <span className="text-[10px] text-slate-500 mt-1 block">Based on physiological models</span>
+          <span className="text-[10px] text-slate-500 mt-1 block">Based on ISO 7243 work-rest curves</span>
         </div>
 
         <div className="bg-tactical-800/80 border border-tactical-border rounded-2xl p-5">
-          <h2 className="text-sm font-bold text-slate-400">Impact Tier</h2>
-          <span className="text-2xl font-bold text-orange-400 block mt-2">
-            Elevated Risk
+          <h2 className="text-sm font-bold text-slate-400">Research Status</h2>
+          <span className="text-2xl font-bold text-fuchsia-400 block mt-2">
+            EXPERIMENTAL
           </span>
-          <span className="text-[10px] text-slate-500 mt-1 block">Synthetic demonstration data</span>
+          <span className="text-[10px] text-slate-500 mt-1 block">Non-clinical research evaluation</span>
         </div>
       </div>
 

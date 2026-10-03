@@ -28,16 +28,16 @@ interface SplitInfo {
 }
 
 interface MetricsInfo {
-  accuracy: number;
-  precision: number;
-  recall: number;
-  f1_score: number;
-  roc_auc: number;
-  false_negative_rate: number;
-  false_negative_rate_pct: string;
-  fnr_explanation: string;
-  mae?: number;
-  r2_score?: number;
+  accuracy?: number | null;
+  precision?: number | null;
+  recall?: number | null;
+  f1_score?: number | null;
+  roc_auc?: number | null;
+  false_negative_rate?: number | null;
+  false_negative_rate_pct?: string | null;
+  fnr_explanation?: string | null;
+  mae?: number | null;
+  r2_score?: number | null;
   provenance: string;
 }
 
@@ -62,6 +62,10 @@ interface ModelDetail {
   target_classes?: string[];
   target_variable?: string;
   data_source: string;
+  audit_notes?: string;
+  status?: string;
+  clinical_validation?: boolean;
+  operational_use?: boolean;
   split: SplitInfo;
   metrics: MetricsInfo;
   confusion_matrix: ConfusionMatrix;
@@ -78,6 +82,7 @@ interface ValidationApiResponse {
   models: {
     random_forest_classifier: ModelDetail;
     surge_2stage_forecaster: ModelDetail;
+    ml_v2_environmental_forecaster?: any;
   };
 }
 
@@ -200,15 +205,17 @@ export const ModelValidationView: React.FC = () => {
                 {/* Header */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/40 text-emerald-400 font-semibold">
-                      MODEL 1 · CLASSIFICATION
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded border border-amber-500/30 bg-amber-950/40 text-amber-400 font-semibold">
+                      LEGACY RESEARCH MODEL · NOT OPERATIONAL
                     </span>
-                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 font-semibold">
-                      [MODELLED]
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-amber-500/30 bg-amber-950/50 text-amber-300 font-semibold">
+                      EXPERIMENTAL / NOT VALIDATED
                     </span>
                   </div>
                   <h2 className="text-lg font-bold text-white font-display">{rfModel.model_name}</h2>
-                  <p className="text-xs text-slate-400 font-mono mt-1">{rfModel.architecture}</p>
+                  <p className="text-xs text-amber-300/80 font-mono mt-1">
+                    ⚠️ NOT USED FOR OPERATIONAL FORECASTING. Target leakage &amp; temporal autocorrelation leakage present in legacy evaluation. Production uses deterministic thermal engines.
+                  </p>
                 </div>
 
                 {/* Train / Val / Test Split */}
@@ -271,23 +278,31 @@ export const ModelValidationView: React.FC = () => {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   <div className="bg-tactical-900 border border-tactical-border rounded-xl p-2.5">
                     <span className="text-[10px] font-mono text-slate-400">Accuracy</span>
-                    <div className="text-lg font-bold font-mono text-emerald-400">{(rfModel.metrics.accuracy * 100).toFixed(1)}%</div>
-                    <span className="text-[9px] font-mono text-slate-500">[MODELLED]</span>
+                    <div className="text-lg font-bold font-mono text-emerald-400">
+                      {rfModel.metrics.accuracy != null ? `${(rfModel.metrics.accuracy * 100).toFixed(1)}%` : 'N/A'}
+                    </div>
+                    <span className="text-[9px] font-mono text-amber-500/80">[LEGACY EVAL]</span>
                   </div>
                   <div className="bg-tactical-900 border border-tactical-border rounded-xl p-2.5">
                     <span className="text-[10px] font-mono text-slate-400">Precision</span>
-                    <div className="text-lg font-bold font-mono text-sky-400">{(rfModel.metrics.precision * 100).toFixed(1)}%</div>
-                    <span className="text-[9px] font-mono text-slate-500">[MODELLED]</span>
+                    <div className="text-lg font-bold font-mono text-sky-400">
+                      {rfModel.metrics.precision != null ? `${(rfModel.metrics.precision * 100).toFixed(1)}%` : 'N/A'}
+                    </div>
+                    <span className="text-[9px] font-mono text-amber-500/80">[LEGACY EVAL]</span>
                   </div>
                   <div className="bg-tactical-900 border border-tactical-border rounded-xl p-2.5">
                     <span className="text-[10px] font-mono text-slate-400">Recall</span>
-                    <div className="text-lg font-bold font-mono text-amber-400">{(rfModel.metrics.recall * 100).toFixed(1)}%</div>
-                    <span className="text-[9px] font-mono text-slate-500">[MODELLED]</span>
+                    <div className="text-lg font-bold font-mono text-amber-400">
+                      {rfModel.metrics.recall != null ? `${(rfModel.metrics.recall * 100).toFixed(1)}%` : 'N/A'}
+                    </div>
+                    <span className="text-[9px] font-mono text-amber-500/80">[LEGACY EVAL]</span>
                   </div>
                   <div className="bg-tactical-900 border border-tactical-border rounded-xl p-2.5">
                     <span className="text-[10px] font-mono text-slate-400">ROC-AUC</span>
-                    <div className="text-lg font-bold font-mono text-purple-400">{rfModel.metrics.roc_auc.toFixed(3)}</div>
-                    <span className="text-[9px] font-mono text-slate-500">[MODELLED]</span>
+                    <div className="text-lg font-bold font-mono text-purple-400">
+                      {rfModel.metrics.roc_auc != null ? rfModel.metrics.roc_auc.toFixed(3) : 'N/A'}
+                    </div>
+                    <span className="text-[9px] font-mono text-amber-500/80">[LEGACY EVAL]</span>
                   </div>
                 </div>
 
@@ -376,15 +391,17 @@ export const ModelValidationView: React.FC = () => {
                 {/* Header */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded border border-sky-500/30 bg-sky-950/40 text-sky-400 font-semibold">
-                      MODEL 2 · EPIDEMIOLOGICAL ER SURGE
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded border border-rose-500/30 bg-rose-950/40 text-rose-400 font-semibold">
+                      LEGACY RESEARCH MODEL · NOT CLINICALLY VALIDATED
                     </span>
-                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 font-semibold">
-                      [MODELLED]
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-rose-500/30 bg-rose-950/50 text-rose-300 font-semibold">
+                      EXPERIMENTAL / NOT VALIDATED
                     </span>
                   </div>
                   <h2 className="text-lg font-bold text-white font-display">{surgeModel.model_name}</h2>
-                  <p className="text-xs text-slate-400 font-mono mt-1">{surgeModel.architecture}</p>
+                  <p className="text-xs text-rose-300/80 font-mono mt-1">
+                    ⚠️ CLINICAL INTEGRITY MANDATE: Synthetic Poisson-generated hospital admissions cannot validate real clinical emergency demand. Numerical clinical predictions are strictly nullified (predicted_admissions=null, predicted_mortality=null).
+                  </p>
                 </div>
 
                 {/* Train / Val / Test Split */}
@@ -392,9 +409,9 @@ export const ModelValidationView: React.FC = () => {
                   <div className="flex items-center justify-between text-xs font-mono">
                     <span className="text-slate-400 flex items-center gap-1.5">
                       <Database className="w-3.5 h-3.5 text-amber-400" />
-                      NDMA Anchors &amp; Ward-Day Dataset Split
+                      Dataset Provenance (Static Reference / Simulation)
                     </span>
-                    <span className="text-slate-300 font-bold">{surgeModel.split.total_samples.toLocaleString()} Ward-Days</span>
+                    <span className="text-slate-300 font-bold">{surgeModel.split.total_samples.toLocaleString()} Simulated Ward-Days</span>
                   </div>
                   
                   {/* Split Progress Bar */}
@@ -420,25 +437,25 @@ export const ModelValidationView: React.FC = () => {
                   </div>
                 </div>
 
-                {/* PROMINENT FALSE NEGATIVE RATE CALLOUT CARD */}
-                <div className="bg-gradient-to-r from-amber-950/60 to-orange-950/40 border border-amber-500/40 rounded-xl p-4 flex items-center justify-between gap-4">
+                {/* PROMINENT CLINICAL NULLIFICATION CARD */}
+                <div className="bg-gradient-to-r from-rose-950/60 to-red-950/40 border border-rose-500/40 rounded-xl p-4 flex items-center justify-between gap-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4 text-amber-400" />
-                      <span className="text-xs font-mono font-bold text-amber-300 uppercase tracking-wider">
-                        Critical Surge False Negative Rate (FNR)
+                      <ShieldAlert className="w-4 h-4 text-rose-400" />
+                      <span className="text-xs font-mono font-bold text-rose-300 uppercase tracking-wider">
+                        Clinical Outcome Prediction Nullification
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-300 max-w-sm">
-                      {surgeModel.metrics.fnr_explanation}
+                      {surgeModel.metrics.fnr_explanation || "Clinical predictions are nullified. Hospital emergency admissions require real validated EHR/EMR feeds."}
                     </p>
                   </div>
                   <div className="text-right shrink-0">
-                    <div className="text-3xl font-black font-mono text-amber-400 tracking-tight">
-                      {surgeModel.metrics.false_negative_rate_pct}
+                    <div className="text-2xl font-black font-mono text-rose-400 tracking-tight">
+                      NULLIFIED
                     </div>
-                    <span className="text-[9px] font-mono text-amber-300/80 uppercase font-semibold">
-                      [MODELLED] · 62 / 1047 Surge Events
+                    <span className="text-[9px] font-mono text-rose-300/80 uppercase font-semibold">
+                      Admissions = null · Mortality = null
                     </span>
                   </div>
                 </div>
@@ -446,24 +463,24 @@ export const ModelValidationView: React.FC = () => {
                 {/* Performance Metrics Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   <div className="bg-tactical-900 border border-tactical-border rounded-xl p-2.5">
-                    <span className="text-[10px] font-mono text-slate-400">Regression MAE</span>
-                    <div className="text-lg font-bold font-mono text-emerald-400">{surgeModel.metrics.mae} adm</div>
-                    <span className="text-[9px] font-mono text-slate-500">[MODELLED]</span>
+                    <span className="text-[10px] font-mono text-slate-400">Admissions Pred.</span>
+                    <div className="text-base font-bold font-mono text-slate-400">null</div>
+                    <span className="text-[9px] font-mono text-slate-500">[NOT ACTIVE]</span>
                   </div>
                   <div className="bg-tactical-900 border border-tactical-border rounded-xl p-2.5">
-                    <span className="text-[10px] font-mono text-slate-400">Variance (R²)</span>
-                    <div className="text-lg font-bold font-mono text-sky-400">{(surgeModel.metrics.r2_score! * 100).toFixed(1)}%</div>
-                    <span className="text-[9px] font-mono text-slate-500">[MODELLED]</span>
+                    <span className="text-[10px] font-mono text-slate-400">Mortality Pred.</span>
+                    <div className="text-base font-bold font-mono text-slate-400">null</div>
+                    <span className="text-[9px] font-mono text-slate-500">[NOT ACTIVE]</span>
                   </div>
                   <div className="bg-tactical-900 border border-tactical-border rounded-xl p-2.5">
-                    <span className="text-[10px] font-mono text-slate-400">Tier Accuracy</span>
-                    <div className="text-lg font-bold font-mono text-amber-400">{(surgeModel.metrics.accuracy * 100).toFixed(1)}%</div>
-                    <span className="text-[9px] font-mono text-slate-500">[MODELLED]</span>
+                    <span className="text-[10px] font-mono text-slate-400">Clinical Valid.</span>
+                    <div className="text-base font-bold font-mono text-rose-400">false</div>
+                    <span className="text-[9px] font-mono text-rose-500">[UNVALIDATED]</span>
                   </div>
                   <div className="bg-tactical-900 border border-tactical-border rounded-xl p-2.5">
-                    <span className="text-[10px] font-mono text-slate-400">ROC-AUC</span>
-                    <div className="text-lg font-bold font-mono text-purple-400">{surgeModel.metrics.roc_auc.toFixed(3)}</div>
-                    <span className="text-[9px] font-mono text-slate-500">[MODELLED]</span>
+                    <span className="text-[10px] font-mono text-slate-400">Model Status</span>
+                    <div className="text-xs font-bold font-mono text-amber-400 truncate">EXPERIMENTAL</div>
+                    <span className="text-[9px] font-mono text-slate-500">[RESEARCH ONLY]</span>
                   </div>
                 </div>
 

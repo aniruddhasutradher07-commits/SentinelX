@@ -1029,7 +1029,7 @@ def compile_national_dashboard():
     <span class="ticker-label"><i class="fa-solid fa-triangle-exclamation"></i> IMD Heat Wave Bulletin</span>
     <div class="ticker-content">
       <span class="ticker-text">
-        🔴 RED ALERT: Extreme Heatwave across 6 States (Rajasthan, Odisha, Delhi NCR, UP, Bihar, West Bengal) | Peak WBGT 34.5°C in Coastal & Gangetic belts (High Evaporative Deficit) | 2-Stage DLNM predicts +48.2% surge in hospital ER admissions | National Power Grid peak cooling strain: +38,400 MW.
+        🔴 RED ALERT: Extreme Heatwave across 6 States (Rajasthan, Odisha, Delhi NCR, UP, Bihar, West Bengal) | Peak WBGT 34.5°C in Coastal & Gangetic belts (High Evaporative Deficit) | Multi-Factor Thermal Stress Advisory Active | National Power Grid peak cooling strain: +38,400 MW.
       </span>
     </div>
   </div>
@@ -1200,12 +1200,12 @@ def compile_national_dashboard():
         <div class="panel-header">
           <div class="panel-title">
             <i class="fa-solid fa-chart-line" style="color: #8b5cf6"></i>
-            2-Stage Hospital Surge Predictor
+            Hospital Strain Exposure Index (EXPERIMENTAL)
           </div>
-          <span class="metric-badge">DLNM + XGBoost</span>
+          <span class="metric-badge">RESEARCH / UNVALIDATED</span>
         </div>
         <p style="font-size: 0.76rem; color: var(--text-muted);">
-          Predicts compounding 5-day lagged hospital admissions across public health centers and clinical emergency beds.
+          Evaluates multi-day thermal exposure indicators. Numerical clinical predictions (admissions, mortality) are nullified per scientific safety policy.
         </p>
 
         <div id="hospitalSurgeChart" style="height: 220px;"></div>

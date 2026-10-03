@@ -38,7 +38,7 @@ Mathematical specifications, standard operating procedures, and scientific formu
 ### 3. [Validation & Engineering Evidence](validation/README.md)
 Empirical verification data and test reproducibility:
 - ML V2 Chronological Holdout (2025 unseen test: MAE 1.0829°C, RMSE 1.3862°C, $R^2$ 0.9055)
-- Automated Pytest Suite: 97 passed, 10 skipped, 0 failed across 25 test suites
+- Automated Pytest Suite: 117 passed, 10 skipped, 0 failed across 28 test suites
 - Frontend TypeScript Strict Typecheck & Vite Production Bundle Verification
 - Data Truth Badging audit matrices
 

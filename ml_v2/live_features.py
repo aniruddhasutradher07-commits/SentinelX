@@ -96,12 +96,14 @@ def build_live_feature_vector(lat: float, lon: float, prediction_time_str: str) 
     except Exception as e:
         return {
             "status": "DATA_UNAVAILABLE",
+            "data_state": "UNAVAILABLE",
             "reason": f"Failed to fetch on-demand history: {e}"
         }
         
     if "hourly" not in d or "time" not in d["hourly"]:
         return {
             "status": "DATA_UNAVAILABLE",
+            "data_state": "UNAVAILABLE",
             "reason": "Invalid response format from Open-Meteo."
         }
         
@@ -113,6 +115,7 @@ def build_live_feature_vector(lat: float, lon: float, prediction_time_str: str) 
     except Exception:
         return {
             "status": "DATA_UNAVAILABLE",
+            "data_state": "UNAVAILABLE",
             "reason": "Malformed timestamp in source data."
         }
     
@@ -120,6 +123,7 @@ def build_live_feature_vector(lat: float, lon: float, prediction_time_str: str) 
     if df["time"].duplicated().any():
         return {
             "status": "DATA_UNAVAILABLE",
+            "data_state": "UNAVAILABLE",
             "reason": "Conflicting duplicate records detected (same timestamp, different weather values)."
         }
         
@@ -145,6 +149,7 @@ def build_live_feature_vector(lat: float, lon: float, prediction_time_str: str) 
     if df.empty:
         return {
             "status": "DATA_UNAVAILABLE",
+            "data_state": "INSUFFICIENT_HISTORY",
             "reason": "No recent hourly history found for the requested grid."
         }
         
@@ -154,6 +159,7 @@ def build_live_feature_vector(lat: float, lon: float, prediction_time_str: str) 
     if len(df) < 25:
         return {
             "status": "DATA_UNAVAILABLE",
+            "data_state": "INSUFFICIENT_HISTORY",
             "reason": f"Insufficient recent hourly history. Found {len(df)}, require 25."
         }
         
@@ -166,6 +172,7 @@ def build_live_feature_vector(lat: float, lon: float, prediction_time_str: str) 
     if missing_times:
         return {
             "status": "DATA_UNAVAILABLE",
+            "data_state": "INSUFFICIENT_HISTORY",
             "reason": f"Missing hourly observations in the last 24h window. Missing hours: {[t.isoformat() for t in missing_times]}"
         }
         

@@ -1,17 +1,28 @@
 """
-experimental_ml/heatwave_classifier.py — Heatwave Risk ML Classifier
-=============================================================
+experimental_ml/heatwave_classifier.py — Legacy Heatwave Risk ML Classifier (EXPERIMENTAL)
+===========================================================================================
 SIH 2026 · PS 26083 (MoES / NCMRWF / Disaster Management)
 
-⚠️ EXPERIMENTAL — NOT VALIDATED ⚠️
-This Random Forest Classifier currently relies on 100% synthetically generated labels 
-(derived from the features themselves), resulting in total target leakage. 
-It must NOT be used for production alerting or presented as a clinically validated 
-hospital-surge predictor. 
+⚠️ LEGACY EXPERIMENTAL RESEARCH MODEL
+⚠️ NOT USED FOR OPERATIONAL HEAT FORECASTING
+⚠️ NOT CLINICALLY VALIDATED
 
-The model is preserved here for research purposes to demonstrate the MLOps 
-pipeline structure, pending the integration of genuine, temporally validated 
-hospital admission datasets.
+AUDITED SCIENTIFIC INTEGRITY WARNINGS & KNOWN METHODOLOGICAL PROBLEMS:
+1. Target Leakage: Target labels were derived directly from HI and HTSI thresholds
+   which were simultaneously supplied to the model as input features.
+2. Extreme Class Imbalance: In historical ERA5 data, Class 2 (Critical Emergency) has zero
+   training samples (or extreme sparsity), causing the model to never learn genuine critical heatwaves.
+3. Temporal Autocorrelation Leakage: Random train_test_split on continuous hourly time-series
+   causes temporal leakage between train and test sets, artificially inflating accuracy.
+4. Synthetic / Non-Meteorological 48h Trend: Legacy code generated future trends using sine curves
+   and pseudo-random Gaussian noise. This is DEPRECATED and REMOVED; operational forecasting must
+   rely solely on verified meteorological forecast models or ML V2 calibrated reanalysis.
+5. Fabricated Proxies & Inferences: Static fallback AQI and zero-trend lags manufacture false state.
+6. Out-of-Distribution Inferences: Day-of-year seasonal variables do not generalize across distinct
+   climate zones without full spatial multi-station calibration.
+
+THIS MODULE IS PRESERVED STRICTLY FOR ACADEMIC/EXPLORATORY MLOps ARCHITECTURE REFERENCE.
+IT IS NEVER EXPOSED AS LIVE OPERATIONAL HEATWAVE PREDICTION.
 """
 
 from __future__ import annotations
@@ -70,8 +81,13 @@ class HeatwavePrediction:
     risk_label: str              # "Low/Normal", "High Warning", "Critical Emergency"
     confidence: float            # probability of the predicted class
     probabilities: Dict[str, float]   # {label: probability}
-    temperature_trend_48h: List[float]  # 48 hourly temp values
     features_used: Dict[str, float]
+    status: str = "EXPERIMENTAL_NOT_VALIDATED"
+    model_type: str = "EXPERIMENTAL_RESEARCH"
+    clinical_validation: bool = False
+    operational_use: bool = False
+    temperature_trend_48h: Optional[List[float]] = None  # Deprecated: synthetic trend points removed
+    forecast_status: str = "UNAVAILABLE / DEPRECATED"
 
 
 def load_era5_dataset(csv_path: str) -> Tuple[np.ndarray, np.ndarray]:
@@ -138,26 +154,17 @@ def load_era5_dataset(csv_path: str) -> Tuple[np.ndarray, np.ndarray]:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 2.  48-hour temperature trend generator
+# 2.  48-hour temperature trend generator (DEPRECATED)
 # ═══════════════════════════════════════════════════════════════════════════
 
-def _generate_48h_trend(current_temp: float, risk_level: int, seed: int = 0) -> List[float]:
+def _generate_48h_trend(current_temp: float, risk_level: int, seed: int = 0) -> Optional[List[float]]:
     """
-    Simulate a 48-hour hourly temperature forecast curve.
-    Applies diurnal cycle + risk-based warming/cooling drift.
+    DEPRECATED / REMOVED.
+    Synthetic sine + random noise trend generation is scientifically invalid.
+    Returns None (UNAVAILABLE / DEPRECATED) instead of pseudo-random forecast observations.
+    Never present synthetic trend points as forecast observations.
     """
-    rng = np.random.default_rng(seed)
-    trend = []
-    drift = {0: -0.02, 1: 0.04, 2: 0.08}.get(risk_level, 0)
-
-    for h in range(48):
-        hour_of_day = (datetime.datetime.now().hour + h) % 24
-        diurnal = math.sin((hour_of_day - 6) * math.pi / 12) * 4.5
-        noise = rng.normal(0, 0.5)
-        temp = current_temp + diurnal + drift * h + noise
-        trend.append(round(max(15, min(52, temp)), 1))
-
-    return trend
+    return None
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -306,6 +313,7 @@ class HeatwaveModel:
 
         confidence = round(float(max(probas)), 4)
 
+        # 48h trend is DEPRECATED and UNAVAILABLE; never return synthetic observations
         trend_48h = _generate_48h_trend(
             temperature_c, risk_level,
             seed=int(temperature_c * 100 + humidity_pct)
@@ -316,12 +324,22 @@ class HeatwaveModel:
             risk_label=RISK_LABELS.get(risk_level, "Unknown"),
             confidence=confidence,
             probabilities=prob_dict,
-            temperature_trend_48h=trend_48h,
             features_used={
                 name: round(float(features[0][i]), 4)
                 for i, name in enumerate(FEATURE_NAMES)
             },
+            status="EXPERIMENTAL_NOT_VALIDATED",
+            model_type="EXPERIMENTAL_RESEARCH",
+            clinical_validation=False,
+            operational_use=False,
+            temperature_trend_48h=trend_48h,
+            forecast_status="UNAVAILABLE / DEPRECATED"
         )
+
+    @classmethod
+    def get_instance(cls) -> HeatwaveModel:
+        """Alias for get_model() singleton access."""
+        return get_model()
 
     def get_feature_importance(self) -> Dict[str, float]:
         """Return feature importance scores from the trained model."""
@@ -332,6 +350,10 @@ class HeatwaveModel:
         """Return training metrics from the last training run."""
         self._ensure_trained()
         return self._train_metrics
+
+
+# HeatwaveClassifier class alias for backward compatibility
+HeatwaveClassifier = HeatwaveModel
 
 
 # ═══════════════════════════════════════════════════════════════════════════

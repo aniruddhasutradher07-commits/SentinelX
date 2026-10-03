@@ -31,10 +31,10 @@ The core environmental forecasting model (`ml_v2_model.joblib`) was trained usin
 
 ## 🧪 Automated Test Suite (Pytest)
 
-The backend automated test suite verifies API stability, edge cases, thermal mathematics, and graceful degradation across 25 independent test modules:
+The backend automated test suite verifies API stability, edge cases, thermal mathematics, and graceful degradation across 28 independent test modules:
 
 ```text
-================== 97 passed, 10 skipped, 1 warning in 37.41s ==================
+================== 117 passed, 10 skipped, 1 warning in 35.93s ==================
 ```
 
 ### Verified Test Categories:

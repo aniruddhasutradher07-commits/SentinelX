@@ -17,6 +17,8 @@ export function DataProvenancePanel({ telemetry }: { telemetry?: any }) {
             <span className="text-white font-bold">Open-Meteo</span>
             {telemetry?.data_quality?.weather === "LIVE" ? (
               <span className="text-emerald-400 bg-emerald-950/30 px-1.5 py-0.5 rounded border border-emerald-500/30">LIVE</span>
+            ) : telemetry?.data_quality?.weather?.includes("SYNTHETIC") || telemetry?.is_demo_fallback || telemetry?.is_synthetic ? (
+              <span className="text-amber-400 bg-amber-950/30 px-1.5 py-0.5 rounded border border-amber-500/30">DEMO / SYNTHETIC — NOT LIVE</span>
             ) : (
               <span className="text-rose-400 bg-rose-950/30 px-1.5 py-0.5 rounded border border-rose-500/30">UNAVAILABLE</span>
             )}
