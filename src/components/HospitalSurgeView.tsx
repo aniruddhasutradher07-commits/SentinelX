@@ -17,7 +17,7 @@ export const HospitalSurgeView: React.FC<HospitalSurgeViewProps> = ({ summary })
               <span className="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 font-mono text-[10px] font-bold uppercase">
                 EXPERIMENTAL_NOT_VALIDATED
               </span>
-              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 uppercase tracking-widest font-semibold">
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-teal-500/30 bg-teal-950/50 text-teal-300 uppercase tracking-widest font-semibold">
                 [EXPERIMENTAL]
               </span>
               <span className="text-slate-500">·</span>

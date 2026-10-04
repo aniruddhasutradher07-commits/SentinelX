@@ -43,7 +43,7 @@ function AIAdvisor({
       {/* Title */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30">
+          <div className="p-2 rounded-xl bg-teal-500/20 text-teal-300 border border-teal-500/30">
             <Brain className="w-5 h-5" />
           </div>
           <div>
@@ -56,7 +56,7 @@ function AIAdvisor({
           </div>
         </div>
 
-        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/30">
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-300 border border-teal-500/30">
           SHAP Feature Explainability
         </span>
       </div>

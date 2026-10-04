@@ -277,7 +277,7 @@ export default function CommandTab({ activeDistrict, liveTemp, telemetry }: Comm
               <Clock className="w-4 h-4 text-cyan-400" />
               Response Flow
             </h4>
-            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/40 text-purple-300 uppercase tracking-widest font-semibold">
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-teal-500/30 bg-teal-900/40 text-teal-300 uppercase tracking-widest font-semibold">
               SIMULATED RESPONSE FLOW
             </span>
           </div>
@@ -303,9 +303,9 @@ export default function CommandTab({ activeDistrict, liveTemp, telemetry }: Comm
                 <span className="text-slate-200">SOP Action Plan Generation</span>
               </div>
             </div>
-            <div className="flex items-start gap-2 text-xs font-mono border-l-2 border-purple-500 pl-2.5 py-0.5">
+            <div className="flex items-start gap-2 text-xs font-mono border-l-2 border-teal-500 pl-2.5 py-0.5">
               <div>
-                <span className="text-purple-400 font-bold text-[10px] block">STEP 4 • AUTHORIZATION</span>
+                <span className="text-teal-400 font-bold text-[10px] block">STEP 4 • AUTHORIZATION</span>
                 <span className="text-slate-200">Operator Review &amp; Alert Protocol</span>
               </div>
             </div>
@@ -326,7 +326,7 @@ export default function CommandTab({ activeDistrict, liveTemp, telemetry }: Comm
               What-If Policy Simulator
             </h4>
             <div className="flex items-center gap-1.5">
-              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 uppercase tracking-widest font-semibold">
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-teal-500/30 bg-teal-900/50 text-teal-300 uppercase tracking-widest font-semibold">
                 [SIMULATION / WHAT-IF]
               </span>
             </div>
@@ -374,7 +374,7 @@ export default function CommandTab({ activeDistrict, liveTemp, telemetry }: Comm
                   <span className="text-rose-400/80 line-through text-xs" title="Observed Baseline Risk">{baseRisk}</span>
                   <span className="text-slate-400">➔</span>
                   <span className="text-emerald-400">{newRisk}</span>
-                  <span className="text-[8px] font-mono px-1 py-0.5 rounded border border-purple-500/30 text-purple-300 uppercase">
+                  <span className="text-[8px] font-mono px-1 py-0.5 rounded border border-teal-500/30 text-teal-300 uppercase">
                     [SIMULATED]
                   </span>
                 </div>

@@ -118,7 +118,7 @@ function EarlyWarning({
 
         <div className="bg-[#0B0D0E]/60 rounded-xl p-3 border border-white/[0.05]">
           <div className="flex items-center gap-2 text-slate-400 text-xs font-mono">
-            <Activity className="w-4 h-4 text-purple-400" />
+            <Activity className="w-4 h-4 text-teal-400" />
             Thermal Stress Index
           </div>
           <p className="text-2xl font-bold font-mono text-amber-300 mt-1">

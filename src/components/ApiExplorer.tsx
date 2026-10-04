@@ -209,7 +209,7 @@ export const ApiExplorer: React.FC = () => {
                   {ep.method}
                 </span>
                 {ep.isAi && (
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-400 border border-teal-500/30">
                     AI
                   </span>
                 )}

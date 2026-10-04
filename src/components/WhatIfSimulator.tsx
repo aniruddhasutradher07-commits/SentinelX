@@ -241,7 +241,7 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({ wards }) => {
           </span>
           <div className="flex items-center justify-between">
             <h3 className="text-2xl font-bold font-sans text-white">Before vs. After Intervention Outcome</h3>
-            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 uppercase tracking-widest font-semibold">
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-teal-500/30 bg-teal-900/50 text-teal-300 uppercase tracking-widest font-semibold">
               [MODELLED]
             </span>
           </div>
@@ -285,7 +285,7 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({ wards }) => {
                 <span className="text-[10px] font-mono bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded border border-teal-500/30 flex items-center gap-1 font-bold">
                   <TrendingDown className="w-3 h-3" /> -{totalReduction} pts
                 </span>
-                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 uppercase tracking-widest font-semibold">
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-teal-500/30 bg-teal-900/50 text-teal-300 uppercase tracking-widest font-semibold">
                   [MODELLED]
                 </span>
               </div>

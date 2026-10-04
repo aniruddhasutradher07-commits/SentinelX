@@ -22,7 +22,9 @@ import {
   Percent,
   Sparkles
 } from 'lucide-react';
+import { getLocalitiesByWard, getPrimaryLocalityByWard, getWardByLocality } from '../utils/wardLocalities';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar, Cell, LineChart, Line, ReferenceLine, PieChart, Pie, ComposedChart, ReferenceArea } from 'recharts';
+
 import { WardRiskRecord } from '../types';
 import { getApiUrl } from '../services/apiConfig';
 import { NightRecoveryCard } from './NightRecoveryCard';
@@ -42,8 +44,15 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
   const zones = ['All', 'North Zone', 'South East Zone', 'South West Zone'];
 
   const filteredWards = wards.filter((w) => {
-    const matchesSearch = w.ward_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      w.zone.toLowerCase().includes(searchTerm.toLowerCase());
+    const lowerTerm = searchTerm.trim().toLowerCase();
+    const wardNo = Number(String(w.ward_no || '').replace(/^W/i, ''));
+    const localities = getLocalitiesByWard(wardNo);
+    const matchesLocality = lowerTerm ? localities.some((loc) => loc.toLowerCase().includes(lowerTerm)) : false;
+    const matchesSearch =
+      !lowerTerm ||
+      w.ward_no.toLowerCase().includes(lowerTerm) ||
+      w.zone.toLowerCase().includes(lowerTerm) ||
+      matchesLocality;
     const matchesZone = selectedZone === 'All' || w.zone === selectedZone;
     return matchesSearch && matchesZone;
   });
@@ -326,7 +335,7 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
           </div>
           <div className="flex items-center gap-2 hidden md:flex">
             <span className="text-[10px] text-sky-400">67 Municipal Wards Modeled</span>
-            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 uppercase tracking-widest font-semibold shrink-0">
+            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded border border-teal-500/30 bg-teal-900/50 text-teal-300 uppercase tracking-widest font-semibold shrink-0">
               [MODELLED]
             </span>
           </div>
@@ -348,8 +357,8 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
                   }`}
               >
                 <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
+                  <div className="flex-1 min-w-0 pr-2">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="font-display font-bold text-base text-white">{w.ward_no}</span>
                       <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded ${w.RiskTier === 'Red'
                           ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold'
@@ -377,6 +386,11 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
                         </span>
                       )}
                     </div>
+                    {(() => {
+                      const wardNo = Number(String(w.ward_no || '').replace(/^W/i, ''));
+                      const primary = getPrimaryLocalityByWard(wardNo);
+                      return primary ? (<p className="text-xs font-medium text-slate-200 mt-1 truncate">{primary}</p>) : null;
+                    })()}
                     <p className="text-[11px] text-slate-400 font-sans mt-0.5">{w.zone}</p>
                   </div>
 
@@ -426,7 +440,7 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
                   <span className="text-cyan-300 font-semibold flex items-center gap-1">
                     🛰️ LST: {w.modis_lst_c || (w.temperature_c ? (w.temperature_c + 6.8).toFixed(1) : '45.8')}°C
                   </span>
-                  <span className={`${(w.uhi_anomaly_c || 3.5) >= 4.0 ? 'text-purple-400 font-bold' : 'text-slate-400'}`}>
+                  <span className={`${(w.uhi_anomaly_c || 3.5) >= 4.0 ? 'text-teal-400 font-bold' : 'text-slate-400'}`}>
                     UHI: {w.uhi_anomaly_c !== undefined ? (w.uhi_anomaly_c >= 0 ? `+${w.uhi_anomaly_c}°C` : `${w.uhi_anomaly_c}°C`) : '+3.5°C'}
                   </span>
                   <span className="text-emerald-400 font-medium">
@@ -454,7 +468,14 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
           </div>
 
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold font-sans text-white">{activeWard?.ward_no || 'W21'}</h2>
+            <div className="flex items-baseline gap-2">
+              <h2 className="text-2xl font-bold font-sans text-white">{activeWard?.ward_no || 'W21'}</h2>
+              {(() => {
+                const wNo = Number(String(activeWard?.ward_no || '').replace(/^W/i, ''));
+                const primary = getPrimaryLocalityByWard(wNo);
+                return primary ? <span className="text-sm font-semibold text-slate-300">({primary})</span> : null;
+              })()}
+            </div>
 
             {/* Grade Chip: color + text label + ordered score, never color alone */}
             <div
@@ -498,7 +519,7 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
               </div>
               <div className="bg-tactical-800 p-2 rounded-xl border border-tactical-border">
                 <span className="text-[9px] text-slate-400 block">UTCI</span>
-                <span className="font-bold text-purple-400">{activeWard?.UTCI_celsius || (activeWard?.temperature_c ? (activeWard.temperature_c + 3.2).toFixed(1) : '41.2')}°C</span>
+                <span className="font-bold text-teal-400">{activeWard?.UTCI_celsius || (activeWard?.temperature_c ? (activeWard.temperature_c + 3.2).toFixed(1) : '41.2')}°C</span>
               </div>
               <div className="bg-tactical-800 p-2 rounded-xl border border-tactical-border">
                 <span className="text-[9px] text-slate-400 block">Heat Index</span>
@@ -958,7 +979,7 @@ export const WardView: React.FC<WardViewProps> = ({ wards, onDispatchAlert }) =>
               <TrendingUp className="w-3.5 h-3.5 text-cyan-400" />
               Cumulative Exposure Trend (5-Day Horizon)
             </h3>
-            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 uppercase tracking-widest font-semibold">
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-teal-500/30 bg-teal-900/50 text-teal-300 uppercase tracking-widest font-semibold">
               [CALCULATED]
             </span>
           </div>

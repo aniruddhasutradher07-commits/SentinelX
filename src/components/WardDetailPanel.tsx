@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getLocalitiesByWard, getPrimaryLocalityByWard } from '../utils/wardLocalities';
 import {
   Thermometer,
   Droplets,
@@ -21,6 +22,10 @@ interface WardDetailPanelProps {
 }
 
 export function WardDetailPanel({ ward }: WardDetailPanelProps) {
+  const wardNo = Number(String(ward?.ward_no ?? '').replace(/^W/i, ''));
+  const primaryLocality = getPrimaryLocalityByWard(wardNo);
+  const [showLocalities, setShowLocalities] = useState(false);
+  const localities = wardNo ? getLocalitiesByWard(wardNo) : [];
   const [activeSubTab, setActiveSubTab] = useState<'metrics' | 'risk' | 'outlook'>('metrics');
 
   if (!ward) {
@@ -105,6 +110,9 @@ export function WardDetailPanel({ ward }: WardDetailPanelProps) {
         <div>
           <div className="flex items-center gap-2">
             <h3 className="text-xl font-tech font-bold text-white tracking-wider">WARD {ward_no}</h3>
+            {primaryLocality && (
+              <p className="text-sm text-slate-300 mt-1">{primaryLocality}</p>
+            )}
             <span className={`text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-wider border ${
               riskTier.toLowerCase() === 'red' ? 'bg-rose-950/60 text-rose-300 border-rose-500/50' :
               riskTier.toLowerCase() === 'orange' ? 'bg-orange-950/60 text-orange-300 border-orange-500/50' :
@@ -115,6 +123,22 @@ export function WardDetailPanel({ ward }: WardDetailPanelProps) {
             </span>
           </div>
           <span className="text-xs text-slate-400">{ward.zone || 'Bhubaneswar Municipal Corporation'}</span>
+          <button
+            className="mt-2 text-[10px] text-teal-400 underline"
+            onClick={() => setShowLocalities(!showLocalities)}
+          >
+            {showLocalities ? 'Hide Areas' : 'Show Areas'}
+          </button>
+          {showLocalities && (
+            <div className="mt-2 text-xs text-slate-300 max-h-40 overflow-y-auto">
+              <strong>Areas covered:</strong>
+              <ul className="list-disc list-inside">
+                {localities.map((loc, i) => (
+                  <li key={i}>{loc}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col items-end gap-1">

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { DistrictRiskRecord } from '../types';
 import { getApiUrl } from '../services/apiConfig';
+import { getPrimaryLocalityByWard, getLocalitiesByWard } from '../utils/wardLocalities';
 
 interface OdishaMapProps {
   districts: DistrictRiskRecord[];
@@ -170,7 +171,10 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
       const wNo = String(w.ward_no || '').toLowerCase();
       const zone = String(w.zone || '').toLowerCase();
       const name = String(w.ward_name || '').toLowerCase();
-      return wNo.includes(term) || zone.includes(term) || name.includes(term);
+      const wardNum = Number(String(w.ward_no || '').replace(/^W/i, '').trim());
+      const localities = getLocalitiesByWard(wardNum);
+      const matchesLocality = localities.some(loc => loc.toLowerCase().includes(term));
+      return wNo.includes(term) || zone.includes(term) || name.includes(term) || matchesLocality;
     });
   }, [wardData, wardSearchTerm]);
 
@@ -415,6 +419,8 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
         const ward = wardData.find(w => String(w.ward_no || '').replace(/^W/i, '').trim() === cleanNo);
         const pop = feature?.properties?.totalwardpopulation || ward?.population || 'N/A';
         const zone = feature?.properties?.municipalzone || ward?.zone || 'Bhubaneswar';
+        const wardNoNum = Number(cleanNo);
+        const primaryLocality = !isNaN(wardNoNum) ? getPrimaryLocalityByWard(wardNoNum) : null;
 
         layer.bindTooltip(
           `<div class="text-xs font-sans">
@@ -424,6 +430,7 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
                 ward?.RiskTier === 'Red' ? '#C0392B' : ward?.RiskTier === 'Orange' ? '#D9772E' : ward?.RiskTier === 'Yellow' ? '#C9A227' : '#3A7D5C'
               }">${ward?.RiskTier || '—'}</span>
             </div>
+            ${primaryLocality ? `<div class="text-slate-200 font-medium text-[11px] mt-0.5">${primaryLocality}</div>` : ''}
             <div class="text-slate-300 mt-1">Zone: <b>${zone}</b></div>
             <div class="text-slate-300">Temp: <b class="text-amber-300 font-mono">${ward?.temperature_c ?? '—'}°C</b></div>
             <div class="text-slate-300">WBGT: <b class="text-amber-300 font-mono">${ward?.WBGT_celsius ?? '—'}°C</b></div>
@@ -659,7 +666,7 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
                   }">${dist.RiskTier}</span>
                 </div>
                 <div class="text-slate-300 mt-1">WBGT: <b class="text-amber-300 font-mono">${dist.WBGT_celsius}°C</b></div>
-                <div class="text-slate-300">Vulnerability M_v: <b class="text-purple-300 font-mono">×${(dist.vulnerability_multiplier || 1.0).toFixed(2)}</b></div>
+                <div class="text-slate-300">Vulnerability M_v: <b class="text-teal-300 font-mono">×${(dist.vulnerability_multiplier || 1.0).toFixed(2)}</b></div>
               </div>`,
               { sticky: true, className: 'leaflet-tooltip-dark' }
             );
@@ -718,10 +725,14 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
                 onClick={() => setWardSelectorOpen(!wardSelectorOpen)}
                 className="w-full flex items-center justify-between gap-3 bg-[#0B0D0E]/90 hover:bg-[#1A1F24] border border-white/20 rounded-xl px-2.5 py-1 text-xs font-mono text-slate-100 transition shadow-sm"
               >
-                <span className="flex items-center gap-1.5">
-                  <span className="text-[9px] text-slate-400 uppercase tracking-wider font-semibold font-sans">SELECT WARD:</span>
-                  <span className="font-bold text-amber-300">
-                    {selectedWardNo} — {currentWard?.zone || 'Zone'}
+                <span className="flex items-center gap-1.5 truncate">
+                  <span className="text-[9px] text-slate-400 uppercase tracking-wider font-semibold font-sans shrink-0">SELECT WARD:</span>
+                  <span className="font-bold text-amber-300 truncate">
+                    {selectedWardNo}{(() => {
+                      const wNum = Number(String(selectedWardNo || '').replace(/^W/i, '').trim());
+                      const loc = getPrimaryLocalityByWard(wNum);
+                      return loc ? ` · ${loc}` : '';
+                    })()} — {currentWard?.zone || 'Zone'}
                   </span>
                 </span>
                 <span className="text-slate-400 text-[10px]">▼</span>
@@ -729,14 +740,14 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
 
               {/* Dropdown Menu with Search */}
               {wardSelectorOpen && (
-                <div className="absolute top-full left-0 mt-1.5 w-64 bg-[#14171A]/98 backdrop-blur-2xl border border-white/15 rounded-xl shadow-2xl p-2 z-[2000] space-y-2">
+                <div className="absolute top-full left-0 mt-1.5 w-72 bg-[#14171A]/98 backdrop-blur-2xl border border-white/15 rounded-xl shadow-2xl p-2 z-[2000] space-y-2">
                   <div className="relative">
                     <Search className="w-3 h-3 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
                       value={wardSearchTerm}
                       onChange={(e) => setWardSearchTerm(e.target.value)}
-                      placeholder="Search Ward (e.g. W5, South)..."
+                      placeholder="Search Ward or Locality (e.g. Pahal, W5)..."
                       autoFocus
                       className="w-full bg-[#0B0D0E] border border-white/15 rounded-lg pl-7 pr-2 py-1 text-[11px] font-mono text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-sky-500"
                     />
@@ -749,6 +760,8 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
                       filteredWards.map((w: any) => {
                         const wNo = w.ward_no ? (w.ward_no.startsWith('W') ? w.ward_no : `W${w.ward_no}`) : 'W?';
                         const isCurrent = wNo.toLowerCase() === selectedWardNo.toLowerCase();
+                        const wNum = Number(String(w.ward_no || '').replace(/^W/i, '').trim());
+                        const primaryLoc = getPrimaryLocalityByWard(wNum);
                         return (
                           <button
                             key={wNo}
@@ -759,8 +772,11 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
                                 : 'text-slate-300 hover:bg-white/[0.05]'
                             }`}
                           >
-                            <span>{wNo} — {w.zone || 'Zone'}</span>
-                            <span className="text-[9px] text-slate-400">{w.WBGT_celsius ? `${w.WBGT_celsius}°C` : ''}</span>
+                            <div className="flex flex-col min-w-0 pr-2">
+                              <span className="truncate">{wNo} {primaryLoc ? `· ${primaryLoc}` : ''}</span>
+                              <span className="text-[9px] text-slate-400 font-sans truncate">{w.zone || 'Zone'}</span>
+                            </div>
+                            <span className="text-[9px] text-slate-400 shrink-0 font-mono">{w.WBGT_celsius ? `${w.WBGT_celsius}°C` : ''}</span>
                           </button>
                         );
                       })
@@ -778,7 +794,7 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
               <span className="text-slate-700">|</span>
               <span className="text-emerald-400">LIVE: <b>{liveLayersCount}</b></span>
               <span className="text-slate-700">|</span>
-              <span className="text-purple-400">CALCULATED: <b>{calcLayersCount}</b></span>
+              <span className="text-teal-400">CALCULATED: <b>{calcLayersCount}</b></span>
             </div>
             <div className="bg-[#14171A]/95 backdrop-blur-xl px-3 py-1.5 rounded-2xl border border-white/[0.08] shadow-2xl text-[10px] font-mono text-slate-300 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -853,7 +869,7 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
                       <Activity className="w-3.5 h-3.5 text-orange-400" />
                       Risk Index (Hazard × M_v)
                     </span>
-                    <span className="text-[8px] font-mono px-1.5 py-0.2 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30">
+                    <span className="text-[8px] font-mono px-1.5 py-0.2 rounded bg-teal-500/15 text-teal-300 border border-teal-500/30">
                       CALCULATED
                     </span>
                   </button>
@@ -873,10 +889,10 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
                     }`}
                   >
                     <span className="flex items-center gap-2">
-                      <Users className="w-3.5 h-3.5 text-purple-400" />
+                      <Users className="w-3.5 h-3.5 text-teal-400" />
                       Vulnerability Index (Census/OSM)
                     </span>
-                    <span className="text-[8px] font-mono px-1.5 py-0.2 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30">
+                    <span className="text-[8px] font-mono px-1.5 py-0.2 rounded bg-teal-500/15 text-teal-300 border border-teal-500/30">
                       CALCULATED
                     </span>
                   </button>
@@ -891,7 +907,7 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
                       <Globe className="w-3.5 h-3.5 text-rose-400" />
                       Urban Heat Island (UHI)
                     </span>
-                    <span className="text-[8px] font-mono px-1.5 py-0.2 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30">
+                    <span className="text-[8px] font-mono px-1.5 py-0.2 rounded bg-teal-500/15 text-teal-300 border border-teal-500/30">
                       CALCULATED
                     </span>
                   </button>
@@ -976,7 +992,7 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
                       Underserved High-Risk Filter
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className="text-[8px] font-mono px-1.5 py-0.2 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30">
+                      <span className="text-[8px] font-mono px-1.5 py-0.2 rounded bg-teal-500/15 text-teal-300 border border-teal-500/30">
                         CALCULATED
                       </span>
                       <input
@@ -1063,7 +1079,7 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
               }`}>
                 {currentWard?.RiskTier || 'Yellow'} Alert
               </span>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30">
                 M_v: ×{(currentWard?.vulnerability_multiplier || 1.15).toFixed(2)}
               </span>
             </div>
@@ -1071,9 +1087,20 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
 
           <div className="flex items-baseline justify-between mt-1">
             <div>
-              <h2 className="text-2xl font-bold font-display text-white tracking-tight">
-                {selectedWardNo}
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-2xl font-bold font-display text-white tracking-tight">
+                  {selectedWardNo}
+                </h2>
+                {(() => {
+                  const wNum = Number(String(selectedWardNo || '').replace(/^W/i, '').trim());
+                  const primaryLoc = getPrimaryLocalityByWard(wNum);
+                  return primaryLoc ? (
+                    <span className="text-sm font-semibold text-slate-300">
+                      ({primaryLoc})
+                    </span>
+                  ) : null;
+                })()}
+              </div>
               <span className="text-xs text-slate-400 font-sans">
                 {currentWard?.zone || 'Bhubaneswar'} · Centroid: {currentWard?.centroid_lat?.toFixed(2) || '20.29'}°N, {currentWard?.centroid_lon?.toFixed(2) || '85.82'}°E
               </span>
@@ -1104,7 +1131,7 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
             </div>
             <div className="bg-[#0B0D0E]/60 p-2 rounded-xl border border-white/[0.05]">
               <span className="text-slate-400 block text-[9px] font-mono uppercase">Hazard</span>
-              <span className="text-sm font-bold font-mono text-purple-400">{currentWard?.thermal_hazard_score || 72}/100</span>
+              <span className="text-sm font-bold font-mono text-teal-400">{currentWard?.thermal_hazard_score || 72}/100</span>
             </div>
           </div>
 
@@ -1118,7 +1145,7 @@ export const OdishaMap: React.FC<OdishaMapProps> = ({
             </div>
             <div className="bg-[#0B0D0E]/60 p-2 rounded-xl border border-white/[0.05]">
               <span className="text-slate-400 block text-[9px] uppercase">Vuln Score</span>
-              <span className="font-bold text-purple-300">
+              <span className="text-teal-300">
                 {currentWard?.vulnerability_score || 58}/100
               </span>
             </div>

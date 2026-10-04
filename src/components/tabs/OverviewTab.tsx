@@ -198,7 +198,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
                   UNAVAILABLE
                 </span>
               )}
-              <span className="font-mono text-purple-400 font-bold text-[10px] sm:text-[11px] whitespace-nowrap">UV: {typeof liveUv === 'number' ? `${liveUv.toFixed(1)}` : 'N/A'}</span>
+              <span className="font-mono text-teal-400 font-bold text-[10px] sm:text-[11px] whitespace-nowrap">UV: {typeof liveUv === 'number' ? `${liveUv.toFixed(1)}` : 'N/A'}</span>
             </div>
           </div>
         </StatCard>

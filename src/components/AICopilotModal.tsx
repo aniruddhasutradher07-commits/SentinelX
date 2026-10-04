@@ -137,7 +137,7 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({ onClose, onDispa
             onClick={() => setActiveSubTab('chat')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition ${
               activeSubTab === 'chat'
-                ? 'bg-purple-500 text-white shadow-md shadow-purple-500/20'
+                ? 'bg-teal-500 text-white shadow-md shadow-teal-500/20'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
@@ -190,7 +190,7 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({ onClose, onDispa
                 className={`flex gap-3 max-w-3xl ${m.sender === 'user' ? 'ml-auto flex-row-reverse' : ''}`}
               >
                 <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                  m.sender === 'user' ? 'bg-sky-500 text-white' : 'bg-purple-600 text-white shadow-lg shadow-purple-500/20'
+                  m.sender === 'user' ? 'bg-sky-500 text-white' : 'bg-teal-600 text-white shadow-lg shadow-teal-500/20'
                 }`}>
                   {m.sender === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                 </div>
@@ -226,11 +226,11 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({ onClose, onDispa
 
             {loadingChat && (
               <div className="flex gap-3 max-w-xl">
-                <div className="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 animate-pulse">
+                <div className="w-8 h-8 rounded-xl bg-teal-600 text-white flex items-center justify-center shrink-0 animate-pulse">
                   <Bot className="w-4 h-4" />
                 </div>
                 <div className="p-3 bg-slate-950/80 border border-slate-800 rounded-2xl text-xs text-slate-400 flex items-center gap-2">
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-purple-400" />
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-teal-400" />
                   Generating operational response...
                 </div>
               </div>
@@ -246,13 +246,13 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({ onClose, onDispa
               onChange={(e) => setInputPrompt(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
               placeholder="Ask HeatGuard AI Incident Commander (e.g. WBGT cooling threshold, surge mitigation, worker shifts)..."
-              className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-500"
+              className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500"
             />
             <button
               id="btn-send-copilot"
               onClick={() => handleSendMessage()}
               disabled={loadingChat || !inputPrompt.trim()}
-              className="px-4 py-2.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition"
+              className="px-4 py-2.5 bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition"
             >
               <Send className="w-3.5 h-3.5" />
               <span>Send</span>

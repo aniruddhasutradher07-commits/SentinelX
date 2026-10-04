@@ -141,7 +141,7 @@ export default function HistoricalReplayTab() {
             <span className="px-2 py-0.5 text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-full">
               [REAL SOURCED BENCHMARKS]
             </span>
-            <span className="px-2 py-0.5 text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/40 rounded-full">
+            <span className="px-2 py-0.5 text-xs font-semibold bg-teal-500/20 text-teal-300 border border-teal-500/40 rounded-full">
               [MODELLED RECONSTRUCTION]
             </span>
           </div>
@@ -318,10 +318,10 @@ export default function HistoricalReplayTab() {
           <div className="bg-tactical-800/70 border border-tactical-border rounded-2xl p-5 space-y-4 backdrop-blur-md">
             <div className="flex items-center justify-between border-b border-tactical-border pb-3">
               <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                <Activity className="w-4 h-4 text-purple-400" />
+                <Activity className="w-4 h-4 text-teal-400" />
                 Reconstructed SentinelX AI Outputs
               </span>
-              <span className="px-2 py-0.5 text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40 rounded">
+              <span className="px-2 py-0.5 text-xs font-bold bg-teal-500/20 text-teal-300 border border-teal-500/40 rounded">
                 [MODELLED RECONSTRUCTION]
               </span>
             </div>
@@ -329,7 +329,7 @@ export default function HistoricalReplayTab() {
             <div className="space-y-3 font-mono text-xs">
               <div className="bg-tactical-850/60 border border-tactical-border p-3 rounded-xl flex justify-between items-center">
                 <span className="text-slate-400 font-sans">Reconstructed HTSI Score:</span>
-                <span className="text-lg font-bold text-purple-300">{currentDay.modelled_htsi.score} / 100</span>
+                <span className="text-lg font-bold text-teal-300">{currentDay.modelled_htsi.score} / 100</span>
               </div>
               <div className="bg-tactical-850/60 border border-tactical-border p-3 rounded-xl flex justify-between items-center">
                 <span className="text-slate-400 font-sans">Reconstructed Risk Tier:</span>
@@ -351,7 +351,7 @@ export default function HistoricalReplayTab() {
               </div>
             </div>
 
-            <div className="p-3 bg-purple-950/20 border border-purple-500/30 rounded-xl text-purple-300 text-[11px] font-sans">
+            <div className="p-3 bg-teal-900/20 border border-teal-500/30 rounded-xl text-teal-300 text-[11px] font-sans">
               <b>Provenance Note: </b>Represents what SentinelX's experimental surge model would have predicted if active in {summary?.event_year}.
             </div>
           </div>
@@ -363,7 +363,7 @@ export default function HistoricalReplayTab() {
                 <ShieldAlert className="w-4 h-4 text-cyan-400" />
                 Action Engine Advisory Directives
               </span>
-              <span className="px-2 py-0.5 text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40 rounded">
+              <span className="px-2 py-0.5 text-xs font-bold bg-teal-500/20 text-teal-300 border border-teal-500/40 rounded">
                 [MODELLED RECONSTRUCTION]
               </span>
             </div>

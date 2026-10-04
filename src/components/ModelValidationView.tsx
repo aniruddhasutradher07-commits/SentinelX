@@ -119,13 +119,13 @@ export const ModelValidationView: React.FC = () => {
       <div className="bg-tactical-800 border border-tactical-border rounded-2xl p-5 relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="space-y-1 z-10">
           <div className="flex items-center gap-2">
-            <span className="p-2 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400">
+            <span className="p-2 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-400">
               <Cpu className="w-5 h-5" />
             </span>
             <h1 className="text-xl font-bold font-display tracking-tight text-white flex items-center gap-2">
               Model Validation &amp; ML Audit Dashboard
             </h1>
-            <span className="text-[9px] font-mono px-2 py-0.5 rounded border border-purple-500/40 bg-purple-950/60 text-purple-300 font-semibold uppercase tracking-wider">
+            <span className="text-[9px] font-mono px-2 py-0.5 rounded border border-teal-500/40 bg-teal-900/60 text-teal-300 font-semibold uppercase tracking-wider">
               [MODELLED]
             </span>
           </div>
@@ -176,7 +176,7 @@ export const ModelValidationView: React.FC = () => {
             <h3 className="font-bold text-amber-300 font-mono uppercase tracking-wider text-sm flex items-center gap-2">
               Disaster Early-Warning Design Principle — False Negative Priority (Rules.md Compliance)
             </h3>
-            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300">
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-teal-500/30 bg-teal-900/50 text-teal-300">
               [MODELLED]
             </span>
           </div>
@@ -299,7 +299,7 @@ export const ModelValidationView: React.FC = () => {
                   </div>
                   <div className="bg-tactical-900 border border-tactical-border rounded-xl p-2.5">
                     <span className="text-[10px] font-mono text-slate-400">ROC-AUC</span>
-                    <div className="text-lg font-bold font-mono text-purple-400">
+                    <div className="text-lg font-bold font-mono text-teal-400">
                       {rfModel.metrics.roc_auc != null ? rfModel.metrics.roc_auc.toFixed(3) : 'N/A'}
                     </div>
                     <span className="text-[9px] font-mono text-amber-500/80">[LEGACY EVAL]</span>
@@ -310,10 +310,10 @@ export const ModelValidationView: React.FC = () => {
                 <div className="bg-tactical-900 border border-tactical-border rounded-xl p-3.5 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-mono text-slate-400 font-semibold flex items-center gap-1.5">
-                      <BarChart3 className="w-3.5 h-3.5 text-purple-400" />
+                      <BarChart3 className="w-3.5 h-3.5 text-teal-400" />
                       Holdout Test Confusion Matrix (3-Class)
                     </span>
-                    <span className="text-[9px] font-mono text-purple-300 border border-purple-500/30 px-1.5 rounded">
+                    <span className="text-[9px] font-mono text-teal-300 border border-teal-500/30 px-1.5 rounded">
                       [MODELLED]
                     </span>
                   </div>
@@ -416,14 +416,14 @@ export const ModelValidationView: React.FC = () => {
                   
                   {/* Split Progress Bar */}
                   <div className="h-3 w-full bg-slate-800 rounded-full overflow-hidden flex">
-                    <div style={{ width: '70%' }} className="bg-purple-500 h-full" title="Train: 70%" />
+                    <div style={{ width: '70%' }} className="bg-teal-500 h-full" title="Train: 70%" />
                     <div style={{ width: '15%' }} className="bg-amber-500 h-full" title="Validation: 15%" />
                     <div style={{ width: '15%' }} className="bg-sky-500 h-full" title="Test Holdout: 15%" />
                   </div>
 
                   <div className="grid grid-cols-3 text-[10px] font-mono gap-1 pt-1 border-t border-[#1F262B]">
                     <div>
-                      <span className="text-purple-400 font-semibold">Train (70%):</span>
+                      <span className="text-teal-400 font-semibold">Train (70%):</span>
                       <p className="text-slate-400">{surgeModel.split.train_samples.toLocaleString()} w-days</p>
                     </div>
                     <div>
@@ -488,10 +488,10 @@ export const ModelValidationView: React.FC = () => {
                 <div className="bg-tactical-900 border border-tactical-border rounded-xl p-3.5 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-mono text-slate-400 font-semibold flex items-center gap-1.5">
-                      <BarChart3 className="w-3.5 h-3.5 text-purple-400" />
+                      <BarChart3 className="w-3.5 h-3.5 text-teal-400" />
                       4-Tier ER Surge Confusion Matrix
                     </span>
-                    <span className="text-[9px] font-mono text-purple-300 border border-purple-500/30 px-1.5 rounded">
+                    <span className="text-[9px] font-mono text-teal-300 border border-teal-500/30 px-1.5 rounded">
                       [MODELLED]
                     </span>
                   </div>

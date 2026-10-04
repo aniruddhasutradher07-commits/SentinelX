@@ -74,7 +74,7 @@ export function DataProvenancePanel({ telemetry }: { telemetry?: any }) {
           <span className="text-slate-500 block mb-1 uppercase">Map / Geography</span>
           <div className="flex justify-between items-center">
             <span className="text-white font-bold">ISRO / NRSC Bhuvan</span>
-            <span className="text-purple-400 bg-purple-950/30 px-1.5 py-0.5 rounded border border-purple-500/30">PENDING ROLLOUT</span>
+            <span className="text-amber-400 bg-amber-950/30 px-1.5 py-0.5 rounded border border-amber-500/30">PENDING ROLLOUT</span>
           </div>
         </div>
 

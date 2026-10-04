@@ -68,7 +68,7 @@ export const HumanImpactForecast: React.FC<HumanImpactForecastProps> = ({ distri
           <p className="text-rose-400">Risk Score: {data['Risk Score']} ({data.tier})</p>
           <p className="text-amber-400">Tmax: {data.Tmax}°C</p>
           <p className="text-sky-300">WBGT: {data.WBGT}°C</p>
-          <p className="text-purple-300">UTCI: {data.UTCI}°C</p>
+          <p className="text-teal-300">UTCI: {data.UTCI}°C</p>
         </div>
       );
     }
@@ -86,7 +86,7 @@ export const HumanImpactForecast: React.FC<HumanImpactForecastProps> = ({ distri
           <p className="text-xs text-slate-400 mt-1">Environmental thermal stress and impact indicators</p>
         </div>
         <div className="flex gap-2 mt-2 sm:mt-0">
-          <span className="text-[9px] font-mono px-2 py-0.5 rounded border border-purple-500/30 bg-purple-950/50 text-purple-300 font-semibold whitespace-nowrap">
+          <span className="text-[9px] font-mono px-2 py-0.5 rounded border border-teal-500/30 bg-teal-900/50 text-teal-300 font-semibold whitespace-nowrap">
             [FORECAST]
           </span>
           <span className="text-[9px] font-mono px-2 py-0.5 rounded border border-rose-500/30 bg-rose-950/50 text-rose-300 font-semibold whitespace-nowrap">

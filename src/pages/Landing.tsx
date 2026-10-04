@@ -220,9 +220,9 @@ export default function Landing({ inApp = false, onOpenCommand }: LandingProps) 
           </div>
 
           {/* Card 3 */}
-          <div className="animate-on-scroll opacity-100 translate-y-0 transition-all duration-500 delay-150 p-6 rounded-xl bg-white/[0.04] backdrop-blur-[16px] border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] hover:bg-white/[0.07] hover:border-purple-500/30 hover:shadow-[0_8px_32px_0_rgba(168,85,247,0.15)] group">
-            <div className="w-12 h-12 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-              <Cpu className="w-6 h-6 text-purple-500" />
+          <div className="animate-on-scroll opacity-100 translate-y-0 transition-all duration-500 delay-150 p-6 rounded-xl bg-white/[0.04] backdrop-blur-[16px] border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] hover:bg-white/[0.07] hover:border-teal-500/30 hover:shadow-[0_8px_32px_0_rgba(6,182,212,0.15)] group">
+            <div className="w-12 h-12 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <Cpu className="w-6 h-6 text-teal-500" />
             </div>
             <h3 className="text-lg font-bold mb-2 tracking-wide uppercase text-white">AI Incident Copilot</h3>
             <p className="text-sm text-gray-400 font-medium leading-relaxed">
