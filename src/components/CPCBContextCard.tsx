@@ -108,10 +108,10 @@ export const CPCBContextCard: React.FC<CPCBContextCardProps> = ({
             <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
             <div className="text-[11px] leading-relaxed text-slate-300 font-sans">
               <span className="font-bold text-slate-100 block mb-0.5">
-                Official CPCB API Connector (Fallback Pipeline Active)
+                {status === 'CREDENTIALS_NOT_CONFIGURED' ? 'Architecturally Integrated — Credentials Not Configured' : 'Official CPCB API Connector (Upstream Unavailable)'}
               </span>
               {status === 'CREDENTIALS_NOT_CONFIGURED' ? (
-                <>CPCB / OGD data.gov.in credentials are not configured in environment. Ambient AQI is served via independent Open-Meteo European/Copernicus atmospheric dispersion models without merging.</>
+                <>CPCB / OGD data.gov.in credentials are not configured in environment. Ambient AQI is served via independent Open-Meteo European/Copernicus atmospheric dispersion models without merging or fabricating data.</>
               ) : (
                 <>CPCB station network is currently unavailable from upstream data.gov.in. Telemetry gracefully degraded to Open-Meteo atmospheric reference.</>
               )}

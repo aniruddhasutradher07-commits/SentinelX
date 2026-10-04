@@ -1,7 +1,10 @@
 import React from 'react';
 
 export function DataProvenancePanel({ telemetry }: { telemetry?: any }) {
-  const cpcbStatus = telemetry?.data_quality?.air_quality === "CREDENTIALS_NOT_CONFIGURED" || telemetry?.air_quality?.status === "CREDENTIALS_NOT_CONFIGURED" ? "CREDENTIALS_NOT_CONFIGURED" : "UNKNOWN";
+  const rawCpcb = telemetry?.data_quality?.air_quality || telemetry?.air_quality?.status || "CREDENTIALS_NOT_CONFIGURED";
+  const cpcbStatus = ["LIVE", "STALE", "UNAVAILABLE", "CREDENTIALS_NOT_CONFIGURED"].includes(rawCpcb) ? rawCpcb : "CREDENTIALS_NOT_CONFIGURED";
+  const rawImd = telemetry?.data_quality?.imd || telemetry?.imd_context?.status || "CREDENTIALS_NOT_CONFIGURED";
+  const imdStatus = ["LIVE", "STALE", "UNAVAILABLE", "CREDENTIALS_NOT_CONFIGURED"].includes(rawImd) ? rawImd : "CREDENTIALS_NOT_CONFIGURED";
   
   return (
     <div className="glass-panel rounded-xl p-4 border border-slate-700/50 w-full font-mono text-[10px] text-slate-300">
@@ -36,16 +39,26 @@ export function DataProvenancePanel({ telemetry }: { telemetry?: any }) {
         <div className="bg-[#040817] p-3 rounded border border-slate-700/50">
           <span className="text-slate-500 block mb-1 uppercase">Air Quality (Reference)</span>
           <div className="flex justify-between items-center">
-            <span className="text-white font-bold">CPCB</span>
-            <span className="text-amber-400 bg-amber-950/30 px-1.5 py-0.5 rounded border border-amber-500/30">{cpcbStatus}</span>
+            <span className="text-white font-bold">CPCB OGD</span>
+            <span className={`px-1.5 py-0.5 rounded border ${
+              cpcbStatus === 'LIVE' ? 'text-emerald-400 bg-emerald-950/30 border-emerald-500/30' :
+              cpcbStatus === 'STALE' ? 'text-amber-400 bg-amber-950/30 border-amber-500/30' :
+              cpcbStatus === 'CREDENTIALS_NOT_CONFIGURED' ? 'text-amber-400 bg-amber-950/30 border-amber-500/30' :
+              'text-rose-400 bg-rose-950/30 border-rose-500/30'
+            }`}>{cpcbStatus}</span>
           </div>
         </div>
 
         <div className="bg-[#040817] p-3 rounded border border-slate-700/50">
-          <span className="text-slate-500 block mb-1 uppercase">Local Weather</span>
+          <span className="text-slate-500 block mb-1 uppercase">District Warning Context</span>
           <div className="flex justify-between items-center">
             <span className="text-white font-bold">IMD</span>
-            <span className="text-amber-400 bg-amber-950/30 px-1.5 py-0.5 rounded border border-amber-500/30">CREDENTIALS_NOT_CONFIGURED</span>
+            <span className={`px-1.5 py-0.5 rounded border ${
+              imdStatus === 'LIVE' ? 'text-emerald-400 bg-emerald-950/30 border-emerald-500/30' :
+              imdStatus === 'STALE' ? 'text-amber-400 bg-amber-950/30 border-amber-500/30' :
+              imdStatus === 'CREDENTIALS_NOT_CONFIGURED' ? 'text-amber-400 bg-amber-950/30 border-amber-500/30' :
+              'text-rose-400 bg-rose-950/30 border-rose-500/30'
+            }`}>{imdStatus}</span>
           </div>
         </div>
 

@@ -228,14 +228,18 @@ def _fetch_open_meteo_batch(locations: List[Dict[str, Any]]) -> Dict[str, Option
 def _get_cached_reading(ward_id: str) -> Optional[WeatherReading]:
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
-    c = conn.cursor()
-    c.execute("""
-        SELECT * FROM weather_observations
-        WHERE ward_id = ?
-        ORDER BY fetched_at DESC LIMIT 1
-    """, (ward_id,))
-    row = c.fetchone()
-    conn.close()
+    row = None
+    try:
+        c = conn.cursor()
+        c.execute("""
+            SELECT * FROM weather_observations
+            WHERE ward_id = ?
+            ORDER BY fetched_at DESC LIMIT 1
+        """, (ward_id,))
+        row = c.fetchone()
+    finally:
+        conn.close()
+
     if not row:
         return None
     return WeatherReading(
@@ -261,21 +265,23 @@ def _get_cached_reading(ward_id: str) -> Optional[WeatherReading]:
 
 def _save_reading(r: WeatherReading):
     conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    
-    # Idempotency check: natural key is ward_id + observed_at
-    c.execute("SELECT id FROM weather_observations WHERE ward_id = ? AND observed_at = ?", (r.ward_id, r.observed_at))
-    existing = c.fetchone()
-    
-    if existing is None:
-        wind_kmh = r.wind_speed_ms * 3.6 if r.wind_speed_ms is not None else None
-        c.execute("""
-            INSERT INTO weather_observations 
-            (ward_id, latitude, longitude, temperature_c, humidity_percent, wind_speed_kmh, uv_index, pm25, pm10, aqi, aqi_standard, source, observed_at, fetched_at, precipitation_mm, rain_mm, weather_code, pressure_hpa, cloud_cover_pct, wind_direction)
-            VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (r.ward_id, r.latitude, r.longitude, r.temperature_c, r.humidity_percent, wind_kmh, r.uv_index, r.aqi, r.aqi_standard, r.source, r.observed_at, r.fetched_at, r.precipitation_mm, r.rain_mm, r.weather_code, r.pressure_hpa, r.cloud_cover_pct, r.wind_direction))
-        conn.commit()
-    conn.close()
+    try:
+        c = conn.cursor()
+        
+        # Idempotency check: natural key is ward_id + observed_at
+        c.execute("SELECT id FROM weather_observations WHERE ward_id = ? AND observed_at = ?", (r.ward_id, r.observed_at))
+        existing = c.fetchone()
+        
+        if existing is None:
+            wind_kmh = r.wind_speed_ms * 3.6 if r.wind_speed_ms is not None else None
+            c.execute("""
+                INSERT INTO weather_observations 
+                (ward_id, latitude, longitude, temperature_c, humidity_percent, wind_speed_kmh, uv_index, pm25, pm10, aqi, aqi_standard, source, observed_at, fetched_at, precipitation_mm, rain_mm, weather_code, pressure_hpa, cloud_cover_pct, wind_direction)
+                VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (r.ward_id, r.latitude, r.longitude, r.temperature_c, r.humidity_percent, wind_kmh, r.uv_index, r.aqi, r.aqi_standard, r.source, r.observed_at, r.fetched_at, r.precipitation_mm, r.rain_mm, r.weather_code, r.pressure_hpa, r.cloud_cover_pct, r.wind_direction))
+            conn.commit()
+    finally:
+        conn.close()
 
 def _generate_mock_iot(lat: float, lon: float, ward_id: str) -> WeatherReading:
     now = datetime.datetime.now(datetime.timezone.utc)

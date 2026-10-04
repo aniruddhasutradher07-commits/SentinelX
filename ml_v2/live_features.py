@@ -82,6 +82,12 @@ def build_live_feature_vector(lat: float, lon: float, prediction_time_str: str) 
     """
     Builds the 36-feature schema expected by ml_v2/inference.py 
     by retrieving exactly the last 25 hours of on-demand history from Open-Meteo.
+
+    Near-Real-Time Limitation:
+    Open-Meteo's `past_hours=25` parameter is resolved relative to the current API
+    request time. This pipeline is designed and verified strictly for near-real-time
+    inference. Arbitrary historical backtesting timestamps are not supported by this
+    live query function; historical replay requires the dedicated ERA5 archive pipeline.
     """
     prediction_time = pd.to_datetime(prediction_time_str)
     if prediction_time.tzinfo is None:
@@ -254,6 +260,9 @@ def build_live_feature_vector(lat: float, lon: float, prediction_time_str: str) 
     
     return {
         "status": "SUCCESS",
+        "label": "EXPERIMENTAL FORECAST — ML V2",
+        "model_status": "EXPERIMENTAL",
+        "target": "NEXT_24H_MAX_APPARENT_TEMPERATURE",
         "feature_vector": features,
         "prediction_time": timestamp.isoformat(),
         "history_start": df_target.index[0].isoformat(),

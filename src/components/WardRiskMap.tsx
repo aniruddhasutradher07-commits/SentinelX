@@ -51,12 +51,12 @@ export function WardRiskMap({ wards = [], activeDistrict = null, onWardSelect }:
     const ward = wardDataById.get(wardNo);
     if (!ward) return '#334155'; // Unknown/slate
     
-    // Use actual backend data risk state
+    // Use actual backend data risk state (Ward Multi-Risk Tier)
     const risk = ward.WardRiskScore || 0;
-    if (risk >= 80) return '#e11d48'; // Extreme - rose
-    if (risk >= 60) return '#ea580c'; // High - orange
-    if (risk >= 40) return '#ca8a04'; // Elevated - yellow
-    return '#16a34a'; // Low - green
+    if (risk >= 80) return '#e11d48'; // Red (80-100)
+    if (risk >= 60) return '#ea580c'; // Orange (60-79.9)
+    if (risk >= 40) return '#ca8a04'; // Yellow (40-59.9)
+    return '#16a34a'; // Green (<40)
   };
 
   const styleGeoJson = (feature: any) => {
@@ -154,14 +154,14 @@ export function WardRiskMap({ wards = [], activeDistrict = null, onWardSelect }:
         </div>
       </div>
       
-      {/* Legend & Overlays */}
+      {/* Ward Multi-Risk Action Legend */}
       <div className="absolute bottom-4 left-4 z-[1000] pointer-events-none">
         <div className="bg-[#040817]/90 backdrop-blur-md p-3 rounded border border-slate-700 text-[10px] font-mono text-slate-300">
-          <div className="font-bold text-white mb-2 uppercase border-b border-slate-700 pb-1">Risk Legend</div>
-          <div className="flex items-center gap-2 mb-1"><span className="w-3 h-3 bg-rose-600 rounded-sm"></span> EXTREME (80+)</div>
-          <div className="flex items-center gap-2 mb-1"><span className="w-3 h-3 bg-orange-600 rounded-sm"></span> HIGH (60-79)</div>
-          <div className="flex items-center gap-2 mb-1"><span className="w-3 h-3 bg-yellow-600 rounded-sm"></span> ELEVATED (40-59)</div>
-          <div className="flex items-center gap-2"><span className="w-3 h-3 bg-green-600 rounded-sm"></span> LOW (0-39)</div>
+          <div className="font-bold text-white mb-2 uppercase border-b border-slate-700 pb-1">Ward Multi-Risk Tier</div>
+          <div className="flex items-center gap-2 mb-1"><span className="w-3 h-3 bg-rose-600 rounded-sm"></span> RED (80–100)</div>
+          <div className="flex items-center gap-2 mb-1"><span className="w-3 h-3 bg-orange-600 rounded-sm"></span> ORANGE (60–79)</div>
+          <div className="flex items-center gap-2 mb-1"><span className="w-3 h-3 bg-yellow-600 rounded-sm"></span> YELLOW (40–59)</div>
+          <div className="flex items-center gap-2"><span className="w-3 h-3 bg-green-600 rounded-sm"></span> GREEN (0–39)</div>
         </div>
       </div>
       

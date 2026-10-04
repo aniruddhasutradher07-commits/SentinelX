@@ -24,7 +24,7 @@ interface AICopilotModalProps {
 export const AICopilotModal: React.FC<AICopilotModalProps> = ({ onClose, onDispatchAlert }) => {
   const [activeSubTab, setActiveSubTab] = useState<'chat' | 'advisory'>('chat');
 
-  const INITIAL_WELCOME = "🔥 **HeatGuard AI Incident Commander Ready.**\n\nI am connected to real-time IMD/ERA5 telemetry, 30 Odisha districts, and 67 Bhubaneswar wards. How can I assist with heatwave mitigation, thermal protocols, or disaster operations today?";
+  const INITIAL_WELCOME = "🔥 **HeatGuard AI Incident Commander Ready.**\n\nI am connected to live atmospheric telemetry, ERA5 climatology, 30 Odisha districts, and 67 Bhubaneswar wards. How can I assist with heatwave mitigation, thermal protocols, or disaster operations today?";
 
   // Chat state
   const [messages, setMessages] = useState<Array<{ sender: 'user' | 'bot'; text: string; source?: string }>>([

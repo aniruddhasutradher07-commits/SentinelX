@@ -28,39 +28,45 @@ class LiveMultiHazard:
 
     def _init_db(self):
         conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("""
-            CREATE TABLE IF NOT EXISTS multi_hazard_cache (
-                id TEXT PRIMARY KEY,
-                data TEXT,
-                fetched_at TEXT
-            )
-        """)
-        conn.commit()
-        conn.close()
+        try:
+            c = conn.cursor()
+            c.execute("""
+                CREATE TABLE IF NOT EXISTS multi_hazard_cache (
+                    id TEXT PRIMARY KEY,
+                    data TEXT,
+                    fetched_at TEXT
+                )
+            """)
+            conn.commit()
+        finally:
+            conn.close()
 
     def get_cached(self, key: str):
         conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("SELECT data, fetched_at FROM multi_hazard_cache WHERE id=?", (key,))
-        row = c.fetchone()
-        conn.close()
+        try:
+            c = conn.cursor()
+            c.execute("SELECT data, fetched_at FROM multi_hazard_cache WHERE id=?", (key,))
+            row = c.fetchone()
+        finally:
+            conn.close()
         if row:
             return json.loads(row[0]), row[1]
         return None, None
 
     def set_cached(self, key: str, data: dict):
         conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        now = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
-        c.execute("""
-            INSERT INTO multi_hazard_cache (id, data, fetched_at)
-            VALUES (?, ?, ?)
-            ON CONFLICT(id) DO UPDATE SET data=excluded.data, fetched_at=excluded.fetched_at
-        """, (key, json.dumps(data), now))
-        conn.commit()
-        conn.close()
-        return now
+        try:
+            c = conn.cursor()
+            now = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
+            c.execute("""
+                INSERT INTO multi_hazard_cache (id, data, fetched_at)
+                VALUES (?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET data=excluded.data, fetched_at=excluded.fetched_at
+            """, (key, json.dumps(data), now))
+            conn.commit()
+            return now
+        finally:
+            conn.close()
 
     def _safe_fetch(self, url: str):
         try:

@@ -162,83 +162,7 @@ def get_mortality_risk(
         }
 
 
-# ---------------------------------------------------------------------------
-# 2. CPCB Live Connector Endpoints (Section 3)
-# ---------------------------------------------------------------------------
-@router.get("/cpcb/status", summary="Central Pollution Control Board (CPCB) Ingestion Status")
-def get_cpcb_status():
-    """
-    Exposes official CPCB ingestion status, credential configuration, and cached stations.
-    Never exposes raw API keys.
-    """
-    has_key = bool(cpcb_client.api_key)
-    is_enabled = cpcb_client.enabled
-    
-    if not is_enabled or not has_key:
-        return {
-            "status": "CREDENTIALS_NOT_CONFIGURED" if not has_key else "UNAVAILABLE",
-            "source": "CPCB / National Air Quality Monitoring Programme (NAMP)",
-            "portal": "https://data.gov.in / CPCB",
-            "credentials_configured": has_key,
-            "service_enabled": is_enabled,
-            "message": "CPCB_API_KEY is not configured in .env. Air quality data is served via independent Open-Meteo European/Copernicus atmospheric models."
-        }
 
-    cache = cpcb_client._get_cache()
-    if not cache:
-        return {
-            "status": "UNAVAILABLE",
-            "source": "CPCB",
-            "credentials_configured": True,
-            "service_enabled": True,
-            "message": "Cache is empty and live CPCB API is currently unreachable."
-        }
-
-    latest_fetch = max((s.get("fetched_at", "") for s in cache), default="")
-    now = datetime.datetime.now(datetime.timezone.utc)
-    data_age_min = None
-    if latest_fetch:
-        try:
-            dt = datetime.datetime.fromisoformat(latest_fetch)
-            data_age_min = int((now - dt).total_seconds() / 60.0)
-        except Exception:
-            pass
-
-    return {
-        "status": "LIVE" if (data_age_min is not None and data_age_min <= 30) else "STALE",
-        "source": "CPCB",
-        "credentials_configured": True,
-        "service_enabled": True,
-        "stations_count": len(cache),
-        "latest_fetched_at": latest_fetch,
-        "data_age_minutes": data_age_min,
-        "stations": [
-            {
-                "station_name": s["station_name"],
-                "observed_at": s.get("observed_at"),
-                "pollutants_tracked": list(s.get("pollutants", {}).keys())
-            } for s in cache
-        ]
-    }
-
-
-@router.get("/cpcb/ward/{ward_no}", summary="Get CPCB Air Quality Observation for Ward")
-def get_cpcb_ward(ward_no: str):
-    try:
-        from routers.sentinelx import get_bhubaneswar_wards
-        all_wards = get_bhubaneswar_wards()["wards"]
-        w = next((x for x in all_wards if x["ward_no"].lower() == ward_no.lower()), None)
-        if not w:
-            raise HTTPException(status_code=404, detail=f"Ward '{ward_no}' not found.")
-        
-        lat = w.get("centroid_lat", 20.2961)
-        lon = w.get("centroid_lon", 85.8245)
-        return cpcb_client.map_ward_to_station(lat, lon)
-    except Exception as ex:
-        return {
-            "status": "UNAVAILABLE",
-            "reason": str(ex)
-        }
 
 
 # ---------------------------------------------------------------------------
@@ -249,17 +173,21 @@ def get_imd_status(district: str = Query("Khordha")):
     """
     Exposes official IMD warning status.
     Warning categories are returned strictly when supplied by IMD, never fabricated.
+    Geographic context is district-level synoptic bulletin (Khordha), not ward sensor telemetry.
     """
     context = imd_client.get_district_context(district)
     return {
         "source": "India Meteorological Department (IMD)",
         "source_type": "official_government",
         "district": district,
+        "spatial_resolution": "district",
+        "geographic_context": context.get("geographic_context", "Khordha"),
         "status": context.get("status", "CREDENTIALS_NOT_CONFIGURED"),
         "warning_category": context.get("warning_level"),
         "nowcast": context.get("nowcast"),
         "observed_at": context.get("observed_at"),
         "fetched_at": context.get("fetched_at"),
+        "data_age_minutes": context.get("data_age_minutes"),
         "reason": context.get("reason"),
         "provenance": "Official National Meteorological Agency" if context.get("status") in ("LIVE", "STALE") else "Unconfigured"
     }

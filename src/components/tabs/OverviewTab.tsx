@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 // @ts-ignore
 import OtherHazardsCard from "../OtherHazardsCard";
 import { StatCard } from "../ui/StatCard";
-import { Thermometer, Droplets, Wind, AlertTriangle, Activity } from "lucide-react";
+import { Thermometer, Droplets, Wind, AlertTriangle, Activity, Info } from "lucide-react";
 import { fetchWithColdStart } from "../../services/apiConfig";
 import { HumanImpactForecast } from "../HumanImpactForecast";
 import { WardRiskMap } from "../WardRiskMap";
@@ -88,7 +88,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
           </div>
           <div className="flex gap-1.5 items-center">
             <span className="text-slate-500">ML V2</span>
-            <span className="text-emerald-400 font-bold flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>LIVE</span>
+            <span className="text-fuchsia-400 font-bold">EXPERIMENTAL</span>
           </div>
           <div className="flex gap-1.5 items-center">
             <span className="text-slate-500">AQI</span>
@@ -183,7 +183,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
           title="AQI & UV INDEX"
           value={typeof liveAqi === 'number' ? Math.round(liveAqi).toString() : "N/A"}
           unit=""
-          subtitle={typeof liveAqi === 'number' ? `Open-Meteo • ${liveAqiStandard}` : "CPCB CREDENTIALS_NOT_CONFIGURED"}
+          subtitle={typeof liveAqi === 'number' ? `Open-Meteo Ambient • ${liveAqiStandard}` : "AQI UNAVAILABLE"}
           icon={Activity}
           tier="yellow"
         >
@@ -195,7 +195,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
                 </span>
               ) : (
                 <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-amber-500/30 bg-amber-950/50 text-amber-300 uppercase tracking-widest font-semibold flex items-center gap-1.5 whitespace-nowrap">
-                  NO CREDS
+                  UNAVAILABLE
                 </span>
               )}
               <span className="font-mono text-purple-400 font-bold text-[10px] sm:text-[11px] whitespace-nowrap">UV: {typeof liveUv === 'number' ? `${liveUv.toFixed(1)}` : 'N/A'}</span>
@@ -214,8 +214,8 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
         <div className="lg:col-span-8 flex flex-col">
           <h3 className="text-sm font-tech font-bold text-white uppercase tracking-wider mb-2 flex items-center gap-2">
             BHUBANESWAR 67-WARD THERMAL RISK MAP
-            <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">
-              LIVE PLUME
+            <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-cyan-950/50 text-cyan-300 border border-cyan-500/40 font-bold">
+              67 WARDS • LIVE TELEMETRY
             </span>
           </h3>
           <div className="h-[400px] lg:h-[500px] w-full">
@@ -244,7 +244,7 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
           <div className="flex flex-col mb-4">
             <div className="flex items-center justify-between border-b border-fuchsia-500/30 pb-2 mb-3">
               <h2 className="text-sm font-bold font-tech text-white uppercase tracking-wider">
-                ML V2 ENVIRONMENTAL FORECAST
+                EXPERIMENTAL FORECAST — ML V2
               </h2>
               <span className="text-[9px] font-mono px-2 py-0.5 rounded border border-fuchsia-500/40 bg-fuchsia-950/50 text-fuchsia-300 font-bold uppercase tracking-widest">
                 EXPERIMENTAL
@@ -258,9 +258,20 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
               </div>
               <div className="h-8 w-px bg-slate-700/50 hidden sm:block"></div>
               <div className="flex flex-col">
-                <span className="text-[10px] text-fuchsia-300 font-mono">NEXT 24H MAX APPARENT</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] text-fuchsia-300 font-mono">NEXT 24-HOUR FORECAST</span>
+                  <div className="group relative cursor-help flex items-center">
+                    <Info className="w-3 h-3 text-slate-400 hover:text-fuchsia-300 transition-colors" />
+                    <div className="hidden group-hover:block absolute bottom-full mb-1 left-1/2 -translate-x-1/2 w-64 p-2 bg-slate-900/95 border border-slate-700 rounded text-[10px] text-slate-300 font-sans shadow-xl z-50 pointer-events-none">
+                      Forecast origin is the latest completed hourly observation. The model predicts the maximum apparent temperature across the following 24 hourly observations.
+                    </div>
+                  </div>
+                </div>
                 <span className="text-2xl font-bold text-fuchsia-400">
                   {mlForecast ? `${mlForecast.prediction.toFixed(1)} °C` : "UNAVAILABLE"}
+                </span>
+                <span className="text-[9px] text-slate-400 font-mono mt-0.5">
+                  Forecast starts from the latest completed hourly observation
                 </span>
               </div>
             </div>
@@ -272,16 +283,37 @@ export default function OverviewTab({ telemetry, activeDistrict, weather, wards 
               <span className="text-fuchsia-300 font-bold">NEXT_24H_MAX_APPARENT_TEMPERATURE</span>
             </div>
             <div className="flex gap-2 justify-between">
-              <span className="text-slate-400">Reanalysis Source:</span>
-              <span className="text-slate-200">ERA5 / Copernicus (2021-2025)</span>
+              <span className="text-slate-400">Training Source:</span>
+              <span className="text-slate-200">Copernicus / ECMWF ERA5</span>
             </div>
             <div className="flex gap-2 justify-between">
-              <span className="text-slate-400">Feature Dimension:</span>
-              <span className="text-slate-200">36 features</span>
+              <span className="text-slate-400">Live Input Source:</span>
+              <span className="text-slate-200">Open-Meteo</span>
             </div>
-            <div className="flex gap-2 justify-between border-t border-slate-800 pt-1">
-              <span className="text-slate-400">Validated Holdout:</span>
-              <span className="text-cyan-300 font-bold">MAE 1.0829°C · RMSE 1.3862°C · R² 0.9055</span>
+            <div className="flex gap-2 justify-between">
+              <span className="text-slate-400">Source Alignment:</span>
+              <span className="text-amber-400 font-semibold">NOT_EXACT</span>
+            </div>
+            <div className="flex gap-2 justify-between">
+              <span className="text-slate-400">Model Status:</span>
+              <span className="text-fuchsia-400 font-bold">EXPERIMENTAL</span>
+            </div>
+            <div className="flex flex-col gap-0.5 border-t border-slate-800 pt-1.5">
+              <div className="flex gap-2 justify-between">
+                <span className="text-slate-400">2025 Holdout MAE:</span>
+                <span className="text-cyan-300 font-bold">1.0829°C</span>
+              </div>
+              <div className="flex gap-2 justify-between">
+                <span className="text-slate-400">24h Persistence Baseline MAE:</span>
+                <span className="text-slate-300 font-bold">1.2024°C</span>
+              </div>
+              <div className="flex gap-2 justify-between">
+                <span className="text-slate-400">MAE improvement vs persistence:</span>
+                <span className="text-emerald-400 font-bold">9.94%</span>
+              </div>
+            </div>
+            <div className="text-[8.5px] text-slate-400 italic pt-0.5">
+              *Historical holdout evaluation metrics, NOT live accuracy.
             </div>
             <div className="text-[8.5px] text-amber-400/90 pt-1 border-t border-slate-800/80">
               * Operational heat triggers remain deterministic. ML V2 serves environmental advisory guidance only.

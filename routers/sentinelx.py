@@ -26,12 +26,6 @@ router = APIRouter(prefix="/api/v1", tags=["SentinelX ML & Intelligence"])
 
 DB_PATH = "sentinelx_data.db"
 
-def get_sentinel_db():
-    if os.path.exists(DB_PATH):
-        conn = sqlite3.connect(DB_PATH)
-        conn.row_factory = sqlite3.Row
-        return conn
-    return None
 
 def compute_h_therm(T, RH, wind, solar, work_type):
     # 1. WBGT (Stull + Globe estimate)
@@ -261,6 +255,12 @@ def get_map_era5(
 
 @router.get("/ml-v2/forecast", summary="Get ML V2 Next-24-Hour Environmental Forecast")
 def get_ml_forecast(lat: float = Query(20.25), lon: float = Query(85.75)):
+    """
+    Near-real-time experimental environmental forecast.
+    Uses the latest completed hourly observation as model origin t and predicts
+    the maximum apparent temperature across the following 24 hourly observations (t+1 ... t+24).
+    Intended strictly for near-real-time prediction using on-demand hourly observations.
+    """
     from ml_v2.live_features import build_live_feature_vector
     from ml_v2.inference import predict_next_24h
     import pandas as pd
@@ -269,7 +269,7 @@ def get_ml_forecast(lat: float = Query(20.25), lon: float = Query(85.75)):
     # 1. Acquire exact current time (do not round down, which would exclude newer valid sub-hourly telemetry)
     now = datetime.now(timezone.utc)
     
-    # 2. Build live features from local telemetry DB
+    # 2. Build live features from local telemetry DB / Open-Meteo
     feature_res = build_live_feature_vector(lat, lon, now.isoformat())
     
     if feature_res["status"] != "SUCCESS":
@@ -278,8 +278,13 @@ def get_ml_forecast(lat: float = Query(20.25), lon: float = Query(85.75)):
             "status": "DATA_UNAVAILABLE",
             "data_state": feature_res.get("data_state", "INSUFFICIENT_HISTORY"),
             "message": feature_res.get("reason", "Live feature history incomplete."),
+            "label": "EXPERIMENTAL FORECAST — ML V2",
+            "model_status": "EXPERIMENTAL",
+            "training_source": "Copernicus / ECMWF ERA5",
+            "live_input_source": "Open-Meteo",
+            "source_alignment": "NOT_EXACT",
+            "target": "NEXT_24H_MAX_APPARENT_TEMPERATURE",
             "experimental": True,
-            "source": "Copernicus / ECMWF ERA5 trained model",
             "model_version": "HistGradientBoosting"
         }
         
@@ -290,17 +295,43 @@ def get_ml_forecast(lat: float = Query(20.25), lon: float = Query(85.75)):
         df_vec = pd.DataFrame([vector])
         prediction = predict_next_24h(df_vec)
         if prediction["status"] != "SUCCESS":
-            return {"status": "DATA_UNAVAILABLE", "message": "Model inference failed"}
+            return {
+                "status": "DATA_UNAVAILABLE",
+                "data_state": "UNAVAILABLE",
+                "message": "Model inference failed",
+                "label": "EXPERIMENTAL FORECAST — ML V2",
+                "model_status": "EXPERIMENTAL",
+                "training_source": feature_res.get("training_source", "Copernicus / ECMWF ERA5"),
+                "live_input_source": feature_res.get("live_input_source", "Open-Meteo"),
+                "source_alignment": feature_res.get("source_alignment", "NOT_EXACT"),
+                "target": "NEXT_24H_MAX_APPARENT_TEMPERATURE",
+                "experimental": True
+            }
             
         pred_val = float(prediction["predictions"][0])
     except Exception as e:
-        return {"status": "DATA_UNAVAILABLE", "message": f"Inference error: {str(e)}"}
+        return {
+            "status": "DATA_UNAVAILABLE",
+            "data_state": "UNAVAILABLE",
+            "message": f"Inference error: {str(e)}",
+            "label": "EXPERIMENTAL FORECAST — ML V2",
+            "model_status": "EXPERIMENTAL",
+            "training_source": feature_res.get("training_source", "Copernicus / ECMWF ERA5"),
+            "live_input_source": feature_res.get("live_input_source", "Open-Meteo"),
+            "source_alignment": feature_res.get("source_alignment", "NOT_EXACT"),
+            "target": "NEXT_24H_MAX_APPARENT_TEMPERATURE",
+            "experimental": True
+        }
         
     return {
         "status": "SUCCESS",
+        "label": "EXPERIMENTAL FORECAST — ML V2",
+        "model_status": "EXPERIMENTAL",
         "model_version": "HistGradientBoosting",
         "target": "NEXT_24H_MAX_APPARENT_TEMPERATURE",
-        "forecast_horizon": "Next 24 hours",
+        "forecast_horizon": "Next 24-Hour Forecast",
+        "forecast_origin_note": "Forecast starts from the latest completed hourly observation",
+        "forecast_origin_semantics": "Forecast origin is the latest completed hourly observation. The model predicts the maximum apparent temperature across the following 24 hourly observations.",
         "prediction": pred_val,
         "prediction_time": feature_res["prediction_time"],
         "history_start": feature_res["history_start"],
@@ -308,6 +339,14 @@ def get_ml_forecast(lat: float = Query(20.25), lon: float = Query(85.75)):
         "training_source": feature_res["training_source"],
         "live_input_source": feature_res["live_input_source"],
         "source_alignment": feature_res["source_alignment"],
+        "historical_holdout_metrics": {
+            "metric_type": "HISTORICAL_HOLDOUT_EVALUATION",
+            "test_year": 2025,
+            "test_mae_celsius": 1.0829,
+            "persistence_baseline_mae_celsius": 1.2024,
+            "mae_improvement_pct": 9.94,
+            "disclaimer": "Historical holdout evaluation metrics, NOT live accuracy."
+        },
         "experimental": True
     }
 
@@ -526,7 +565,7 @@ def get_bhubaneswar_wards():
     
         from services.ingestion import fetch_multi_location, WeatherReading
         from services.imd_client import imd_client
-        from services.cpcb_client import cpcb_client
+        from services.cpcb_client import cpcb_client, calculate_multi_source_aqi_comparison
         from services.health_infra import health_infra
         imd_ctx = imd_client.get_district_context("Khordha")
     
@@ -617,6 +656,7 @@ def get_bhubaneswar_wards():
             aqi_val = cpcb_ctx.get("aqi")
             if aqi_val is None:
                 aqi_val = w_data.aqi
+            aqi_comp = calculate_multi_source_aqi_comparison(w_data.aqi, cpcb_ctx.get("aqi"))
             wards.append({
                 "ward_no": w_no,
                 "zone": p.get("municipalzone") or "North Zone",
@@ -665,6 +705,7 @@ def get_bhubaneswar_wards():
                     "data_age_minutes": w_data.data_age_minutes
                 },
                 "air_quality": cpcb_ctx,
+                "multi_source_aqi_comparison": aqi_comp,
                 "imd_context": imd_ctx,
                 "data_quality": {
                     "weather": "LIVE" if w_data.is_live else ("STALE" if w_data.is_stale else "UNAVAILABLE"),

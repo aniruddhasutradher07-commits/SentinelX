@@ -48,8 +48,15 @@ def test_ml_v2_forecast_api_insufficient_history(monkeypatch):
     data = response.json()
     assert "status" in data
     
+    # Verify DATA_UNAVAILABLE is preserved and never converted into a fake prediction
     assert data["status"] == "DATA_UNAVAILABLE"
+    assert "prediction" not in data or data.get("prediction") is None
     assert "message" in data
+    assert data["label"] == "EXPERIMENTAL FORECAST — ML V2"
+    assert data["model_status"] == "EXPERIMENTAL"
+    assert data["training_source"] == "Copernicus / ECMWF ERA5"
+    assert data["live_input_source"] == "Open-Meteo"
+    assert data["source_alignment"] == "NOT_EXACT"
     assert data["experimental"] is True
 
 def test_ml_v2_forecast_api_success(monkeypatch):
@@ -102,12 +109,32 @@ def test_ml_v2_forecast_api_success(monkeypatch):
     print(data)
     assert data["status"] == "SUCCESS"
     assert "prediction" in data
+    assert isinstance(data["prediction"], (int, float))
+    assert data["label"] == "EXPERIMENTAL FORECAST — ML V2"
+    assert data["model_status"] == "EXPERIMENTAL"
     assert data["target"] == "NEXT_24H_MAX_APPARENT_TEMPERATURE"
-    assert data["forecast_horizon"] == "Next 24 hours"
+    
+    # Forecast horizon wording & semantics
+    assert data["forecast_horizon"] == "Next 24-Hour Forecast"
+    assert data["forecast_origin_note"] == "Forecast starts from the latest completed hourly observation"
+    assert "Forecast origin is the latest completed hourly observation" in data["forecast_origin_semantics"]
+    assert "maximum apparent temperature across the following 24 hourly observations" in data["forecast_origin_semantics"]
+    
+    # Source provenance
     assert data["training_source"] == "Copernicus / ECMWF ERA5"
     assert data["live_input_source"] == "Open-Meteo"
     assert data["source_alignment"] == "NOT_EXACT"
     assert data["experimental"] is True
+
+    # Model performance transparency (historical holdout metrics, NOT live accuracy)
+    assert "historical_holdout_metrics" in data
+    metrics = data["historical_holdout_metrics"]
+    assert metrics["metric_type"] == "HISTORICAL_HOLDOUT_EVALUATION"
+    assert metrics["test_year"] == 2025
+    assert metrics["test_mae_celsius"] == 1.0829
+    assert metrics["persistence_baseline_mae_celsius"] == 1.2024
+    assert metrics["mae_improvement_pct"] == 9.94
+    assert "Historical holdout evaluation metrics, NOT live accuracy" in metrics["disclaimer"]
 
 def test_ml_v2_map_api():
     response = client.get("/api/v1/ml-v2/map")

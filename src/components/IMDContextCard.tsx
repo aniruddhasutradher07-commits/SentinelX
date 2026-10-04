@@ -98,9 +98,9 @@ export const IMDContextCard: React.FC<IMDContextCardProps> = ({
             <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
             <div className="text-[11px] leading-relaxed text-slate-300 font-sans">
               <span className="font-bold text-slate-100 block mb-0.5">
-                Official IMD API Credentials Not Configured
+                Architecturally Integrated — Credentials Not Configured
               </span>
-              Official IMD warnings are shown strictly when returned by the IMD connector. HeatGuard AI does not synthesize synthetic IMD warnings from external forecasts.
+              Official IMD warnings are shown strictly when returned by the verified IMD connector. SentinelX never synthesizes or fabricates government warnings.
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2 mt-1 text-[10px] font-mono text-slate-400 border-t border-tactical-border/40 pt-2">
@@ -114,7 +114,11 @@ export const IMDContextCard: React.FC<IMDContextCardProps> = ({
 
       {/* Footer Disclaimer */}
       <div className="text-[9px] font-mono text-slate-400 text-center border-t border-tactical-border/40 pt-1.5">
-        Source: India Meteorological Department · MoES | Direct Government Telemetry
+        {isConfigured ? (
+          <span>Source: India Meteorological Department · MoES | Official District Bulletin</span>
+        ) : (
+          <span>Source: India Meteorological Department · MoES | Architecturally Integrated — Credentials Not Configured</span>
+        )}
       </div>
     </div>
   );
